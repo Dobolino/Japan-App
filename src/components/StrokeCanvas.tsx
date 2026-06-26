@@ -5,6 +5,7 @@ interface Props {
   strokes: StrokeSegment[]        // reference stroke order data
   mode: 'animate' | 'draw'        // show animation or let user draw
   size?: number                   // canvas pixel size
+  character?: string              // actual Unicode character for ghost in draw mode
   onStrokesChange?: (strokes: DrawingStroke[]) => void
   onEvaluate?: (score: number) => void
 }
@@ -131,7 +132,7 @@ function evaluate(userStrokes: DrawingStroke[], refStrokes: StrokeSegment[], siz
   return Math.min(100, countScore + bbScore)
 }
 
-export default function StrokeCanvas({ strokes, mode, size = 280, onStrokesChange, onEvaluate }: Props) {
+export default function StrokeCanvas({ strokes, mode, size = 280, character, onStrokesChange, onEvaluate }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawing = useRef(false)
   const userStrokes = useRef<DrawingStroke[]>([])
@@ -158,8 +159,19 @@ export default function StrokeCanvas({ strokes, mode, size = 280, onStrokesChang
         }
       })
     } else {
-      // Ghost reference
-      strokes.forEach((seg) => drawSegment(ctx, seg, size, 0.12, '#94a3b8'))
+      // Ghost: render actual Unicode character for accuracy
+      if (character) {
+        ctx.save()
+        ctx.globalAlpha = 0.12
+        ctx.fillStyle = '#e8e8f0'
+        ctx.font = `${size * 0.72}px "Hiragino Sans", "Yu Gothic", sans-serif`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(character, size / 2, size / 2)
+        ctx.restore()
+      } else {
+        strokes.forEach((seg) => drawSegment(ctx, seg, size, 0.12, '#94a3b8'))
+      }
       drawUserStrokes(ctx, userStrokes.current)
     }
   }, [mode, size, strokes])

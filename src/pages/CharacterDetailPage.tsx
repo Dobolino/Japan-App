@@ -118,7 +118,7 @@ export default function CharacterDetailPage() {
             <p className="text-white/40 text-sm text-center">
               Zeichne <span className="text-white">{item.character}</span> nach
             </p>
-            <StrokeCanvas key={item.id + '-draw'} strokes={item.strokes!} mode="draw" size={260} onEvaluate={handleEvaluate} />
+            <StrokeCanvas key={item.id + '-draw'} strokes={item.strokes!} mode="draw" size={260} character={item.character} onEvaluate={handleEvaluate} />
             {score !== null && (
               <div className="text-center">
                 <div className={`text-3xl font-bold ${scoreColor}`}>{score}%</div>
