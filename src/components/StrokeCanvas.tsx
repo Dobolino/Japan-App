@@ -1,58 +1,23 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 import type { StrokeSegment, DrawingStroke } from '../types'
 
+const BASE_URL = import.meta.env.BASE_URL
+
+function svgUrl(char: string) {
+  const cp = char.codePointAt(0)?.toString(16).padStart(4, '0')
+  return cp ? `${BASE_URL}strokes/${cp}.svg` : null
+}
+
 interface Props {
-  strokes: StrokeSegment[]        // reference stroke order data
-  mode: 'animate' | 'draw'        // show animation or let user draw
-  size?: number                   // canvas pixel size
-  character?: string              // actual Unicode character for ghost in draw mode
+  strokes: StrokeSegment[]        // reference stroke order data (fallback)
+  mode: 'animate' | 'draw'
+  size?: number
+  character?: string
   onStrokesChange?: (strokes: DrawingStroke[]) => void
   onEvaluate?: (score: number) => void
 }
 
-const PAD = 0.1  // padding around the character in the canvas
-
-// Draw a single reference stroke segment
-function drawSegment(
-  ctx: CanvasRenderingContext2D,
-  seg: StrokeSegment,
-  size: number,
-  alpha: number,
-  color: string,
-) {
-  if (seg.points.length < 2) return
-  ctx.save()
-  ctx.globalAlpha = alpha
-  ctx.strokeStyle = color
-  ctx.lineWidth = size * 0.04
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-  ctx.beginPath()
-  const [fx, fy] = seg.points[0]
-  ctx.moveTo(fx * size * (1 - 2 * PAD) + size * PAD, fy * size * (1 - 2 * PAD) + size * PAD)
-  for (let i = 1; i < seg.points.length; i++) {
-    const [x, y] = seg.points[i]
-    ctx.lineTo(x * size * (1 - 2 * PAD) + size * PAD, y * size * (1 - 2 * PAD) + size * PAD)
-  }
-  ctx.stroke()
-  // Arrow head at end
-  const last = seg.points[seg.points.length - 1]
-  const prev = seg.points[seg.points.length - 2]
-  const angle = Math.atan2(
-    (last[1] - prev[1]) * size * (1 - 2 * PAD),
-    (last[0] - prev[0]) * size * (1 - 2 * PAD),
-  )
-  const ex = last[0] * size * (1 - 2 * PAD) + size * PAD
-  const ey = last[1] * size * (1 - 2 * PAD) + size * PAD
-  const aLen = size * 0.035
-  ctx.beginPath()
-  ctx.moveTo(ex, ey)
-  ctx.lineTo(ex - aLen * Math.cos(angle - 0.4), ey - aLen * Math.sin(angle - 0.4))
-  ctx.moveTo(ex, ey)
-  ctx.lineTo(ex - aLen * Math.cos(angle + 0.4), ey - aLen * Math.sin(angle + 0.4))
-  ctx.stroke()
-  ctx.restore()
-}
+const PAD = 0.1
 
 // Draw grid guide lines
 function drawGrid(ctx: CanvasRenderingContext2D, size: number) {
@@ -132,98 +97,83 @@ function evaluate(userStrokes: DrawingStroke[], refStrokes: StrokeSegment[], siz
   return Math.min(100, countScore + bbScore)
 }
 
+// ── Animate mode: SVG from animCJK ──────────────────────────────────────────
+function AnimateSVG({ character, size }: { character: string; size: number }) {
+  const [replayKey, setReplayKey] = useState(0)
+  const url = svgUrl(character)
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center"
+        style={{ width: size, height: size, background: 'rgba(255,255,255,0.03)' }}
+      >
+        {url ? (
+          <img
+            key={replayKey}
+            src={url}
+            alt={character}
+            style={{ width: '85%', height: '85%', objectFit: 'contain' }}
+          />
+        ) : (
+          <span className="text-white/20 text-sm text-center px-4">Keine Strichdaten verfügbar</span>
+        )}
+      </div>
+      {url && (
+        <button
+          onClick={() => setReplayKey(k => k + 1)}
+          className="text-indigo-400 text-xs underline"
+        >
+          Nochmal
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── Draw mode: canvas ────────────────────────────────────────────────────────
 export default function StrokeCanvas({ strokes, mode, size = 280, character, onStrokesChange, onEvaluate }: Props) {
+  // Animate mode: use SVG
+  if (mode === 'animate' && character) {
+    return <AnimateSVG character={character} size={size} />
+  }
+
+  return <DrawCanvas strokes={strokes} size={size} character={character} onStrokesChange={onStrokesChange} onEvaluate={onEvaluate} />
+}
+
+function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluate }: Omit<Props, 'mode'>) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawing = useRef(false)
   const userStrokes = useRef<DrawingStroke[]>([])
-  const animFrame = useRef<number>(0)
-  const [animIndex, setAnimIndex] = useState(0)
-  const [animDone, setAnimDone] = useState(false)
 
-  // Reset animation whenever strokes data changes (= navigated to new character)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setAnimDone(false); setAnimIndex(0) }, [strokes])
-
-  const redraw = useCallback((highlightUpTo?: number) => {
+  const redraw = useCallback(() => {
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!ctx || !canvas) return
     ctx.clearRect(0, 0, size, size)
     drawGrid(ctx, size)
-
-    if (mode === 'animate') {
-      // Ghost: actual character behind the stroke animation
-      if (character) {
-        ctx.save()
-        ctx.globalAlpha = 0.08
-        ctx.fillStyle = '#e8e8f0'
-        ctx.font = `${size * 0.72}px "Hiragino Sans", "Yu Gothic", sans-serif`
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(character, size / 2, size / 2)
-        ctx.restore()
-      }
-      const limit = highlightUpTo ?? strokes.length
-      strokes.forEach((seg, i) => {
-        if (i < limit) {
-          drawSegment(ctx, seg, size, i === limit - 1 ? 1.0 : 0.3, i === limit - 1 ? '#a5b4fc' : '#4b5563')
-        }
-      })
-    } else {
-      // Ghost: render actual Unicode character for accuracy
-      if (character) {
-        ctx.save()
-        ctx.globalAlpha = 0.12
-        ctx.fillStyle = '#e8e8f0'
-        ctx.font = `${size * 0.72}px "Hiragino Sans", "Yu Gothic", sans-serif`
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(character, size / 2, size / 2)
-        ctx.restore()
-      } else {
-        strokes.forEach((seg) => drawSegment(ctx, seg, size, 0.12, '#94a3b8'))
-      }
-      drawUserStrokes(ctx, userStrokes.current)
+    // Ghost: real Unicode character
+    if (character) {
+      ctx.save()
+      ctx.globalAlpha = 0.13
+      ctx.fillStyle = '#e8e8f0'
+      ctx.font = `${size * 0.72}px "Hiragino Sans", "Yu Gothic", sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(character, size / 2, size / 2)
+      ctx.restore()
     }
-  }, [mode, size, strokes, character])
+    drawUserStrokes(ctx, userStrokes.current)
+  }, [size, character])
 
-  // Animate stroke by stroke
-  useEffect(() => {
-    if (mode !== 'animate') return
-    if (animDone) { redraw(strokes.length); return }
+  useEffect(() => { redraw() }, [redraw])
 
-    let current = 0
-    setAnimIndex(0)
-    setAnimDone(false)
-
-    function step() {
-      current++
-      setAnimIndex(current)
-      redraw(current)
-      if (current < strokes.length) {
-        animFrame.current = window.setTimeout(step, 700)
-      } else {
-        setAnimDone(true)
-      }
-    }
-    animFrame.current = window.setTimeout(step, 400)
-    return () => clearTimeout(animFrame.current)
-  }, [mode, strokes, redraw, animDone])
-
-  useEffect(() => {
-    if (mode === 'draw') redraw()
-  }, [mode, redraw])
-
-  // Pointer handlers for drawing mode
   const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect()
-    const scaleX = size / rect.width
-    const scaleY = size / rect.height
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }
+    return { x: (e.clientX - rect.left) * (size / rect.width), y: (e.clientY - rect.top) * (size / rect.height) }
   }
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (mode !== 'draw') return
     isDrawing.current = true
     ;(e.target as HTMLCanvasElement).setPointerCapture(e.pointerId)
     userStrokes.current.push({ points: [getPos(e)] })
@@ -231,9 +181,8 @@ export default function StrokeCanvas({ strokes, mode, size = 280, character, onS
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing.current || mode !== 'draw') return
-    const last = userStrokes.current[userStrokes.current.length - 1]
-    last.points.push(getPos(e))
+    if (!isDrawing.current) return
+    userStrokes.current[userStrokes.current.length - 1].points.push(getPos(e))
     redraw()
   }
 
@@ -241,8 +190,7 @@ export default function StrokeCanvas({ strokes, mode, size = 280, character, onS
     if (!isDrawing.current) return
     isDrawing.current = false
     onStrokesChange?.(userStrokes.current)
-    const score = evaluate(userStrokes.current, strokes, size)
-    onEvaluate?.(score)
+    onEvaluate?.(evaluate(userStrokes.current, strokes, size))
   }
 
   const clear = () => {
@@ -250,10 +198,6 @@ export default function StrokeCanvas({ strokes, mode, size = 280, character, onS
     onStrokesChange?.([])
     onEvaluate?.(0)
     redraw()
-  }
-
-  const replay = () => {
-    setAnimDone(false)
   }
 
   return (
@@ -270,25 +214,12 @@ export default function StrokeCanvas({ strokes, mode, size = 280, character, onS
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
-          style={{ width: '100%', height: '100%', cursor: mode === 'draw' ? 'crosshair' : 'default' }}
+          style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
         />
       </div>
-
-      {mode === 'animate' && (
-        <div className="flex items-center gap-3">
-          <span className="text-white/40 text-xs">Strich {Math.min(animIndex, strokes.length)} / {strokes.length}</span>
-          <button onClick={replay} className="text-indigo-400 text-xs underline">Nochmal</button>
-        </div>
-      )}
-
-      {mode === 'draw' && (
-        <button
-          onClick={clear}
-          className="px-4 py-1.5 rounded-full bg-white/10 text-white/60 text-sm active:scale-95 transition-transform"
-        >
-          Löschen
-        </button>
-      )}
+      <button onClick={clear} className="px-4 py-1.5 rounded-full bg-white/10 text-white/60 text-sm active:scale-95 transition-transform">
+        Löschen
+      </button>
     </div>
   )
 }
