@@ -1,19 +1,30 @@
+import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import type { ItemCategory } from '../types'
 import HiraganaGrid from '../components/HiraganaGrid'
 import KatakanaGrid from '../components/KatakanaGrid'
 import KanjiPage from './KanjiPage'
 import VocabPage from './VocabPage'
+import GrammarPage from './GrammarPage'
 
-const TABS: { key: ItemCategory; label: string; kana: string }[] = [
+type Tab = ItemCategory | 'grammar'
+
+const TABS: { key: Tab; label: string; kana: string }[] = [
   { key: 'hiragana',   label: 'Hiragana',  kana: 'あ' },
   { key: 'katakana',   label: 'Katakana',  kana: 'ア' },
   { key: 'kanji',      label: 'Kanji',     kana: '漢' },
   { key: 'vocabulary', label: 'Vokabeln',  kana: '語' },
+  { key: 'grammar',    label: 'Grammatik', kana: '文' },
 ]
 
 export default function LearnPage() {
   const { activeCategory, setActiveCategory } = useStore()
+  const [tab, setTab] = useState<Tab>(activeCategory)
+
+  const handleTab = (t: Tab) => {
+    setTab(t)
+    if (t !== 'grammar') setActiveCategory(t as ItemCategory)
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -22,9 +33,9 @@ export default function LearnPage() {
         {TABS.map(({ key, label, kana }) => (
           <button
             key={key}
-            onClick={() => setActiveCategory(key)}
+            onClick={() => handleTab(key)}
             className={`flex-none flex items-center gap-1 px-3 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeCategory === key
+              tab === key
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-white/40'
             }`}
@@ -35,12 +46,13 @@ export default function LearnPage() {
         ))}
       </div>
 
-      {/* Active category content */}
+      {/* Active tab content */}
       <div className="flex-1 overflow-hidden">
-        {activeCategory === 'hiragana'   && <HiraganaGrid />}
-        {activeCategory === 'katakana'   && <KatakanaGrid />}
-        {activeCategory === 'kanji'      && <KanjiPage />}
-        {activeCategory === 'vocabulary' && <VocabPage />}
+        {tab === 'hiragana'   && <HiraganaGrid />}
+        {tab === 'katakana'   && <KatakanaGrid />}
+        {tab === 'kanji'      && <KanjiPage />}
+        {tab === 'vocabulary' && <VocabPage />}
+        {tab === 'grammar'    && <GrammarPage />}
       </div>
     </div>
   )
