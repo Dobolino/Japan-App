@@ -8,6 +8,16 @@ import { kanjiN5Data } from '../data/kanji-n5'
 
 const ALL_SEED = [...hiraganaData, ...katakanaData, ...vocabularyData, ...kanjiN5Data]
 
+const XP_PER_CORRECT = 10
+const XP_PER_LEVEL = 200
+
+export function xpToLevel(xp: number) {
+  return Math.floor(xp / XP_PER_LEVEL) + 1
+}
+export function xpInLevel(xp: number) {
+  return xp % XP_PER_LEVEL
+}
+
 interface AppState {
   items: Record<string, LearningItem>
   progress: UserProgress
@@ -26,9 +36,14 @@ interface AppState {
 const defaultProgress: UserProgress = {
   totalSessions: 0,
   currentStreak: 0,
+  longestStreak: 0,
   lastStudyDate: null,
   totalCorrect: 0,
   totalErrors: 0,
+  xp: 0,
+  level: 1,
+  todayCorrect: 0,
+  todayDate: null,
 }
 
 function sm2(item: LearningItem, rating: SRSRating) {
@@ -58,13 +73,15 @@ function sm2(item: LearningItem, rating: SRSRating) {
   return { easeFactor, interval, repetitions, status, nextReviewDate: next.toISOString() }
 }
 
-function calcStreak(progress: UserProgress): number {
+function updateStreak(progress: UserProgress): { currentStreak: number; longestStreak: number } {
   const today = new Date().toDateString()
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
   const last = progress.lastStudyDate ? new Date(progress.lastStudyDate).toDateString() : null
-  if (last === yesterday.toDateString()) return progress.currentStreak + 1
-  if (last === today) return progress.currentStreak
-  return 1
+  let streak = progress.currentStreak
+  if (last === yesterday.toDateString()) streak = progress.currentStreak + 1
+  else if (last === today) streak = progress.currentStreak
+  else streak = 1
+  return { currentStreak: streak, longestStreak: Math.max(streak, progress.longestStreak ?? 0) }
 }
 
 export const useStore = create<AppState>()(
@@ -94,9 +111,34 @@ export const useStore = create<AppState>()(
         const { items, progress } = get()
         const item = items[id]; if (!item) return
         const correct = rating >= 2
+        const today = new Date().toDateString()
+        const todayCorrect = (progress.todayDate === today ? progress.todayCorrect : 0) + (correct ? 1 : 0)
+        const earnedXp = correct ? XP_PER_CORRECT : 0
+        const newXp = (progress.xp ?? 0) + earnedXp
+        const streakUpdate = updateStreak(progress)
         set((s) => ({
-          items: { ...s.items, [id]: { ...item, ...sm2(item, rating), lastReviewDate: new Date().toISOString(), errorCount: item.errorCount + (correct ? 0 : 1), correctCount: item.correctCount + (correct ? 1 : 0) } },
-          progress: { ...s.progress, totalCorrect: s.progress.totalCorrect + (correct ? 1 : 0), totalErrors: s.progress.totalErrors + (correct ? 0 : 1), currentStreak: calcStreak(progress), lastStudyDate: new Date().toISOString(), totalSessions: s.progress.totalSessions + 1 },
+          items: {
+            ...s.items,
+            [id]: {
+              ...item,
+              ...sm2(item, rating),
+              lastReviewDate: new Date().toISOString(),
+              errorCount: item.errorCount + (correct ? 0 : 1),
+              correctCount: item.correctCount + (correct ? 1 : 0),
+            },
+          },
+          progress: {
+            ...s.progress,
+            totalCorrect: s.progress.totalCorrect + (correct ? 1 : 0),
+            totalErrors: s.progress.totalErrors + (correct ? 0 : 1),
+            ...streakUpdate,
+            lastStudyDate: new Date().toISOString(),
+            totalSessions: s.progress.totalSessions + 1,
+            xp: newXp,
+            level: xpToLevel(newXp),
+            todayCorrect,
+            todayDate: today,
+          },
         }))
       },
 

@@ -14,14 +14,20 @@ export default function App() {
 
   return (
     <HashRouter>
-      <div className="flex flex-col h-full" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <main className="flex-1 overflow-hidden">
+      <div
+        className="flex flex-col bg-[#0f0f1a]"
+        style={{
+          height: '100dvh',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+        }}
+      >
+        <main className="flex-1 min-h-0 overflow-hidden">
           <Routes>
-            <Route path="/"         element={<HomePage />} />
-            <Route path="/learn"    element={<LearnPage />} />
+            <Route path="/"          element={<HomePage />} />
+            <Route path="/learn"     element={<LearnPage />} />
             <Route path="/learn/:id" element={<CharacterDetailPage />} />
-            <Route path="/practice" element={<PracticePage />} />
-            <Route path="/stats"    element={<StatsPage />} />
+            <Route path="/practice"  element={<PracticePage />} />
+            <Route path="/stats"     element={<StatsPage />} />
           </Routes>
         </main>
         <BottomNav />

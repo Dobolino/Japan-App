@@ -41,9 +41,14 @@ export interface LearningItem {
 export interface UserProgress {
   totalSessions: number
   currentStreak: number
+  longestStreak: number
   lastStudyDate: string | null
   totalCorrect: number
   totalErrors: number
+  xp: number
+  level: number
+  todayCorrect: number
+  todayDate: string | null
 }
 
 export interface DrawingStroke {

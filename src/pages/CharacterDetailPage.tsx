@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore'
 import StrokeCanvas from '../components/StrokeCanvas'
+import ScriptAnalysis from '../components/ScriptAnalysis'
 import { playJapanese } from '../utils/audio'
 
 type Tab = 'info' | 'stroke' | 'draw'
@@ -76,20 +77,28 @@ export default function CharacterDetailPage() {
                 {item.strokeCount && <div><div className="text-white/30 text-xs mb-1">Striche</div><div className="text-white">{item.strokeCount}画</div></div>}
               </div>
             )}
+            {/* Script analysis */}
+            {(item.category === 'vocabulary' || item.category === 'kanji') && item.character.length > 1 && (
+              <div className="rounded-2xl bg-white/5 p-4">
+                <div className="text-white/40 text-xs mb-2">Schriftarten</div>
+                <ScriptAnalysis text={item.character} showBreakdown />
+              </div>
+            )}
+
             {/* Example word */}
             {item.exampleWord && (
               <div className="rounded-2xl bg-white/5 p-4">
-                <div className="text-white/40 text-xs mb-2">Beispiel</div>
+                <div className="text-white/40 text-xs mb-2">Beispielwort</div>
                 <button
-                  onClick={() => playJapanese(item.id, item.exampleWord!)}
-                  className="flex items-center gap-3 w-full text-left"
+                  onClick={() => playJapanese(item.id + '-ex', item.exampleWord!)}
+                  className="flex items-start gap-3 w-full text-left"
                 >
-                  <div>
-                    <div className="text-2xl">{item.exampleWord}</div>
-                    <div className="text-white/50 text-sm">{item.exampleReading}</div>
-                    <div className="text-white/30 text-sm">{item.exampleMeaning}</div>
+                  <div className="flex-1">
+                    <ScriptAnalysis text={item.exampleWord} showBreakdown />
+                    <div className="text-white/40 text-xs mt-1">{item.exampleReading}</div>
+                    <div className="text-white/60 text-sm">{item.exampleMeaning}</div>
                   </div>
-                  <span className="ml-auto text-xl text-white/30">🔊</span>
+                  <span className="text-xl text-white/30 flex-none mt-1">🔊</span>
                 </button>
               </div>
             )}
