@@ -3,6 +3,9 @@ name: Generate Audio + Deploy
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   gen-audio:
     runs-on: ubuntu-latest
