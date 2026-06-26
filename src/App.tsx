@@ -14,13 +14,23 @@ export default function App() {
 
   return (
     <HashRouter>
-      {/* Outer wrapper fills the full screen including behind Dynamic Island */}
-      <div className="flex flex-col bg-[#0f0f1a]" style={{ flex: 1 }}>
-        {/* Safe-area top spacer — covers Dynamic Island / status bar */}
-        <div style={{ height: 'env(safe-area-inset-top, 0px)', background: '#0f0f1a', flexShrink: 0 }} />
-
-        {/* Main content area — grows to fill remaining space */}
-        <main className="flex-1 min-h-0 overflow-hidden">
+      <div
+        style={{
+          height: '100dvh',
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#0f0f1a',
+          // Push content away from Dynamic Island (top) and home bar (bottom)
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        {/*
+          height: 0 + flex: 1 is the key trick:
+          flex grows main to fill space, AND children with h-full
+          correctly resolve to the grown height (not 0).
+        */}
+        <main style={{ flex: 1, height: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Routes>
             <Route path="/"          element={<HomePage />} />
             <Route path="/learn"     element={<LearnPage />} />

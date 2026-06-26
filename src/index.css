@@ -3,8 +3,6 @@
 :root {
   --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left:   env(safe-area-inset-left, 0px);
-  --safe-right:  env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -12,35 +10,19 @@
   box-sizing: border-box;
 }
 
-/* iPhone: fill-available covers the full screen including safe areas */
-html {
-  background: #0f0f1a;
+html, body, #root {
   height: 100%;
-  /* Safari iOS fallback — must be on html to work */
-  height: -webkit-fill-available;
+  background: #0f0f1a;
+  overflow: hidden;
 }
 
 body {
-  height: 100%;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  background: #0f0f1a;
   color: #e8e8f0;
   font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans',
     'Hiragino Kaku Gothic ProN', 'Segoe UI', system-ui, sans-serif;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
-  overflow: hidden;
-}
-
-#root {
-  height: 100%;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 /* Scrollable inner containers */
@@ -50,26 +32,19 @@ body {
   overscroll-behavior-y: contain;
 }
 
-/* Hide scrollbars everywhere */
+/* Hide scrollbars */
 .scroll-area::-webkit-scrollbar,
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scroll-area, .scrollbar-none { scrollbar-width: none; }
 
-/* Canvas touch handling */
 canvas { touch-action: none; }
 
-/* Japanese character rendering */
 .jp {
   font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
     'Noto Sans JP', system-ui, sans-serif;
 }
 
-/* Script type colors */
-.char-kanji    { color: #f97316; }
-.char-hiragana { color: #60a5fa; }
-.char-katakana { color: #4ade80; }
-.char-other    { color: #94a3b8; }
-
+/* Script type badge colors */
 .bg-char-kanji    { background: rgba(249,115,22,.15); border: 1px solid rgba(249,115,22,.3); }
-.bg-char-hiragana { background: rgba(96,165,250,.15); border: 1px solid rgba(96,165,250,.3); }
-.bg-char-katakana { background: rgba(74,222,128,.15); border: 1px solid rgba(74,222,128,.3); }
+.bg-char-hiragana { background: rgba(96,165,250,.15);  border: 1px solid rgba(96,165,250,.3); }
+.bg-char-katakana { background: rgba(74,222,128,.15);  border: 1px solid rgba(74,222,128,.3); }
