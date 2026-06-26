@@ -15,6 +15,8 @@ interface Props {
   allItems: LearningItem[]
   onStartSRS: () => void
   onStartFlashcard: () => void
+  autoPlayAudio: boolean
+  setAutoPlayAudio: (v: boolean) => void
 }
 
 export default function PracticeIdle({
@@ -28,11 +30,14 @@ export default function PracticeIdle({
   allItems,
   onStartSRS,
   onStartFlashcard,
+  autoPlayAudio,
+  setAutoPlayAudio,
 }: Props) {
   const navigate = useNavigate()
 
   return (
-    <div className="scroll-area h-full px-6 pt-8 pb-4 flex flex-col gap-4 items-center">
+    <div className="page-screen scroll-area px-6 pt-6 pb-2">
+      <div className="flex flex-col gap-4 items-center max-w-sm mx-auto min-h-full justify-center">
       <h1 className="text-2xl font-bold text-white">Üben</h1>
 
       <div className="flex rounded-xl overflow-hidden border border-white/10 w-full max-w-xs">
@@ -131,6 +136,21 @@ export default function PracticeIdle({
           </button>
         </>
       )}
+
+      {/* Lernoptionen */}
+      <div className="w-full max-w-xs mt-2 pt-3 border-t border-white/10">
+        <p className="text-white/30 text-xs text-center mb-2">Optionen</p>
+        <label className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/5 cursor-pointer">
+          <span className="text-sm text-white/70">🔊 Auto-Wiedergabe beim Aufdecken</span>
+          <input
+            type="checkbox"
+            checked={autoPlayAudio}
+            onChange={(e) => setAutoPlayAudio(e.target.checked)}
+            className="accent-indigo-500 w-4 h-4"
+          />
+        </label>
+      </div>
+      </div>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useStore } from '@/store/useStore'
 import { VOCAB_CATEGORIES } from '@/data/vocabulary'
 import { playJapanese } from '@/utils/audio'
 import { STATUS_DOT } from '@/constants/status'
+import ScriptAnalysis from '@/components/ScriptAnalysis'
 
 export default function VocabPage() {
   const { items } = useStore()
@@ -60,8 +61,12 @@ export default function VocabPage() {
             >
               <div className={`w-2 h-2 rounded-full flex-none ${STATUS_DOT[item.status]}`} />
               <div className="flex-1 min-w-0">
-                <div className="text-lg font-medium text-white leading-tight">{item.character}</div>
-                <div className="text-xs text-white/40">{item.romaji}</div>
+                {item.character.length > 1 ? (
+                  <ScriptAnalysis text={item.character} showBreakdown={false} size="lg" />
+                ) : (
+                  <div className="text-lg font-medium text-white leading-tight jp">{item.character}</div>
+                )}
+                <div className="text-xs text-white/40 mt-0.5">{item.romaji}</div>
               </div>
               <div className="text-sm text-white/60 text-right max-w-[120px] truncate">{item.meaning}</div>
             </button>

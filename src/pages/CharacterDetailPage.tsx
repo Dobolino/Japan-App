@@ -6,6 +6,7 @@ import ScriptAnalysis from '@/components/ScriptAnalysis'
 import { playJapanese } from '@/utils/audio'
 import { SRS_RATINGS } from '@/constants/srs'
 import { CAT_LABELS, STATUS_LABELS, STATUS_TEXT_COLORS } from '@/constants/status'
+import { CAT_CHIP, CAT_GRADIENT } from '@/constants/categories'
 import type { SRSRating, LearningItem } from '@/types'
 
 type Tab = 'info' | 'stroke' | 'draw'
@@ -25,6 +26,7 @@ export default function CharacterDetailPage() {
 
   const hasStrokes = item.strokes && item.strokes.length > 0
   const isKanji = item.category === 'kanji'
+  const showScript = item.character.length > 1 && (item.category === 'vocabulary' || isKanji)
 
   const speak = () => playJapanese(item.id, item.character)
 
@@ -40,38 +42,62 @@ export default function CharacterDetailPage() {
   const scoreLabel = score === null ? '' : score >= 70 ? 'Gut!' : score >= 40 ? 'Fast!' : 'Nochmal versuchen'
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-        <button type="button" onClick={() => navigate(-1)} className="text-white/40 text-2xl leading-none" aria-label="Zurück">
+    <div className="page-screen">
+      {/* Top bar — minimal */}
+      <div className="flex items-center px-4 pt-3 pb-1 shrink-0">
+        <button type="button" onClick={() => navigate(-1)} className="text-white/40 text-2xl leading-none w-10" aria-label="Zurück">
           ‹
         </button>
-        <div className="flex-1">
-          <div className="text-white/40 text-xs">{CAT_LABELS[item.category]}</div>
-          <div className="text-white font-bold text-sm truncate">{item.meaning}</div>
+      </div>
+
+      {/* Hero — meaning central & large */}
+      <div className={`shrink-0 text-center px-6 py-4 bg-gradient-to-b ${CAT_GRADIENT[item.category]}`}>
+        <div className="flex justify-center gap-2 mb-3">
+          <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-medium ${CAT_CHIP[item.category]}`}>
+            {CAT_LABELS[item.category]}
+          </span>
+          <span className={`text-[10px] px-2.5 py-0.5 rounded-full border border-white/10 ${STATUS_TEXT_COLORS[item.status]}`}>
+            {STATUS_LABELS[item.status]}
+          </span>
         </div>
-        <button type="button" onClick={speak} className="text-2xl active:scale-90 transition-transform" aria-label="Anhören">
-          🔊
-        </button>
+
+        <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Bedeutung</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight px-2">{item.meaning}</h1>
+
+        <div className="mt-5 pt-5 border-t border-white/10">
+          {showScript ? (
+            <ScriptAnalysis text={item.character} showBreakdown size="xl" />
+          ) : (
+            <div className="jp text-7xl sm:text-8xl leading-none text-white">{item.character}</div>
+          )}
+          <p className="text-lg text-white/50 mt-2">{item.romaji}</p>
+          {isKanji && item.onyomi && (
+            <p className="text-xs text-white/30 mt-2">
+              音: {item.onyomi.join('・')}
+              {item.kunyomi?.length ? ` ｜ 訓: ${item.kunyomi.join('・')}` : ''}
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-center gap-2 mt-4">
+          <button
+            type="button"
+            onClick={speak}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-medium active:scale-95"
+          >
+            🔊 Anhören
+          </button>
+        </div>
       </div>
 
-      <div className="text-center py-3">
-        <div className="text-7xl leading-none mb-1">{item.character}</div>
-        <div className="text-white/50 text-sm">{item.romaji}</div>
-        {isKanji && item.onyomi && (
-          <div className="text-white/30 text-xs mt-1">
-            音: {item.onyomi.join('・')}{' '}
-            {item.kunyomi && item.kunyomi.length > 0 ? `｜訓: ${item.kunyomi.join('・')}` : ''}
-          </div>
-        )}
-      </div>
-
-      <div className="flex border-b border-white/10 mx-4">
+      {/* Tabs */}
+      <div className="flex border-b border-white/10 mx-4 shrink-0">
         <TabBtn id="info" active={tab} onClick={setTab} label="Info" />
-        {hasStrokes && <TabBtn id="stroke" active={tab} onClick={setTab} label="Strichreihenfolge" />}
+        {hasStrokes && <TabBtn id="stroke" active={tab} onClick={setTab} label="Strichfolge" />}
         {hasStrokes && <TabBtn id="draw" active={tab} onClick={setTab} label="Schreiben" />}
       </div>
 
-      <div className="flex-1 scroll-area px-4 py-4">
+      <div className="flex-1 min-h-0 scroll-area px-4 py-4">
         {tab === 'info' && (
           <div className="space-y-3">
             {isKanji && (
@@ -92,12 +118,6 @@ export default function CharacterDetailPage() {
                 )}
               </div>
             )}
-            {(item.category === 'vocabulary' || item.category === 'kanji') && item.character.length > 1 && (
-              <div className="rounded-2xl bg-white/5 p-4">
-                <div className="text-white/40 text-xs mb-2">Schriftarten</div>
-                <ScriptAnalysis text={item.character} showBreakdown />
-              </div>
-            )}
 
             {item.exampleWord && (
               <div className="rounded-2xl bg-white/5 p-4">
@@ -108,7 +128,7 @@ export default function CharacterDetailPage() {
                   className="flex items-start gap-3 w-full text-left"
                 >
                   <div className="flex-1">
-                    <ScriptAnalysis text={item.exampleWord} showBreakdown />
+                    <ScriptAnalysis text={item.exampleWord} showBreakdown size="lg" />
                     <div className="text-white/40 text-xs mt-1">{item.exampleReading}</div>
                     <div className="text-white/60 text-sm">{item.exampleMeaning}</div>
                   </div>
@@ -129,7 +149,7 @@ export default function CharacterDetailPage() {
         {tab === 'draw' && hasStrokes && (
           <div className="flex flex-col items-center gap-4">
             <p className="text-white/40 text-sm text-center">
-              Zeichne <span className="text-white">{item.character}</span> nach
+              Zeichne <span className="text-white jp text-xl">{item.character}</span> nach
             </p>
             <StrokeCanvas
               key={item.id + '-draw'}
@@ -157,7 +177,7 @@ function TabBtn({ id, active, onClick, label }: { id: Tab; active: Tab; onClick:
     <button
       type="button"
       onClick={() => onClick(id)}
-      className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${
+      className={`flex-1 py-2.5 text-xs font-medium border-b-2 transition-colors ${
         active === id ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40'
       }`}
     >
@@ -183,7 +203,7 @@ function SRSCard({
       </div>
       {!done ? (
         <>
-          <p className="text-white/40 text-xs mb-2">Wie gut kennst du dieses Zeichen?</p>
+          <p className="text-white/40 text-xs mb-2">Wie gut kennst du das?</p>
           <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="SRS-Bewertung">
             {SRS_RATINGS.map(({ r, label, color }) => (
               <button

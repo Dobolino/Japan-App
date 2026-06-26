@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { shuffle } from '@/utils/shuffle'
 import { useStore } from '@/store/useStore'
+import { playJapanese } from '@/utils/audio'
 import type { LearningItem, SRSRating, ItemCategory } from '@/types'
 
 export type Phase = 'idle' | 'question' | 'answer' | 'done'
@@ -21,6 +22,8 @@ export function usePracticeSession() {
   const [index, setIndex] = useState(0)
   const [sessionRatings, setSessionRatings] = useState<SRSRating[]>([])
   const [typed, setTyped] = useState('')
+  const [showRomajiHint, setShowRomajiHint] = useState(false)
+  const [autoPlayAudio, setAutoPlayAudio] = useState(true)
 
   const dueItems = useStore((s) =>
     s.getDueItems(filterCat === 'all' ? undefined : filterCat, 999)
@@ -80,6 +83,12 @@ export function usePracticeSession() {
   }, [practiceMode, startSRS, startFlashcard])
 
   useEffect(() => {
+    if (phase === 'answer' && autoPlayAudio && current) {
+      playJapanese(current.id, current.character)
+    }
+  }, [phase, autoPlayAudio, current?.id, current?.character])
+
+  useEffect(() => {
     if (phase !== 'question' && phase !== 'answer') return
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -121,6 +130,10 @@ export function usePracticeSession() {
     sessionRatings,
     typed,
     setTyped,
+    showRomajiHint,
+    setShowRomajiHint,
+    autoPlayAudio,
+    setAutoPlayAudio,
     dueItems,
     allItems,
     current,

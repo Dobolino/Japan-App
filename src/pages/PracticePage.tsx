@@ -19,6 +19,8 @@ export default function PracticePage() {
         allItems={session.allItems}
         onStartSRS={session.startSRS}
         onStartFlashcard={session.startFlashcard}
+        autoPlayAudio={session.autoPlayAudio}
+        setAutoPlayAudio={session.setAutoPlayAudio}
       />
     )
   }
@@ -52,6 +54,8 @@ export default function PracticePage() {
       practiceMode={session.practiceMode}
       typed={session.typed}
       setTyped={session.setTyped}
+      showRomajiHint={session.showRomajiHint}
+      onToggleRomajiHint={() => session.setShowRomajiHint((v) => !v)}
       onReveal={session.reveal}
       onAdvance={session.advance}
     />
