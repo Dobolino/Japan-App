@@ -7,18 +7,23 @@ export interface CharSegment {
 
 export function classifyChar(ch: string): ScriptType {
   const cp = ch.codePointAt(0) ?? 0
-  if (cp >= 0x4E00 && cp <= 0x9FFF) return 'kanji'   // CJK Unified
-  if (cp >= 0x3400 && cp <= 0x4DBF) return 'kanji'   // CJK Extension A
-  if (cp >= 0xF900 && cp <= 0xFAFF) return 'kanji'   // CJK Compatibility
+  if (cp >= 0x4E00 && cp <= 0x9FFF) return 'kanji'
+  if (cp >= 0x3400 && cp <= 0x4DBF) return 'kanji'
+  if (cp >= 0xF900 && cp <= 0xFAFF) return 'kanji'
   if (cp >= 0x3040 && cp <= 0x309F) return 'hiragana'
   if (cp >= 0x30A0 && cp <= 0x30FF) return 'katakana'
-  if (cp >= 0xFF65 && cp <= 0xFF9F) return 'katakana' // half-width katakana
+  if (cp >= 0xFF65 && cp <= 0xFF9F) return 'katakana'
   return 'other'
+}
+
+/** Iterate Unicode code points (handles surrogate pairs correctly). */
+export function codePoints(text: string): string[] {
+  return [...text]
 }
 
 export function analyzeScript(text: string): CharSegment[] {
   const result: CharSegment[] = []
-  for (const ch of text) {
+  for (const ch of codePoints(text)) {
     if (ch.trim() === '') continue
     result.push({ char: ch, type: classifyChar(ch) })
   }

@@ -1,15 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore } from '../store/useStore'
-import { VOCAB_CATEGORIES } from '../data/vocabulary'
-import { playJapanese } from '../utils/audio'
-
-const STATUS_DOT = {
-  new: 'bg-white/20',
-  learning: 'bg-blue-500',
-  uncertain: 'bg-yellow-500',
-  mastered: 'bg-green-500',
-}
+import { useStore } from '@/store/useStore'
+import { VOCAB_CATEGORIES } from '@/data/vocabulary'
+import { playJapanese } from '@/utils/audio'
+import { STATUS_DOT } from '@/constants/status'
 
 export default function VocabPage() {
   const { items } = useStore()
@@ -55,31 +49,31 @@ export default function VocabPage() {
           <p className="text-center text-white/30 text-sm mt-12">Keine Vokabeln gefunden</p>
         )}
         {vocabItems.map((item) => (
-          <button
+          <div
             key={item.id}
-            onClick={() => navigate(`/learn/${item.id}`)}
-            className="w-full rounded-2xl bg-white/5 border border-white/8 p-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+            className="w-full rounded-2xl bg-white/5 border border-white/8 p-3.5 flex items-center gap-3"
           >
-            {/* Status dot */}
-            <div className={`w-2 h-2 rounded-full flex-none ${STATUS_DOT[item.status]}`} />
-
-            {/* Japanese + romaji */}
-            <div className="flex-1 min-w-0">
-              <div className="text-lg font-medium text-white leading-tight">{item.character}</div>
-              <div className="text-xs text-white/40">{item.romaji}</div>
-            </div>
-
-            {/* Meaning */}
-            <div className="text-sm text-white/60 text-right max-w-[120px] truncate">{item.meaning}</div>
-
-            {/* Audio button */}
             <button
-              onClick={(e) => { e.stopPropagation(); playJapanese(item.id, item.character) }}
+              type="button"
+              onClick={() => navigate(`/learn/${item.id}`)}
+              className="flex flex-1 items-center gap-3 active:scale-[0.98] transition-transform text-left min-w-0"
+            >
+              <div className={`w-2 h-2 rounded-full flex-none ${STATUS_DOT[item.status]}`} />
+              <div className="flex-1 min-w-0">
+                <div className="text-lg font-medium text-white leading-tight">{item.character}</div>
+                <div className="text-xs text-white/40">{item.romaji}</div>
+              </div>
+              <div className="text-sm text-white/60 text-right max-w-[120px] truncate">{item.meaning}</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => playJapanese(item.id, item.character)}
               className="text-lg flex-none text-white/30 active:text-indigo-400 transition-colors"
+              aria-label={`${item.character} anhören`}
             >
               🔊
             </button>
-          </button>
+          </div>
         ))}
       </div>
     </div>

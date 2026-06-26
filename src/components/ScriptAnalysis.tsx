@@ -1,4 +1,4 @@
-import { groupSegments, analyzeScript, SCRIPT_BG, SCRIPT_COLOR, SCRIPT_LABEL } from '../utils/scriptAnalyzer'
+import { groupSegments, analyzeScript, SCRIPT_BG, SCRIPT_COLOR, SCRIPT_LABEL } from '@/utils/scriptAnalyzer'
 
 interface Props {
   text: string

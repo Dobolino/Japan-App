@@ -39,7 +39,8 @@ export interface LearningItem {
 }
 
 export interface UserProgress {
-  totalSessions: number
+  studySessions: number
+  cardsReviewed: number
   currentStreak: number
   longestStreak: number
   lastStudyDate: string | null

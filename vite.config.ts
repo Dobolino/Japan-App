@@ -1,8 +1,12 @@
+/// <reference types="vitest/config" />
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const REPO_NAME = 'Japan-App'
 
 export default defineConfig({
@@ -30,7 +34,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\./,
@@ -41,5 +45,10 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: { alias: { '@': '/src' } },
+  resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+  },
 })

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
-import type { StrokeSegment, DrawingStroke } from '../types'
+import type { StrokeSegment, DrawingStroke } from '@/types'
 
 const BASE_URL = import.meta.env.BASE_URL
 
@@ -9,7 +9,7 @@ function svgUrl(char: string) {
 }
 
 interface Props {
-  strokes: StrokeSegment[]        // reference stroke order data (fallback)
+  strokes: StrokeSegment[]
   mode: 'animate' | 'draw'
   size?: number
   character?: string
@@ -19,20 +19,17 @@ interface Props {
 
 const PAD = 0.1
 
-// Draw grid guide lines
 function drawGrid(ctx: CanvasRenderingContext2D, size: number) {
   ctx.save()
   ctx.strokeStyle = 'rgba(255,255,255,0.06)'
   ctx.lineWidth = 1
   ctx.setLineDash([4, 4])
-  // Cross lines
   ctx.beginPath()
   ctx.moveTo(size / 2, 0)
   ctx.lineTo(size / 2, size)
   ctx.moveTo(0, size / 2)
   ctx.lineTo(size, size / 2)
   ctx.stroke()
-  // Diagonal guides
   ctx.strokeStyle = 'rgba(255,255,255,0.03)'
   ctx.beginPath()
   ctx.moveTo(0, 0)
@@ -43,7 +40,6 @@ function drawGrid(ctx: CanvasRenderingContext2D, size: number) {
   ctx.restore()
 }
 
-// Draw user strokes
 function drawUserStrokes(ctx: CanvasRenderingContext2D, userStrokes: DrawingStroke[]) {
   ctx.save()
   ctx.strokeStyle = '#818cf8'
@@ -62,15 +58,12 @@ function drawUserStrokes(ctx: CanvasRenderingContext2D, userStrokes: DrawingStro
   ctx.restore()
 }
 
-// Heuristic evaluation: compare bounding boxes and stroke count
 function evaluate(userStrokes: DrawingStroke[], refStrokes: StrokeSegment[], size: number): number {
   if (userStrokes.length === 0) return 0
 
-  // Stroke count similarity (max 40 pts)
   const countDiff = Math.abs(userStrokes.length - refStrokes.length)
   const countScore = Math.max(0, 40 - countDiff * 15)
 
-  // Bounding box coverage (max 60 pts)
   const allPts = userStrokes.flatMap((s) => s.points)
   const minX = Math.min(...allPts.map((p) => p.x)) / size
   const maxX = Math.max(...allPts.map((p) => p.x)) / size
@@ -83,24 +76,82 @@ function evaluate(userStrokes: DrawingStroke[], refStrokes: StrokeSegment[], siz
   const refMinY = Math.min(...refPts.map(([, y]) => y)) * (1 - 2 * PAD) + PAD
   const refMaxY = Math.max(...refPts.map(([, y]) => y)) * (1 - 2 * PAD) + PAD
 
-  const overlap = (
+  const overlap =
     Math.max(0, Math.min(maxX, refMaxX) - Math.max(minX, refMinX)) *
     Math.max(0, Math.min(maxY, refMaxY) - Math.max(minY, refMinY))
-  )
-  const union = (
+  const union =
     (Math.max(maxX, refMaxX) - Math.min(minX, refMinX)) *
     (Math.max(maxY, refMaxY) - Math.min(minY, refMinY))
-  )
   const iou = union > 0 ? overlap / union : 0
   const bbScore = Math.round(iou * 60)
 
   return Math.min(100, countScore + bbScore)
 }
 
-// ── Animate mode: SVG from animCJK ──────────────────────────────────────────
 function AnimateSVG({ character, size }: { character: string; size: number }) {
   const [replayKey, setReplayKey] = useState(0)
   const url = svgUrl(character)
+
+  if (!url) {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div
+          className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-3"
+          style={{ width: size, height: size, background: '#f5f0e8' }}
+        >
+          <span className="text-black/30 text-sm text-center px-4">Keine Strichdaten</span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <AnimateSVGLoaded
+      key={`${url}-${replayKey}`}
+      character={character}
+      size={size}
+      url={url}
+      onReplay={() => setReplayKey((k) => k + 1)}
+    />
+  )
+}
+
+function AnimateSVGLoaded({
+  character,
+  size,
+  url,
+  onReplay,
+}: {
+  character: string
+  size: number
+  url: string
+  onReplay: () => void
+}) {
+  const [svgContent, setSvgContent] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(url)
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error('SVG not found'))))
+      .then((text) => {
+        if (!cancelled) {
+          setSvgContent(text)
+          setFailed(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSvgContent(null)
+          setFailed(true)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [url])
+
+  const loading = !svgContent && !failed
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -108,20 +159,22 @@ function AnimateSVG({ character, size }: { character: string; size: number }) {
         className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-3"
         style={{ width: size, height: size, background: '#f5f0e8' }}
       >
-        {url ? (
-          <img
-            key={replayKey}
-            src={url}
-            alt={character}
-            style={{ width: '90%', height: '90%', objectFit: 'contain' }}
+        {loading ? (
+          <span className="text-black/30 text-sm">Lädt…</span>
+        ) : svgContent ? (
+          <div
+            className="w-[90%] h-[90%] [&_svg]:w-full [&_svg]:h-full"
+            dangerouslySetInnerHTML={{ __html: svgContent }}
+            aria-label={`Strichreihenfolge für ${character}`}
           />
         ) : (
           <span className="text-black/30 text-sm text-center px-4">Keine Strichdaten</span>
         )}
       </div>
-      {url && (
+      {svgContent && (
         <button
-          onClick={() => setReplayKey(k => k + 1)}
+          type="button"
+          onClick={onReplay}
           className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-semibold text-base active:scale-95 transition-transform"
         >
           ↺ Nochmal
@@ -131,14 +184,20 @@ function AnimateSVG({ character, size }: { character: string; size: number }) {
   )
 }
 
-// ── Draw mode: canvas ────────────────────────────────────────────────────────
 export default function StrokeCanvas({ strokes, mode, size = 280, character, onStrokesChange, onEvaluate }: Props) {
-  // Animate mode: use SVG
   if (mode === 'animate' && character) {
     return <AnimateSVG character={character} size={size} />
   }
 
-  return <DrawCanvas strokes={strokes} size={size} character={character} onStrokesChange={onStrokesChange} onEvaluate={onEvaluate} />
+  return (
+    <DrawCanvas
+      strokes={strokes}
+      size={size}
+      character={character}
+      onStrokesChange={onStrokesChange}
+      onEvaluate={onEvaluate}
+    />
+  )
 }
 
 function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluate }: Omit<Props, 'mode'>) {
@@ -152,7 +211,6 @@ function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluat
     if (!ctx || !canvas) return
     ctx.clearRect(0, 0, size, size)
     drawGrid(ctx, size)
-    // Ghost: real Unicode character
     if (character) {
       ctx.save()
       ctx.globalAlpha = 0.13
@@ -166,11 +224,16 @@ function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluat
     drawUserStrokes(ctx, userStrokes.current)
   }, [size, character])
 
-  useEffect(() => { redraw() }, [redraw])
+  useEffect(() => {
+    redraw()
+  }, [redraw])
 
   const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect()
-    return { x: (e.clientX - rect.left) * (size / rect.width), y: (e.clientY - rect.top) * (size / rect.height) }
+    return {
+      x: (e.clientX - rect.left) * (size / rect.width),
+      y: (e.clientY - rect.top) * (size / rect.height),
+    }
   }
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -214,10 +277,15 @@ function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluat
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
+          aria-label={character ? `${character} zeichnen` : 'Zeichenfläche'}
           style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
         />
       </div>
-      <button onClick={clear} className="px-4 py-1.5 rounded-full bg-white/10 text-white/60 text-sm active:scale-95 transition-transform">
+      <button
+        type="button"
+        onClick={clear}
+        className="px-4 py-1.5 rounded-full bg-white/10 text-white/60 text-sm active:scale-95 transition-transform"
+      >
         Löschen
       </button>
     </div>
