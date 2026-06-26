@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm create vite@latest . -- --template react-ts 2>&1)",
+      "PowerShell(npm create vite@latest . -- --template react-ts --force 2>&1; echo \"Exit: $LASTEXITCODE\")",
+      "Bash(npm create *)",
+      "Bash(echo \"done: $?\")",
+      "PowerShell(npm init -y 2>&1)",
+      "PowerShell(npm install --save-dev vite @vitejs/plugin-react typescript @types/react @types/react-dom 2>&1)",
+      "PowerShell(tail -5)",
+      "PowerShell(npm install react react-dom react-router-dom zustand 2>&1)",
+      "PowerShell(npm install --save-dev tailwindcss @tailwindcss/vite vite-plugin-pwa 2>&1)",
+      "PowerShell(npm install gh-pages 2>&1)",
+      "PowerShell(node scripts/gen-icons.mjs 2>&1)",
+      "PowerShell(npm run build 2>&1)",
+      "PowerShell(Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -PassThru)",
+      "PowerShell(netstat -ano)",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell($env:OPENAI_API_KEY=\"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\"; node scripts/gen-audio.mjs 2>&1)"
+    ]
+  }
+}
