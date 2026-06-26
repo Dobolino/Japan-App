@@ -14,13 +14,12 @@ export default function App() {
 
   return (
     <HashRouter>
-      <div
-        className="flex flex-col bg-[#0f0f1a]"
-        style={{
-          height: '100dvh',
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-        }}
-      >
+      {/* Outer wrapper fills the full screen including behind Dynamic Island */}
+      <div className="flex flex-col bg-[#0f0f1a]" style={{ flex: 1 }}>
+        {/* Safe-area top spacer — covers Dynamic Island / status bar */}
+        <div style={{ height: 'env(safe-area-inset-top, 0px)', background: '#0f0f1a', flexShrink: 0 }} />
+
+        {/* Main content area — grows to fill remaining space */}
         <main className="flex-1 min-h-0 overflow-hidden">
           <Routes>
             <Route path="/"          element={<HomePage />} />
@@ -30,6 +29,7 @@ export default function App() {
             <Route path="/stats"     element={<StatsPage />} />
           </Routes>
         </main>
+
         <BottomNav />
       </div>
     </HashRouter>

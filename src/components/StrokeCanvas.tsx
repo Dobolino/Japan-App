@@ -136,8 +136,12 @@ export default function StrokeCanvas({ strokes, mode, size = 280, onStrokesChang
   const isDrawing = useRef(false)
   const userStrokes = useRef<DrawingStroke[]>([])
   const animFrame = useRef<number>(0)
-  const [animIndex, setAnimIndex] = useState(0)   // which stroke is being animated
+  const [animIndex, setAnimIndex] = useState(0)
   const [animDone, setAnimDone] = useState(false)
+
+  // Reset animation whenever strokes data changes (= navigated to new character)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setAnimDone(false); setAnimIndex(0) }, [strokes])
 
   const redraw = useCallback((highlightUpTo?: number) => {
     const canvas = canvasRef.current

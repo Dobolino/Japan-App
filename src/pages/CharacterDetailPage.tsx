@@ -109,7 +109,7 @@ export default function CharacterDetailPage() {
 
         {tab === 'stroke' && hasStrokes && (
           <div className="flex justify-center">
-            <StrokeCanvas strokes={item.strokes!} mode="animate" size={260} />
+            <StrokeCanvas key={item.id + '-anim'} strokes={item.strokes!} mode="animate" size={260} />
           </div>
         )}
 
@@ -118,7 +118,7 @@ export default function CharacterDetailPage() {
             <p className="text-white/40 text-sm text-center">
               Zeichne <span className="text-white">{item.character}</span> nach
             </p>
-            <StrokeCanvas strokes={item.strokes!} mode="draw" size={260} onEvaluate={handleEvaluate} />
+            <StrokeCanvas key={item.id + '-draw'} strokes={item.strokes!} mode="draw" size={260} onEvaluate={handleEvaluate} />
             {score !== null && (
               <div className="text-center">
                 <div className={`text-3xl font-bold ${scoreColor}`}>{score}%</div>

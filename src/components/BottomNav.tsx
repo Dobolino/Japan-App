@@ -9,30 +9,32 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav
-      className="flex border-t border-white/8 bg-[#0f0f1a]/95 backdrop-blur-xl"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-    >
-      {tabs.map(({ to, label, icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={to === '/'}
-          className={({ isActive }) =>
-            `flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors min-h-[56px] ${
-              isActive ? 'text-indigo-400' : 'text-white/30'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <span className={`text-xl leading-none jp transition-transform ${isActive ? 'scale-110' : ''}`}>{icon}</span>
-              <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'text-indigo-400' : 'text-white/30'}`}>{label}</span>
-              {isActive && <span className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" />}
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
+    <>
+      <nav className="flex border-t border-white/8 bg-[#0f0f1a]" style={{ flexShrink: 0 }}>
+        {tabs.map(({ to, label, icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            className={({ isActive }) =>
+              `flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors min-h-[56px] ${
+                isActive ? 'text-indigo-400' : 'text-white/30'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span className={`text-xl leading-none jp transition-transform ${isActive ? 'scale-110' : ''}`}>{icon}</span>
+                <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'text-indigo-400' : 'text-white/30'}`}>{label}</span>
+                {isActive && <span className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" />}
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Safe-area bottom spacer — separate div so background fills home-indicator area */}
+      <div style={{ height: 'env(safe-area-inset-bottom, 0px)', background: '#0f0f1a', flexShrink: 0 }} />
+    </>
   )
 }
