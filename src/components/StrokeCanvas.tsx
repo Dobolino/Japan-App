@@ -103,28 +103,28 @@ function AnimateSVG({ character, size }: { character: string; size: number }) {
   const url = svgUrl(character)
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-4">
       <div
-        className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center"
-        style={{ width: size, height: size, background: 'rgba(255,255,255,0.03)' }}
+        className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-3"
+        style={{ width: size, height: size, background: '#f5f0e8' }}
       >
         {url ? (
           <img
             key={replayKey}
             src={url}
             alt={character}
-            style={{ width: '85%', height: '85%', objectFit: 'contain', filter: 'invert(1)' }}
+            style={{ width: '90%', height: '90%', objectFit: 'contain' }}
           />
         ) : (
-          <span className="text-white/20 text-sm text-center px-4">Keine Strichdaten verfügbar</span>
+          <span className="text-black/30 text-sm text-center px-4">Keine Strichdaten</span>
         )}
       </div>
       {url && (
         <button
           onClick={() => setReplayKey(k => k + 1)}
-          className="text-indigo-400 text-xs underline"
+          className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-semibold text-base active:scale-95 transition-transform"
         >
-          Nochmal
+          ↺ Nochmal
         </button>
       )}
     </div>
