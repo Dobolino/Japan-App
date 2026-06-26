@@ -36,8 +36,9 @@ export default function PracticeIdle({
   const navigate = useNavigate()
 
   return (
-    <div className="page-screen scroll-area px-6 pt-6 pb-2">
-      <div className="flex flex-col gap-4 items-center max-w-sm mx-auto min-h-full justify-center">
+    <div className="page-screen">
+      <div className="scroll-area flex-1 min-h-0 px-6 pt-4 pb-2">
+      <div className="flex flex-col gap-3 items-center max-w-sm mx-auto w-full">
       <h1 className="text-2xl font-bold text-white">Üben</h1>
 
       <div className="flex rounded-xl overflow-hidden border border-white/10 w-full max-w-xs">
@@ -141,7 +142,7 @@ export default function PracticeIdle({
       <div className="w-full max-w-xs mt-2 pt-3 border-t border-white/10">
         <p className="text-white/30 text-xs text-center mb-2">Optionen</p>
         <label className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/5 cursor-pointer">
-          <span className="text-sm text-white/70">🔊 Auto-Wiedergabe beim Aufdecken</span>
+          <span className="text-sm text-white/70">Auto-Wiedergabe bei neuer Karte</span>
           <input
             type="checkbox"
             checked={autoPlayAudio}
@@ -149,6 +150,7 @@ export default function PracticeIdle({
             className="accent-indigo-500 w-4 h-4"
           />
         </label>
+      </div>
       </div>
       </div>
     </div>

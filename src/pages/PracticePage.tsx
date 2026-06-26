@@ -56,6 +56,7 @@ export default function PracticePage() {
       setTyped={session.setTyped}
       showRomajiHint={session.showRomajiHint}
       onToggleRomajiHint={() => session.setShowRomajiHint((v) => !v)}
+      autoPlayAudio={session.autoPlayAudio}
       onReveal={session.reveal}
       onAdvance={session.advance}
     />

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import StrokeCanvas from '@/components/StrokeCanvas'
-import ScriptAnalysis from '@/components/ScriptAnalysis'
+import ReadingBreakdown from '@/components/ReadingBreakdown'
 import { playJapanese } from '@/utils/audio'
+import { AudioIcon } from '@/components/icons/UiIcons'
 import { SRS_RATINGS } from '@/constants/srs'
 import { CAT_LABELS, STATUS_LABELS, STATUS_TEXT_COLORS } from '@/constants/status'
 import { CAT_CHIP, CAT_GRADIENT } from '@/constants/categories'
@@ -26,7 +27,7 @@ export default function CharacterDetailPage() {
 
   const hasStrokes = item.strokes && item.strokes.length > 0
   const isKanji = item.category === 'kanji'
-  const showScript = item.character.length > 1 && (item.category === 'vocabulary' || isKanji)
+  const multiChar = item.character.length > 1
 
   const speak = () => playJapanese(item.id, item.character)
 
@@ -43,16 +44,19 @@ export default function CharacterDetailPage() {
 
   return (
     <div className="page-screen">
-      {/* Top bar — minimal */}
       <div className="flex items-center px-4 pt-3 pb-1 shrink-0">
         <button type="button" onClick={() => navigate(-1)} className="text-white/40 text-2xl leading-none w-10" aria-label="Zurück">
           ‹
         </button>
+        <span className="text-white/30 text-xs flex-1 text-center">{CAT_LABELS[item.category]}</span>
+        <button type="button" onClick={speak} className="audio-fab audio-fab--sm" aria-label="Anhören">
+          <AudioIcon className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Hero — meaning central & large */}
-      <div className={`shrink-0 text-center px-6 py-4 bg-gradient-to-b ${CAT_GRADIENT[item.category]}`}>
-        <div className="flex justify-center gap-2 mb-3">
+      {/* Hero: Bedeutung gross (cyan) + Zeichen-Aufschlüsselung */}
+      <div className={`shrink-0 text-center px-4 py-5 bg-gradient-to-b ${CAT_GRADIENT[item.category]}`}>
+        <div className="flex justify-center gap-2 mb-4">
           <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-medium ${CAT_CHIP[item.category]}`}>
             {CAT_LABELS[item.category]}
           </span>
@@ -61,36 +65,37 @@ export default function CharacterDetailPage() {
           </span>
         </div>
 
-        <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Bedeutung</p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight px-2">{item.meaning}</h1>
+        <p className="text-[10px] uppercase tracking-widest text-cyan-400/60 mb-2">Bedeutung</p>
+        <h1 className="meaning-hero px-2">{item.meaning}</h1>
 
-        <div className="mt-5 pt-5 border-t border-white/10">
-          {showScript ? (
-            <ScriptAnalysis text={item.character} showBreakdown size="xl" />
+        <div className="mt-6 pt-5 border-t border-white/10">
+          <p className="text-[10px] uppercase tracking-widest text-white/30 mb-4">Aussprache &amp; Zeichen</p>
+          {multiChar ? (
+            <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
           ) : (
-            <div className="jp text-7xl sm:text-8xl leading-none text-white">{item.character}</div>
+            <>
+              <div className="jp text-7xl sm:text-8xl leading-none text-white">{item.character}</div>
+              <p className="text-2xl text-cyan-300 font-semibold mt-3">{item.romaji}</p>
+            </>
           )}
-          <p className="text-lg text-white/50 mt-2">{item.romaji}</p>
           {isKanji && item.onyomi && (
-            <p className="text-xs text-white/30 mt-2">
+            <p className="text-xs text-white/30 mt-4">
               音: {item.onyomi.join('・')}
               {item.kunyomi?.length ? ` ｜ 訓: ${item.kunyomi.join('・')}` : ''}
             </p>
           )}
         </div>
 
-        <div className="flex justify-center gap-2 mt-4">
-          <button
-            type="button"
-            onClick={speak}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-indigo-600 text-white text-sm font-medium active:scale-95"
-          >
-            🔊 Anhören
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={speak}
+          className="mt-5 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 font-medium active:scale-95"
+        >
+          <AudioIcon className="w-5 h-5" />
+          Aussprache anhören
+        </button>
       </div>
 
-      {/* Tabs */}
       <div className="flex border-b border-white/10 mx-4 shrink-0">
         <TabBtn id="info" active={tab} onClick={setTab} label="Info" />
         {hasStrokes && <TabBtn id="stroke" active={tab} onClick={setTab} label="Strichfolge" />}
@@ -128,11 +133,12 @@ export default function CharacterDetailPage() {
                   className="flex items-start gap-3 w-full text-left"
                 >
                   <div className="flex-1">
-                    <ScriptAnalysis text={item.exampleWord} showBreakdown size="lg" />
-                    <div className="text-white/40 text-xs mt-1">{item.exampleReading}</div>
-                    <div className="text-white/60 text-sm">{item.exampleMeaning}</div>
+                    <ReadingBreakdown character={item.exampleWord} romaji={item.exampleReading ?? ''} size="md" compact />
+                    <div className="text-white/60 text-sm mt-1">{item.exampleMeaning}</div>
                   </div>
-                  <span className="text-xl text-white/30 flex-none mt-1" aria-hidden="true">🔊</span>
+                  <span className="text-cyan-400/50 flex-none mt-1">
+                    <AudioIcon className="w-5 h-5" />
+                  </span>
                 </button>
               </div>
             )}

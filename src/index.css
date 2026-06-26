@@ -115,6 +115,73 @@ canvas { touch-action: none; }
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
+.meaning-hero {
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #67e8f9;
+  text-shadow: 0 0 40px rgba(34, 211, 238, 0.15);
+}
+
+.meaning-hero--answer {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.audio-fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(34, 211, 238, 0.12);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  color: #67e8f9;
+  flex-shrink: 0;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.audio-fab:active {
+  transform: scale(0.92);
+  background: rgba(34, 211, 238, 0.22);
+}
+
+.audio-fab--sm {
+  width: 38px;
+  height: 38px;
+}
+
+.action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.action-chip:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.action-chip--audio {
+  background: rgba(34, 211, 238, 0.1);
+  border-color: rgba(34, 211, 238, 0.25);
+  color: #a5f3fc;
+}
+
+.action-chip--active {
+  background: rgba(99, 102, 241, 0.35);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #c7d2fe;
+}
+
 .flashcard-answer {
   animation: slideUp 0.25s ease-out;
 }

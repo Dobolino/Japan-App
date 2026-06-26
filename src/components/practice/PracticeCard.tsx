@@ -1,6 +1,7 @@
 import { RATING_BUTTONS } from '@/constants/srs'
 import { matchesJapaneseAnswer } from '@/utils/answerMatch'
-import FlashcardFace from '@/components/practice/FlashcardFace'
+import FlashcardFace, { useCardAudio } from '@/components/practice/FlashcardFace'
+import { CheckIcon, CrossIcon } from '@/components/icons/UiIcons'
 import type { LearningItem, SRSRating } from '@/types'
 import type { Phase, Direction, PracticeMode } from '@/hooks/usePracticeSession'
 
@@ -15,6 +16,7 @@ interface Props {
   setTyped: (value: string) => void
   showRomajiHint: boolean
   onToggleRomajiHint: () => void
+  autoPlayAudio: boolean
   onReveal: () => void
   onAdvance: (rating: SRSRating) => void
 }
@@ -30,11 +32,14 @@ export default function PracticeCard({
   setTyped,
   showRomajiHint,
   onToggleRomajiHint,
+  autoPlayAudio,
   onReveal,
   onAdvance,
 }: Props) {
   const progressPct = queueLength > 0 ? ((index + 1) / queueLength) * 100 : 0
   const typedCorrect = typed ? matchesJapaneseAnswer(typed, current) : false
+
+  useCardAudio(current, phase, autoPlayAudio, direction)
 
   return (
     <div className="page-screen px-4">
@@ -63,6 +68,7 @@ export default function PracticeCard({
           phase={phase}
           showRomajiHint={showRomajiHint}
           onToggleRomajiHint={onToggleRomajiHint}
+          autoPlayAudio={autoPlayAudio}
         />
       </div>
 
@@ -120,17 +126,17 @@ export default function PracticeCard({
               type="button"
               onClick={() => onAdvance(0)}
               aria-label="Nochmal"
-              className="py-3.5 rounded-2xl bg-red-500/20 text-red-300 border border-red-500/20 font-semibold active:scale-95"
+              className="py-3.5 rounded-2xl bg-red-500/20 text-red-300 border border-red-500/20 font-semibold active:scale-95 inline-flex items-center justify-center gap-2"
             >
-              ✗ Nochmal
+              <CrossIcon className="w-5 h-5" /> Nochmal
             </button>
             <button
               type="button"
               onClick={() => onAdvance(3)}
               aria-label="Gewusst"
-              className="py-3.5 rounded-2xl bg-green-500/20 text-green-300 border border-green-500/20 font-semibold active:scale-95"
+              className="py-3.5 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 font-semibold active:scale-95 inline-flex items-center justify-center gap-2"
             >
-              ✓ Gewusst
+              <CheckIcon className="w-5 h-5" /> Gewusst
             </button>
           </div>
         )}
