@@ -141,12 +141,10 @@ export default function FlashcardFace({
   )
 }
 
-/** Auto-play when a new card appears (question phase). */
+/** Auto-play when a new card appears (question phase only). */
 export function useCardAudio(item: LearningItem | undefined, phase: Phase, autoPlay: boolean, direction: Direction) {
   useEffect(() => {
-    if (!item || !autoPlay || phase !== 'question') return
-    if (direction === 'jp-de') {
-      playJapanese(item.id, item.character)
-    }
-  }, [item?.id, phase, autoPlay, direction])
+    if (!item || !autoPlay || phase !== 'question' || direction !== 'jp-de') return
+    playJapanese(item.id, item.character)
+  }, [item, phase, autoPlay, direction])
 }
