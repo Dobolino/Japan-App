@@ -152,6 +152,17 @@ export default function StrokeCanvas({ strokes, mode, size = 280, character, onS
     drawGrid(ctx, size)
 
     if (mode === 'animate') {
+      // Ghost: actual character behind the stroke animation
+      if (character) {
+        ctx.save()
+        ctx.globalAlpha = 0.08
+        ctx.fillStyle = '#e8e8f0'
+        ctx.font = `${size * 0.72}px "Hiragino Sans", "Yu Gothic", sans-serif`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(character, size / 2, size / 2)
+        ctx.restore()
+      }
       const limit = highlightUpTo ?? strokes.length
       strokes.forEach((seg, i) => {
         if (i < limit) {
@@ -174,7 +185,7 @@ export default function StrokeCanvas({ strokes, mode, size = 280, character, onS
       }
       drawUserStrokes(ctx, userStrokes.current)
     }
-  }, [mode, size, strokes])
+  }, [mode, size, strokes, character])
 
   // Animate stroke by stroke
   useEffect(() => {

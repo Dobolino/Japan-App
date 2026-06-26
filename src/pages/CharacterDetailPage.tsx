@@ -109,7 +109,7 @@ export default function CharacterDetailPage() {
 
         {tab === 'stroke' && hasStrokes && (
           <div className="flex justify-center">
-            <StrokeCanvas key={item.id + '-anim'} strokes={item.strokes!} mode="animate" size={260} />
+            <StrokeCanvas key={item.id + '-anim'} strokes={item.strokes!} mode="animate" size={260} character={item.character} />
           </div>
         )}
 
