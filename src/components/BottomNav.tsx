@@ -11,7 +11,7 @@ export default function BottomNav() {
   return (
     <nav
       className="flex border-t border-white/8"
-      style={{ background: '#0f0f1a', flexShrink: 0 }}
+      style={{ background: '#0f0f1a', flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {tabs.map(({ to, label, icon }) => (
         <NavLink

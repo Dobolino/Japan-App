@@ -20,9 +20,7 @@ export default function App() {
           display: 'flex',
           flexDirection: 'column',
           background: '#0f0f1a',
-          // Push content away from Dynamic Island (top) and home bar (bottom)
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
         {/*
