@@ -27,6 +27,7 @@ export default function FlashcardFace({
 }: Props) {
   const isJpFront = direction === 'jp-de'
   const multiChar = item.character.length > 1
+  const flipped = phase === 'answer'
 
   const speak = () => playJapanese(item.id, item.character)
 
@@ -34,7 +35,7 @@ export default function FlashcardFace({
     <div
       className={`flashcard relative flex flex-col flex-1 min-h-0 rounded-3xl border border-white/10 overflow-hidden bg-gradient-to-b ${CAT_GRADIENT[item.category]}`}
     >
-      <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-1">
+      <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-1 shrink-0 z-10">
         <div className="flex flex-wrap gap-1.5">
           <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${CAT_CHIP[item.category]}`}>
             {CAT_LABELS[item.category]}
@@ -53,90 +54,98 @@ export default function FlashcardFace({
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-3 text-center min-h-0 overflow-y-auto scroll-area">
-        <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">
-          {isJpFront ? 'Was bedeutet das?' : 'Wie heisst das auf Japanisch?'}
-        </p>
+      <div className="flashcard-scene flex-1 min-h-0 px-3 pb-3">
+        <div className={`flashcard-flipper ${flipped ? 'flashcard-flipper--flipped' : ''}`}>
+          {/* Vorderseite — Frage */}
+          <div className="flashcard-face flashcard-face--front">
+            <div className="flex flex-col items-center justify-center h-full px-2 py-2 text-center overflow-y-auto scroll-area">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">
+                {isJpFront ? 'Was bedeutet das?' : 'Wie heisst das auf Japanisch?'}
+              </p>
 
-        {isJpFront ? (
-          <>
-            {multiChar ? (
-              <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
-            ) : (
-              <div className="jp text-7xl sm:text-8xl leading-none text-white">{item.character}</div>
-            )}
-            {(showRomajiHint || !multiChar) && (
-              <p className="text-xl text-cyan-300 font-semibold mt-3">{item.romaji}</p>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="meaning-hero">{item.meaning}</div>
-            {item.vocabCategory && (
-              <p className="text-xs text-white/30 mt-2 capitalize">{item.vocabCategory}</p>
-            )}
-          </>
-        )}
+              {isJpFront ? (
+                <>
+                  {multiChar ? (
+                    <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
+                  ) : (
+                    <div className="jp text-7xl sm:text-8xl leading-none text-white">{item.character}</div>
+                  )}
+                  {(showRomajiHint || !multiChar) && (
+                    <p className="text-xl text-cyan-300 font-semibold mt-3">{item.romaji}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="meaning-hero">{item.meaning}</div>
+                  {item.vocabCategory && (
+                    <p className="text-xs text-white/30 mt-2 capitalize">{item.vocabCategory}</p>
+                  )}
+                </>
+              )}
 
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
-          <button type="button" onClick={speak} className="action-chip action-chip--audio">
-            <AudioIcon className="w-4 h-4" />
-            Anhören
-          </button>
-          <button type="button" onClick={speak} className="action-chip" aria-label="Nochmal anhören">
-            <RepeatIcon className="w-4 h-4" />
-            Wiederholen
-          </button>
-          {isJpFront && multiChar && (
-            <button
-              type="button"
-              onClick={onToggleRomajiHint}
-              className={`action-chip ${showRomajiHint ? 'action-chip--active' : ''}`}
-            >
-              Romaji {showRomajiHint ? 'aus' : 'ein'}
-            </button>
-          )}
-          <Link to={`/learn/${item.id}`} className="action-chip">
-            Details →
-          </Link>
-        </div>
-      </div>
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+                <button type="button" onClick={speak} className="action-chip action-chip--audio">
+                  <AudioIcon className="w-4 h-4" />
+                  Anhören
+                </button>
+                <button type="button" onClick={speak} className="action-chip" aria-label="Nochmal anhören">
+                  <RepeatIcon className="w-4 h-4" />
+                  Wiederholen
+                </button>
+                {isJpFront && multiChar && (
+                  <button
+                    type="button"
+                    onClick={onToggleRomajiHint}
+                    className={`action-chip ${showRomajiHint ? 'action-chip--active' : ''}`}
+                  >
+                    Romaji {showRomajiHint ? 'aus' : 'ein'}
+                  </button>
+                )}
+                <Link to={`/learn/${item.id}`} className="action-chip">
+                  Details →
+                </Link>
+              </div>
+            </div>
+          </div>
 
-      {phase === 'answer' && (
-        <div className="flashcard-answer border-t border-white/10 bg-black/25 px-5 py-4 text-center shrink-0">
-          <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">Antwort</p>
+          {/* Rückseite — Antwort */}
+          <div className="flashcard-face flashcard-face--back">
+            <div className="flex flex-col items-center justify-center h-full px-2 py-2 text-center overflow-y-auto scroll-area">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">Antwort</p>
 
-          {isJpFront ? (
-            <>
-              <div className="meaning-hero meaning-hero--answer">{item.meaning}</div>
-              {multiChar && (
-                <div className="mt-3 opacity-80">
-                  <ReadingBreakdown character={item.character} romaji={item.romaji} size="sm" compact />
+              {isJpFront ? (
+                <>
+                  <div className="meaning-hero meaning-hero--answer">{item.meaning}</div>
+                  {multiChar && (
+                    <div className="mt-3 opacity-80">
+                      <ReadingBreakdown character={item.character} romaji={item.romaji} size="sm" compact />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {multiChar ? (
+                    <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
+                  ) : (
+                    <div className="jp text-6xl sm:text-7xl leading-none text-white">{item.character}</div>
+                  )}
+                  <p className="text-xl text-cyan-300 font-semibold mt-2">{item.romaji}</p>
+                </>
+              )}
+
+              {item.exampleWord && (
+                <div className="mt-4 pt-3 border-t border-white/10 w-full max-w-xs">
+                  <p className="text-[10px] text-white/30 mb-1">Beispiel</p>
+                  <button type="button" onClick={() => playJapanese(item.id + '-ex', item.exampleWord!)} className="active:opacity-70">
+                    <span className="jp text-lg text-white/80">{item.exampleWord}</span>
+                    <span className="block text-xs text-white/40">{item.exampleReading} — {item.exampleMeaning}</span>
+                  </button>
                 </div>
               )}
-            </>
-          ) : (
-            <>
-              {multiChar ? (
-                <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
-              ) : (
-                <div className="jp text-6xl sm:text-7xl leading-none text-white">{item.character}</div>
-              )}
-              <p className="text-xl text-cyan-300 font-semibold mt-2">{item.romaji}</p>
-            </>
-          )}
-
-          {item.exampleWord && (
-            <div className="mt-3 pt-3 border-t border-white/10">
-              <p className="text-[10px] text-white/30 mb-1">Beispiel</p>
-              <button type="button" onClick={() => playJapanese(item.id + '-ex', item.exampleWord!)} className="active:opacity-70">
-                <span className="jp text-lg text-white/80">{item.exampleWord}</span>
-                <span className="block text-xs text-white/40">{item.exampleReading} — {item.exampleMeaning}</span>
-              </button>
             </div>
-          )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -61,7 +61,7 @@ export default function PracticeCard({
       </div>
 
       {/* Card — grows to fill available height */}
-      <div className="flex-1 min-h-0 flex flex-col pb-2">
+      <div key={current.id} className="flex-1 min-h-0 flex flex-col pb-2 flashcard-enter">
         <FlashcardFace
           item={current}
           direction={direction}
