@@ -152,10 +152,20 @@ export const useStore = create<AppState>()(
 
       getDueItems: (category, limit = 20) => {
         const now = new Date().toISOString()
-        return Object.values(get().items)
-          .filter((i) => (!category || i.category === category) && i.nextReviewDate <= now)
+        const allItems = Object.values(get().items)
+          .filter(i => !category || i.category === category)
+
+        // Already-reviewed cards that are due for repetition
+        const reviews = allItems
+          .filter(i => i.repetitions > 0 && i.nextReviewDate <= now)
           .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate))
-          .slice(0, limit)
+
+        // Introduce up to 10 brand-new cards per session
+        const newCards = allItems
+          .filter(i => i.repetitions === 0)
+          .slice(0, Math.max(0, 10 - reviews.length))
+
+        return [...reviews, ...newCards].slice(0, limit)
       },
 
       getItemsByCategory: (category) =>

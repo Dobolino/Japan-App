@@ -81,7 +81,7 @@ export default function PracticePage() {
   // ── Idle ────────────────────────────────────────────────────────────────────
   if (phase === 'idle') {
     return (
-      <div className="flex flex-col items-center justify-center h-full px-6 gap-4">
+      <div className="scroll-area h-full px-6 pt-8 pb-4 flex flex-col gap-4 items-center">
         <h1 className="text-2xl font-bold text-white">Üben</h1>
 
         {/* Mode switcher */}
@@ -120,7 +120,12 @@ export default function PracticePage() {
 
         {practiceMode === 'srs' ? (
           <>
-            <p className="text-white/40 text-sm">{dueItems.length} Karten fällig</p>
+            <div className="text-center">
+              <p className="text-white/60 text-sm">
+                <span className="text-white font-semibold">{dueItems.filter(i => i.repetitions > 0).length}</span> fällig ·{' '}
+                <span className="text-indigo-300 font-semibold">{dueItems.filter(i => i.repetitions === 0).length}</span> neu
+              </p>
+            </div>
             {dueItems.length > 0 ? (
               <button onClick={startSRS}
                 className="w-full max-w-xs py-4 rounded-2xl bg-indigo-600 text-white font-semibold text-lg active:scale-[0.97] transition-transform">
@@ -165,7 +170,7 @@ export default function PracticePage() {
     const counts = { 0: 0, 1: 0, 2: 0, 3: 0 } as Record<SRSRating, number>
     sessionRatings.forEach(r => counts[r]++)
     return (
-      <div className="flex flex-col items-center justify-center h-full px-6 gap-5 text-center">
+      <div className="scroll-area h-full px-6 pt-16 pb-4 flex flex-col items-center gap-5 text-center">
         <div className="text-5xl">{pct >= 70 ? '🌟' : pct >= 40 ? '👍' : '💪'}</div>
         <h1 className="text-2xl font-bold text-white">Sitzung beendet</h1>
         <div className="text-4xl font-bold text-white">{pct}%</div>

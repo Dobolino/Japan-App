@@ -5,9 +5,11 @@ import type { ItemCategory } from '../types'
 type CatFilter = ItemCategory | 'all'
 
 const CAT_TABS: { key: CatFilter; label: string }[] = [
-  { key: 'all',      label: 'Gesamt' },
-  { key: 'hiragana', label: 'Hiragana' },
-  { key: 'katakana', label: 'Katakana' },
+  { key: 'all',        label: 'Gesamt' },
+  { key: 'hiragana',   label: 'Hiragana' },
+  { key: 'katakana',   label: 'Katakana' },
+  { key: 'kanji',      label: 'Kanji' },
+  { key: 'vocabulary', label: 'Vokabeln' },
 ]
 
 export default function StatsPage() {
@@ -47,14 +49,14 @@ export default function StatsPage() {
     <div className="scroll-area h-full px-4 py-5">
       <h1 className="text-xl font-bold text-white mb-4">Statistik</h1>
 
-      {/* Category tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-white/5 mb-5">
+      {/* Category tabs — horizontal scroll */}
+      <div className="flex gap-2 mb-5 overflow-x-auto scrollbar-none">
         {CAT_TABS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setCatFilter(key)}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              catFilter === key ? 'bg-indigo-600 text-white' : 'text-white/40'
+            className={`flex-none px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+              catFilter === key ? 'bg-indigo-600 text-white' : 'bg-white/8 text-white/40'
             }`}
           >
             {label}
