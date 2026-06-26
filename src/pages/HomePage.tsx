@@ -39,77 +39,76 @@ export default function HomePage() {
   const greeting = hour < 12 ? 'おはようございます！' : hour < 18 ? 'こんにちは！' : 'こんばんは！'
 
   return (
-    <div className="scroll-area h-full px-4 pt-4 pb-3 space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+    <div className="scroll-area h-full px-4 pt-3 pb-3 space-y-3">
+      {/* Header + Level */}
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs mb-0.5 jp">{greeting}</p>
-          <h1 className="text-2xl font-bold text-white leading-tight">Japanisch lernen</h1>
+          <p className="text-white/40 text-xs jp">{greeting}</p>
+          <h1 className="text-xl font-bold text-white leading-tight">Japanisch lernen</h1>
         </div>
-        {/* Level badge */}
-        <div className="flex flex-col items-center bg-indigo-600/20 border border-indigo-500/30 rounded-2xl px-3 py-1.5">
-          <span className="text-indigo-300 text-[10px] font-medium">LEVEL</span>
-          <span className="text-white font-bold text-xl leading-tight">{level}</span>
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <div className="text-[10px] text-white/30">Level {level}</div>
+            <div className="text-xs text-indigo-300 font-medium">{xpNow}/{XP_PER_LEVEL} XP</div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">{level}</span>
+          </div>
         </div>
       </div>
 
       {/* XP bar */}
-      <div className="rounded-2xl bg-white/5 p-3">
-        <div className="flex justify-between text-xs text-white/40 mb-1.5">
-          <span>{progress.xp ?? 0} XP gesamt</span>
-          <span>{xpNow} / {XP_PER_LEVEL} XP</span>
-        </div>
-        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700"
-            style={{ width: `${xpPct}%` }} />
-        </div>
+      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+        <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700"
+          style={{ width: `${xpPct}%` }} />
       </div>
 
-      {/* Stats row */}
+      {/* Stats row + CTA */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard icon="🔥" value={String(progress.currentStreak ?? 0)} label="Tage Serie" accent={( progress.currentStreak ?? 0) > 0} />
+        <StatCard icon="🔥" value={String(progress.currentStreak ?? 0)} label="Serie" accent={(progress.currentStreak ?? 0) > 0} />
         <StatCard icon="⚡" value={String(todayCorrect)} label="Heute" />
-        <StatCard icon="📅" value={String(due)} label="Fällig" accent={due > 0} accentColor="orange" />
+        <button onClick={() => navigate('/practice')}
+          className={`rounded-2xl p-2.5 text-center active:scale-95 transition-all ${due > 0 ? 'bg-indigo-600/30 border border-indigo-500/40' : 'bg-white/5'}`}>
+          <div className="text-lg">📅</div>
+          <div className={`text-lg font-bold leading-tight ${due > 0 ? 'text-indigo-300' : 'text-white'}`}>{due}</div>
+          <div className="text-[10px] text-white/40">Fällig</div>
+        </button>
       </div>
 
-      {/* Due cards CTA */}
+      {/* Due CTA — only when there are reviews */}
       {due > 0 && (
         <button onClick={() => navigate('/practice')}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold text-base active:scale-[0.97] transition-transform shadow-lg shadow-indigo-900/40">
-          🗓 Wiederholung starten · {due} Karten
+          className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold text-sm active:scale-[0.97] transition-transform">
+          Wiederholung starten · {due} Karten →
         </button>
       )}
 
-      {/* Daily progress */}
-      <div className="rounded-2xl bg-white/5 border border-white/8 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Tagesziel</span>
-          <span className="text-xs text-white/40">{dailyDone}/{dailyGoal} Karten</span>
+      {/* Daily progress — compact */}
+      <div className="rounded-2xl bg-white/5 border border-white/8 px-3 py-2.5">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-white/50 text-xs font-semibold uppercase tracking-wider">Tagesziel</span>
+          <span className="text-xs text-white/40">{dailyDone}/{dailyGoal}</span>
         </div>
-        <div className="h-2 rounded-full bg-white/10 overflow-hidden mb-2">
+        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
           <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-500"
             style={{ width: `${(dailyDone / dailyGoal) * 100}%` }} />
         </div>
-        {dailyDone >= dailyGoal
-          ? <p className="text-green-400 text-xs text-center">🎉 Tagesziel erreicht!</p>
-          : <p className="text-white/30 text-xs text-center">Noch {dailyGoal - dailyDone} Karten bis zum Tagesziel</p>
-        }
       </div>
 
-      {/* Categories */}
+      {/* Categories — compact grid */}
       <div>
-        <h2 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Kategorien</h2>
-        <div className="grid grid-cols-2 gap-2.5">
+        <h2 className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-2">Kategorien</h2>
+        <div className="grid grid-cols-2 gap-2">
           {CAT_CONFIG.map(({ key, kana, label, color }) => {
             const s = catStats(key)
             const pct = s.total > 0 ? (s.mastered / s.total) * 100 : 0
             return (
               <button key={key} onClick={() => goLearn(key)}
-                className={`rounded-2xl p-4 text-left bg-gradient-to-br ${color} border border-white/8 active:scale-[0.97] transition-all`}>
-                <div className="text-3xl jp font-bold mb-2 text-white">{kana}</div>
-                <div className="text-sm font-semibold text-white">{label}</div>
-                <div className="text-xs text-white/40 mb-2">{s.mastered}/{s.total} gelernt</div>
-                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                className={`rounded-2xl p-3 text-left bg-gradient-to-br ${color} border border-white/8 active:scale-[0.97] transition-all`}>
+                <div className="text-2xl jp font-bold mb-1 text-white">{kana}</div>
+                <div className="text-xs font-semibold text-white">{label}</div>
+                <div className="text-[10px] text-white/40 mb-1.5">{s.mastered}/{s.total} gelernt</div>
+                <div className="h-1 rounded-full bg-white/10 overflow-hidden">
                   <div className="h-full rounded-full bg-white/50 transition-all duration-500"
                     style={{ width: `${pct}%` }} />
                 </div>
@@ -119,10 +118,10 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Motivation */}
+      {/* Motivation — only show with streak */}
       {(progress.currentStreak ?? 0) >= 3 && (
-        <div className="rounded-2xl bg-orange-500/10 border border-orange-500/20 p-3 text-center">
-          <span className="text-orange-300 text-sm">🔥 {progress.currentStreak} Tage am Stück – weiter so!</span>
+        <div className="rounded-xl bg-orange-500/10 border border-orange-500/20 px-3 py-2 text-center">
+          <span className="text-orange-300 text-xs">🔥 {progress.currentStreak} Tage am Stück!</span>
         </div>
       )}
     </div>
