@@ -113,7 +113,7 @@ function AnimateSVG({ character, size }: { character: string; size: number }) {
             key={replayKey}
             src={url}
             alt={character}
-            style={{ width: '85%', height: '85%', objectFit: 'contain' }}
+            style={{ width: '85%', height: '85%', objectFit: 'contain', filter: 'invert(1)' }}
           />
         ) : (
           <span className="text-white/20 text-sm text-center px-4">Keine Strichdaten verfügbar</span>
