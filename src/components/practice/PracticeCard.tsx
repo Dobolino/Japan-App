@@ -43,24 +43,16 @@ export default function PracticeCard({
 
   return (
     <div className="page-screen px-4">
-      {/* Progress header */}
       <div className="pt-3 pb-2 shrink-0">
-        <div className="flex justify-between text-xs text-white/30 mb-1.5">
+        <div className="flex justify-between text-xs text-[var(--text-muted)] font-semibold mb-1.5">
           <span>{index + 1} / {queueLength}</span>
-          <span>{practiceMode === 'srs' ? 'SRS' : 'Karteikarten'} · {direction === 'jp-de' ? 'JP → DE' : 'DE → JP'}</span>
+          <span>{practiceMode === 'srs' ? 'SRS' : 'Karteikarten'}</span>
         </div>
-        <div
-          className="h-1 rounded-full bg-white/10 overflow-hidden"
-          role="progressbar"
-          aria-valuenow={index + 1}
-          aria-valuemin={1}
-          aria-valuemax={queueLength}
-        >
-          <div className="h-full rounded-full bg-indigo-500 transition-all duration-300" style={{ width: `${progressPct}%` }} />
+        <div className="progress-track h-3" role="progressbar" aria-valuenow={index + 1} aria-valuemin={1} aria-valuemax={queueLength}>
+          <div className="progress-fill h-full" style={{ width: `${progressPct}%` }} />
         </div>
       </div>
 
-      {/* Card — grows to fill available height */}
       <div key={current.id} className="flex-1 min-h-0 flex flex-col pb-2 flashcard-enter">
         <FlashcardFace
           item={current}
@@ -72,7 +64,6 @@ export default function PracticeCard({
         />
       </div>
 
-      {/* Footer actions — pinned above nav */}
       <div className="shrink-0 space-y-2 pb-1">
         {practiceMode === 'flashcard' && direction === 'de-jp' && phase === 'question' && (
           <input
@@ -81,29 +72,19 @@ export default function PracticeCard({
             onChange={(e) => setTyped(e.target.value)}
             placeholder="Japanisch oder Romaji eingeben…"
             aria-label="Antwort eingeben"
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-base placeholder-white/20 outline-none focus:border-indigo-500"
+            className="w-full card-surface px-4 py-3 text-[var(--text-primary)] text-base placeholder-[var(--text-muted)] outline-none focus:border-[var(--blue)]"
           />
         )}
 
         {practiceMode === 'flashcard' && direction === 'de-jp' && phase === 'answer' && typed && (
-          <div
-            className={`w-full rounded-xl p-3 text-sm text-center ${
-              typedCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
-            }`}
-          >
-            {typedCorrect
-              ? '✓ Richtig!'
-              : `Deine Antwort: ${typed} — Richtig: ${current.character} (${current.romaji})`}
+          <div className={`w-full card-surface p-3 text-sm text-center font-bold ${typedCorrect ? 'border-[var(--green)] text-[var(--green)]' : 'border-[var(--red)] text-[var(--red)]'}`}>
+            {typedCorrect ? '✓ Richtig!' : `Deine Antwort: ${typed} — Richtig: ${current.character} (${current.romaji})`}
           </div>
         )}
 
         {phase === 'question' ? (
-          <button
-            type="button"
-            onClick={onReveal}
-            className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-semibold text-lg active:scale-[0.97] shadow-lg shadow-indigo-900/40"
-          >
-            Aufdecken <span className="text-indigo-200/60 text-sm font-normal">(Leertaste)</span>
+          <button type="button" onClick={onReveal} className="btn-duo btn-duo--blue">
+            Aufdecken
           </button>
         ) : practiceMode === 'srs' ? (
           <div className="grid grid-cols-4 gap-2" role="group" aria-label="SRS-Bewertung">
@@ -113,29 +94,19 @@ export default function PracticeCard({
                 type="button"
                 onClick={() => onAdvance(rating)}
                 aria-label={`${label}, Taste ${rating + 1}`}
-                className={`py-3 rounded-2xl border font-medium active:scale-95 transition-transform ${color}`}
+                className={`py-3 rounded-2xl border-2 font-bold active:scale-95 transition-transform text-xs ${color}`}
               >
-                <div className="text-sm">{label}</div>
-                <div className="text-[10px] opacity-60">{sub}</div>
+                <div>{label}</div>
+                <div className="text-[9px] opacity-70 font-normal">{sub}</div>
               </button>
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => onAdvance(0)}
-              aria-label="Nochmal"
-              className="py-3.5 rounded-2xl bg-red-500/20 text-red-300 border border-red-500/20 font-semibold active:scale-95 inline-flex items-center justify-center gap-2"
-            >
+            <button type="button" onClick={() => onAdvance(0)} aria-label="Nochmal" className="btn-duo btn-duo--wrong btn-duo--sm inline-flex items-center justify-center gap-2">
               <CrossIcon className="w-5 h-5" /> Nochmal
             </button>
-            <button
-              type="button"
-              onClick={() => onAdvance(3)}
-              aria-label="Gewusst"
-              className="py-3.5 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 font-semibold active:scale-95 inline-flex items-center justify-center gap-2"
-            >
+            <button type="button" onClick={() => onAdvance(3)} aria-label="Gewusst" className="btn-duo btn-duo--sm inline-flex items-center justify-center gap-2">
               <CheckIcon className="w-5 h-5" /> Gewusst
             </button>
           </div>

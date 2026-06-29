@@ -35,17 +35,15 @@ export default function LearnPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex border-b border-white/10 px-2 pt-2 overflow-x-auto scrollbar-none">
+      <div className="tab-bar px-2 pt-1 overflow-x-auto scrollbar-none">
         {TABS.map(({ key, label, kana }) => (
           <button
             key={key}
             type="button"
             onClick={() => handleTab(key)}
-            className={`flex-none flex items-center gap-1 px-3 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              tab === key ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40'
-            }`}
+            className={`tab-bar-btn ${tab === key ? 'tab-bar-btn--active' : ''}`}
           >
-            <span className="text-base leading-none">{kana}</span>
+            <span className="text-base leading-none jp">{kana}</span>
             {label}
           </button>
         ))}

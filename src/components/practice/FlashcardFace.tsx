@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import ReadingBreakdown from '@/components/ReadingBreakdown'
-import { playJapanese } from '@/utils/audio'
+import { playJapanese, unlockAudio, isAudioUnlocked } from '@/utils/audio'
 import { AudioIcon, RepeatIcon } from '@/components/icons/UiIcons'
 import { CAT_LABELS } from '@/constants/status'
-import { CAT_CHIP, CAT_GRADIENT } from '@/constants/categories'
+import { CAT_CHIP } from '@/constants/categories'
 import { STATUS_LABELS, STATUS_TEXT_COLORS } from '@/constants/status'
 import type { LearningItem } from '@/types'
 import type { Direction, Phase } from '@/hooks/usePracticeSession'
@@ -29,12 +29,13 @@ export default function FlashcardFace({
   const multiChar = item.character.length > 1
   const flipped = phase === 'answer'
 
-  const speak = () => playJapanese(item.id, item.character)
+  const speak = () => {
+    unlockAudio()
+    playJapanese(item.id, item.character)
+  }
 
   return (
-    <div
-      className={`flashcard relative flex flex-col flex-1 min-h-0 rounded-3xl border border-white/10 overflow-hidden bg-gradient-to-b ${CAT_GRADIENT[item.category]}`}
-    >
+    <div className="flashcard relative flex flex-col flex-1 min-h-0 rounded-3xl overflow-hidden">
       <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-1 shrink-0 z-10">
         <div className="flex flex-wrap gap-1.5">
           <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${CAT_CHIP[item.category]}`}>
@@ -59,7 +60,7 @@ export default function FlashcardFace({
           {/* Vorderseite — Frage */}
           <div className="flashcard-face flashcard-face--front">
             <div className="flex flex-col items-center justify-center h-full px-2 py-2 text-center overflow-y-auto scroll-area">
-              <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">
+              <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-3 font-bold">
                 {isJpFront ? 'Was bedeutet das?' : 'Wie heisst das auf Japanisch?'}
               </p>
 
@@ -68,10 +69,10 @@ export default function FlashcardFace({
                   {multiChar ? (
                     <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
                   ) : (
-                    <div className="jp text-7xl sm:text-8xl leading-none text-white">{item.character}</div>
+                    <div className="jp text-7xl sm:text-8xl leading-none text-[var(--text-primary)]">{item.character}</div>
                   )}
                   {(showRomajiHint || !multiChar) && (
-                    <p className="text-xl text-cyan-300 font-semibold mt-3">{item.romaji}</p>
+                    <p className="text-xl text-[var(--blue)] font-bold mt-3">{item.romaji}</p>
                   )}
                 </>
               ) : (
@@ -111,7 +112,7 @@ export default function FlashcardFace({
           {/* Rückseite — Antwort */}
           <div className="flashcard-face flashcard-face--back">
             <div className="flex flex-col items-center justify-center h-full px-2 py-2 text-center overflow-y-auto scroll-area">
-              <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">Antwort</p>
+              <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-3 font-bold">Antwort</p>
 
               {isJpFront ? (
                 <>
@@ -127,18 +128,18 @@ export default function FlashcardFace({
                   {multiChar ? (
                     <ReadingBreakdown character={item.character} romaji={item.romaji} size="lg" />
                   ) : (
-                    <div className="jp text-6xl sm:text-7xl leading-none text-white">{item.character}</div>
+                    <div className="jp text-6xl sm:text-7xl leading-none text-[var(--text-primary)]">{item.character}</div>
                   )}
-                  <p className="text-xl text-cyan-300 font-semibold mt-2">{item.romaji}</p>
+                  <p className="text-xl text-[var(--blue)] font-bold mt-2">{item.romaji}</p>
                 </>
               )}
 
               {item.exampleWord && (
-                <div className="mt-4 pt-3 border-t border-white/10 w-full max-w-xs">
-                  <p className="text-[10px] text-white/30 mb-1">Beispiel</p>
-                  <button type="button" onClick={() => playJapanese(item.id + '-ex', item.exampleWord!)} className="active:opacity-70">
-                    <span className="jp text-lg text-white/80">{item.exampleWord}</span>
-                    <span className="block text-xs text-white/40">{item.exampleReading} — {item.exampleMeaning}</span>
+                <div className="mt-4 pt-3 border-t-2 border-[var(--border)] w-full max-w-xs">
+                  <p className="text-[10px] text-[var(--text-muted)] mb-1 font-bold">Beispiel</p>
+                  <button type="button" onClick={() => { unlockAudio(); playJapanese(item.id + '-ex', item.exampleWord!) }} className="active:opacity-70">
+                    <span className="jp text-lg text-[var(--text-primary)]">{item.exampleWord}</span>
+                    <span className="block text-xs text-[var(--text-muted)]">{item.exampleReading} — {item.exampleMeaning}</span>
                   </button>
                 </div>
               )}
@@ -154,6 +155,7 @@ export default function FlashcardFace({
 export function useCardAudio(item: LearningItem | undefined, phase: Phase, autoPlay: boolean, direction: Direction) {
   useEffect(() => {
     if (!item || !autoPlay || phase !== 'question' || direction !== 'jp-de') return
+    if (!isAudioUnlocked()) return
     playJapanese(item.id, item.character)
   }, [item, phase, autoPlay, direction])
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { VOCAB_CATEGORIES } from '@/data/vocabulary'
-import { playJapanese } from '@/utils/audio'
+import { playJapanese, unlockAudio } from '@/utils/audio'
 import { STATUS_DOT } from '@/constants/status'
 import ReadingBreakdown from '@/components/ReadingBreakdown'
 import { AudioIcon } from '@/components/icons/UiIcons'
@@ -71,7 +71,7 @@ export default function VocabPage() {
             </button>
             <button
               type="button"
-              onClick={() => playJapanese(item.id, item.character)}
+              onClick={() => { unlockAudio(); playJapanese(item.id, item.character) }}
               className="audio-fab audio-fab--sm self-center"
               aria-label={`${item.character} anhören`}
             >

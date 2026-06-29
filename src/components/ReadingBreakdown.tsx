@@ -16,8 +16,8 @@ export default function ReadingBreakdown({ character, romaji, size = 'md', compa
   if (parts.length <= 1 && character.length <= 1) {
     return (
       <div className="text-center">
-        <div className={`jp font-bold text-white ${CHAR_SIZE[size]}`}>{character}</div>
-        {!compact && <div className={`text-cyan-300/80 mt-1 ${READ_SIZE[size]}`}>{romaji}</div>}
+        <div className={`jp font-bold text-[var(--text-primary)] ${CHAR_SIZE[size]}`}>{character}</div>
+        {!compact && <div className={`text-[var(--blue)] mt-1 font-semibold ${READ_SIZE[size]}`}>{romaji}</div>}
       </div>
     )
   }
@@ -30,7 +30,7 @@ export default function ReadingBreakdown({ character, romaji, size = 'md', compa
         ))}
       </div>
       {!compact && (
-        <p className={`text-center text-cyan-300/70 mt-3 font-medium ${READ_SIZE[size]}`}>
+        <p className={`text-center text-[var(--blue)] mt-3 font-semibold ${READ_SIZE[size]}`}>
           Gesamt: {romaji}
         </p>
       )}
@@ -47,9 +47,9 @@ function ReadingCell({ part, size, compact }: { part: ReadingPart; size: 'sm' | 
       className={`flex flex-col items-center min-w-[52px] ${compact ? 'px-1' : `px-3 py-2 rounded-2xl border ${bgClass}`}`}
     >
       <span className={`jp font-bold leading-none ${colorClass} ${CHAR_SIZE[size]}`}>{part.char}</span>
-      <span className={`text-cyan-300 font-semibold mt-1.5 ${READ_SIZE[size]}`}>{part.reading || '—'}</span>
+      <span className={`text-[var(--blue)] font-bold mt-1.5 ${READ_SIZE[size]}`}>{part.reading || '—'}</span>
       {!compact && (
-        <span className="text-[9px] text-white/30 mt-0.5 uppercase tracking-wide">
+        <span className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-wide">
           {part.type === 'kanji' ? 'Kanji' : part.type === 'hiragana' ? 'Hira' : part.type === 'katakana' ? 'Kata' : ''}
         </span>
       )}

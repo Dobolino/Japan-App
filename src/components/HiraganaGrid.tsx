@@ -46,18 +46,18 @@ export default function HiraganaGrid() {
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${filter === f ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/50'}`}
+              className={`chip ${filter === f ? 'chip--active' : ''}`}
             >
               {f === 'all' ? 'Alle' : f === 'new' ? 'Neu' : 'Fällig'}
             </button>
           ))}
         </div>
-        <span className="ml-auto text-xs text-white/30">{mastered}/{total}</span>
+        <span className="ml-auto text-xs text-[var(--text-muted)] font-semibold">{mastered}/{total}</span>
       </div>
       <div className="scroll-area flex-1 px-4 pb-4">
         {filteredRows.map((row) => (
           <div key={row.label} className="mb-5">
-            <h2 className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2">{row.label}</h2>
+            <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">{row.label}</h2>
             <div className="grid grid-cols-5 gap-2">
               {row.ids.map((id) => {
                 const item = items[id]
@@ -67,10 +67,10 @@ export default function HiraganaGrid() {
                     key={id}
                     type="button"
                     onClick={() => navigate(`/learn/${id}`)}
-                    className="aspect-square rounded-2xl bg-white/5 border border-white/8 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform"
+                    className="kana-cell active:scale-95"
                   >
-                    <span className="text-2xl leading-none">{item.character}</span>
-                    <span className="text-[10px] text-white/30">{item.romaji}</span>
+                    <span className="text-2xl leading-none text-[var(--text-primary)]">{item.character}</span>
+                    <span className="text-[10px] text-[var(--text-muted)]">{item.romaji}</span>
                     <span className={`text-[9px] px-1 rounded-sm ${STATUS_COLORS[item.status]}`}>
                       {STATUS_LABELS_SHORT[item.status]}
                     </span>

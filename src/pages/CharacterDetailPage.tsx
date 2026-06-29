@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import StrokeCanvas from '@/components/StrokeCanvas'
 import ReadingBreakdown from '@/components/ReadingBreakdown'
-import { playJapanese } from '@/utils/audio'
+import { playJapanese, unlockAudio } from '@/utils/audio'
 import { AudioIcon } from '@/components/icons/UiIcons'
 import { SRS_RATINGS } from '@/constants/srs'
 import { CAT_LABELS, STATUS_LABELS, STATUS_TEXT_COLORS } from '@/constants/status'
@@ -26,12 +26,15 @@ export default function CharacterDetailPage() {
   const canvasSize = useSquareSize(canvasAreaRef, 240, 8)
 
   if (!item) {
-    return <div className="flex items-center justify-center h-full text-white/40">Nicht gefunden</div>
+    return <div className="flex items-center justify-center h-full text-[var(--text-muted)]">Nicht gefunden</div>
   }
 
   const isKanji = item.category === 'kanji'
   const multiChar = item.character.length > 1
-  const speak = () => playJapanese(item.id, item.character)
+  const speak = () => {
+    unlockAudio()
+    playJapanese(item.id, item.character)
+  }
 
   const handleEvaluate = (s: number) => {
     setScore(s)
@@ -47,9 +50,9 @@ export default function CharacterDetailPage() {
   return (
     <div className="page-screen">
       {/* Kompakter Header — alles auf einen Blick */}
-      <div className="shrink-0 px-3 pt-2 pb-2 border-b border-white/10">
+      <div className="shrink-0 px-3 pt-2 pb-2 border-b-2 border-[var(--border)] bg-[var(--bg-card)]">
         <div className="flex items-center gap-2 mb-2">
-          <button type="button" onClick={() => navigate(-1)} className="text-white/40 text-2xl leading-none w-8" aria-label="Zurück">
+          <button type="button" onClick={() => navigate(-1)} className="text-[var(--text-muted)] text-2xl leading-none w-8" aria-label="Zurück">
             ‹
           </button>
           <div className="flex gap-1.5 flex-1">
@@ -67,16 +70,16 @@ export default function CharacterDetailPage() {
 
         <div className="flex items-center gap-3 px-1">
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] uppercase tracking-widest text-cyan-400/50 mb-0.5">Bedeutung</p>
-            <h1 className="text-2xl font-bold text-cyan-300 leading-tight truncate">{item.meaning}</h1>
+            <p className="text-[9px] uppercase tracking-widest text-[var(--text-muted)] mb-0.5 font-bold">Bedeutung</p>
+            <h1 className="text-2xl font-bold text-[var(--blue)] leading-tight truncate">{item.meaning}</h1>
           </div>
           <div className="text-center shrink-0">
             {multiChar ? (
               <ReadingBreakdown character={item.character} romaji={item.romaji} size="sm" compact />
             ) : (
               <>
-                <div className="jp text-4xl leading-none text-white">{item.character}</div>
-                <p className="text-sm text-cyan-300/80 font-medium">{item.romaji}</p>
+                <div className="jp text-4xl leading-none text-[var(--text-primary)]">{item.character}</div>
+                <p className="text-sm text-[var(--blue)] font-bold">{item.romaji}</p>
               </>
             )}
           </div>
@@ -84,7 +87,7 @@ export default function CharacterDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10 mx-3 shrink-0">
+      <div className="flex border-b-2 border-[var(--border)] mx-3 shrink-0 bg-[var(--bg-card)]">
         <TabBtn id="info" active={tab} onClick={setTab} label="Info" />
         {hasStrokes && <TabBtn id="stroke" active={tab} onClick={setTab} label="Strichfolge" />}
         {hasStrokes && <TabBtn id="draw" active={tab} onClick={setTab} label="Schreiben" />}
@@ -165,8 +168,8 @@ function TabBtn({ id, active, onClick, label }: { id: Tab; active: Tab; onClick:
     <button
       type="button"
       onClick={() => onClick(id)}
-      className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${
-        active === id ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40'
+      className={`flex-1 py-2 text-xs font-bold border-b-3 transition-colors ${
+        active === id ? 'border-[var(--blue)] text-[var(--blue)]' : 'border-transparent text-[var(--text-muted)]'
       }`}
     >
       {label}

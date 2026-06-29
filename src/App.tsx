@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { useStoreHydration } from '@/hooks/useStoreHydration'
+import { unlockAudio } from '@/utils/audio'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
 import HomePage from '@/pages/HomePage'
@@ -18,10 +19,24 @@ function AppRoutes() {
     if (hydrated) initItems()
   }, [hydrated, initItems])
 
+  useEffect(() => {
+    const onInteract = () => {
+      unlockAudio()
+      window.removeEventListener('pointerdown', onInteract)
+      window.removeEventListener('keydown', onInteract)
+    }
+    window.addEventListener('pointerdown', onInteract, { passive: true })
+    window.addEventListener('keydown', onInteract)
+    return () => {
+      window.removeEventListener('pointerdown', onInteract)
+      window.removeEventListener('keydown', onInteract)
+    }
+  }, [])
+
   if (!hydrated) {
     return (
       <div className="app-shell flex items-center justify-center">
-        <p className="text-white/40 text-sm" role="status">Lädt…</p>
+        <p className="text-[var(--text-muted)] text-sm" role="status">Lädt…</p>
       </div>
     )
   }

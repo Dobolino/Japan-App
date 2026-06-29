@@ -4,11 +4,11 @@ import { XP_PER_LEVEL, xpInLevel, xpToLevel } from '@/constants/srs'
 import { localDateKey } from '@/utils/date'
 import type { ItemCategory } from '@/types'
 
-const CAT_CONFIG: { key: ItemCategory; kana: string; label: string; color: string }[] = [
-  { key: 'hiragana', kana: 'あ', label: 'Hiragana', color: 'from-blue-600/30 to-blue-800/10' },
-  { key: 'katakana', kana: 'ア', label: 'Katakana', color: 'from-purple-600/30 to-purple-800/10' },
-  { key: 'kanji', kana: '漢', label: 'Kanji N5', color: 'from-orange-600/30 to-orange-800/10' },
-  { key: 'vocabulary', kana: '語', label: 'Vokabeln', color: 'from-green-600/30 to-green-800/10' },
+const CAT_CONFIG: { key: ItemCategory; kana: string; label: string; emoji: string }[] = [
+  { key: 'hiragana', kana: 'あ', label: 'Hiragana', emoji: '🔤' },
+  { key: 'katakana', kana: 'ア', label: 'Katakana', emoji: '🔡' },
+  { key: 'kanji', kana: '漢', label: 'Kanji N5', emoji: '🈶' },
+  { key: 'vocabulary', kana: '語', label: 'Vokabeln', emoji: '💬' },
 ]
 
 export default function HomePage() {
@@ -36,86 +36,69 @@ export default function HomePage() {
     progress.todayDate === localDateKey() ? (progress.todayCorrect ?? 0) : 0
   const dailyGoal = 20
   const dailyDone = Math.min(todayCorrect, dailyGoal)
-  const dailyRemaining = Math.max(0, dailyGoal - dailyDone)
 
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'おはようございます！' : hour < 18 ? 'こんにちは！' : 'こんばんは！'
+  const greeting = hour < 12 ? 'Guten Morgen!' : hour < 18 ? 'Hallo!' : 'Guten Abend!'
 
   return (
     <div className="page-screen">
-      <div className="scroll-area flex-1 min-h-0 px-4 pt-3 pb-2 flex flex-col gap-3">
-        {/* Header */}
-        <div className="flex items-center justify-between shrink-0">
+      {/* Duolingo-style header banner */}
+      <div className="header-banner shrink-0">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-white/40 text-xs jp">{greeting}</p>
-            <h1 className="text-xl font-bold text-white leading-tight">Japanisch lernen</h1>
+            <p className="text-white/70 text-sm">{greeting}</p>
+            <h1 className="text-xl font-bold text-white">Japanisch lernen</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-right">
-              <div className="text-[10px] text-white/30">Level {level}</div>
-              <div className="text-xs text-indigo-300 font-medium">{xpNow}/{XP_PER_LEVEL} XP</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-wide">Level</div>
+              <div className="text-sm text-white font-bold">{xpNow}/{XP_PER_LEVEL} XP</div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-2xl bg-[#ff9600] border-2 border-[#e68600] flex items-center justify-center shadow-[0_3px_0_#e68600]">
               <span className="text-white font-bold text-lg">{level}</span>
             </div>
           </div>
         </div>
-
-        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden shrink-0">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700"
-            style={{ width: `${xpPct}%` }}
-          />
+        <div className="progress-track">
+          <div className="progress-fill progress-fill--orange h-full" style={{ width: `${xpPct}%` }} />
         </div>
+      </div>
 
-        {/* Stats */}
+      <div className="scroll-area flex-1 min-h-0 px-4 pt-4 pb-2 flex flex-col gap-3">
+        {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 shrink-0">
-          <StatCard icon="🔥" value={String(progress.currentStreak ?? 0)} label="Serie" accent={(progress.currentStreak ?? 0) > 0} />
+          <StatCard icon="🔥" value={String(progress.currentStreak ?? 0)} label="Serie" accent />
           <StatCard icon="⚡" value={String(todayCorrect)} label="Heute" />
-          <button
-            type="button"
-            onClick={() => navigate('/practice')}
-            aria-label={`${due} fällige Karten üben`}
-            className={`rounded-2xl p-2.5 text-center active:scale-95 transition-all ${due > 0 ? 'bg-indigo-600/30 border border-indigo-500/40' : 'bg-white/5'}`}
-          >
-            <div className="text-lg" aria-hidden="true">📅</div>
-            <div className={`text-lg font-bold leading-tight ${due > 0 ? 'text-indigo-300' : 'text-white'}`}>{due}</div>
-            <div className="text-[10px] text-white/40">Fällig</div>
-          </button>
+          <StatCard icon="📅" value={String(due)} label="Fällig" accent={due > 0} />
         </div>
 
-        {due > 0 && (
-          <button
-            type="button"
-            onClick={() => navigate('/practice')}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold text-sm active:scale-[0.97] transition-transform shrink-0"
-          >
-            Wiederholung starten · {due} Karten →
+        {/* Main CTA — like Duolingo "Continue" */}
+        {due > 0 ? (
+          <button type="button" onClick={() => navigate('/practice')} className="btn-duo shrink-0">
+            Lektion fortsetzen · {due} Karten
+          </button>
+        ) : (
+          <button type="button" onClick={() => navigate('/learn')} className="btn-duo btn-duo--blue shrink-0">
+            Neues lernen
           </button>
         )}
 
         {/* Daily goal */}
-        <div className="rounded-2xl bg-white/5 border border-white/8 px-3 py-3 shrink-0">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-white/50 text-xs font-semibold uppercase tracking-wider">Tagesziel</span>
-            <span className="text-xs text-white/40">{dailyDone}/{dailyGoal}</span>
+        <div className="card-surface px-4 py-3 shrink-0">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Tagesziel</span>
+            <span className="text-xs font-bold text-[var(--green)]">{dailyDone}/{dailyGoal} XP</span>
           </div>
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-500"
-              style={{ width: `${(dailyDone / dailyGoal) * 100}%` }}
-            />
+          <div className="progress-track">
+            <div className="progress-fill h-full" style={{ width: `${(dailyDone / dailyGoal) * 100}%` }} />
           </div>
-          {dailyRemaining > 0 && (
-            <p className="text-[10px] text-white/30 mt-1.5">Noch {dailyRemaining} Karten bis zum Tagesziel</p>
-          )}
         </div>
 
-        {/* Categories — expand to fill remaining space */}
-        <div className="flex-1 min-h-[140px] flex flex-col">
-          <h2 className="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-2 shrink-0">Kategorien</h2>
-          <div className="grid grid-cols-2 gap-2 flex-1 auto-rows-fr">
-            {CAT_CONFIG.map(({ key, kana, label, color }) => {
+        {/* Lesson path — category cards */}
+        <div className="flex-1 min-h-[120px]">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Lernpfad</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {CAT_CONFIG.map(({ key, kana, label, emoji }) => {
               const s = catStats(key)
               const pct = s.total > 0 ? (s.mastered / s.total) * 100 : 0
               return (
@@ -123,16 +106,17 @@ export default function HomePage() {
                   key={key}
                   type="button"
                   onClick={() => goLearn(key)}
-                  className={`rounded-2xl p-3 text-left bg-gradient-to-br ${color} border border-white/8 active:scale-[0.97] transition-all flex flex-col justify-between min-h-[100px]`}
+                  className="card-surface p-3 text-left active:translate-y-0.5 transition-transform min-h-[100px] flex flex-col justify-between"
                 >
-                  <div>
-                    <div className="text-2xl jp font-bold mb-0.5 text-white">{kana}</div>
-                    <div className="text-xs font-semibold text-white">{label}</div>
+                  <div className="flex items-start justify-between">
+                    <span className="text-2xl jp font-bold text-[var(--text-primary)]">{kana}</span>
+                    <span className="text-lg" aria-hidden="true">{emoji}</span>
                   </div>
                   <div>
-                    <div className="text-[10px] text-white/40 mb-1">{s.mastered}/{s.total} gelernt</div>
-                    <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full rounded-full bg-white/50 transition-all duration-500" style={{ width: `${pct}%` }} />
+                    <div className="text-sm font-bold text-[var(--text-primary)]">{label}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{s.mastered}/{s.total} gemeistert</div>
+                    <div className="progress-track mt-1.5 h-2">
+                      <div className="progress-fill progress-fill--blue h-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 </button>
@@ -142,8 +126,8 @@ export default function HomePage() {
         </div>
 
         {(progress.currentStreak ?? 0) >= 3 && (
-          <div className="rounded-xl bg-orange-500/10 border border-orange-500/20 px-3 py-2 text-center shrink-0">
-            <span className="text-orange-300 text-xs">🔥 {progress.currentStreak} Tage am Stück!</span>
+          <div className="card-surface px-3 py-2 text-center shrink-0 border-[#ff9600]">
+            <span className="text-[var(--orange)] text-sm font-bold">🔥 {progress.currentStreak} Tage Serie!</span>
           </div>
         )}
       </div>
@@ -151,20 +135,14 @@ export default function HomePage() {
   )
 }
 
-function StatCard({ icon, value, label, accent, accentColor = 'indigo' }: {
-  icon: string; value: string; label: string; accent?: boolean; accentColor?: string
+function StatCard({ icon, value, label, accent }: {
+  icon: string; value: string; label: string; accent?: boolean
 }) {
-  const accentClass = accent
-    ? accentColor === 'orange'
-      ? 'bg-orange-500/15 border border-orange-500/25 text-orange-300'
-      : 'bg-indigo-500/15 border border-indigo-500/25 text-indigo-300'
-    : 'bg-white/5 border border-white/8 text-white'
-
   return (
-    <div className={`rounded-2xl p-3 text-center ${accentClass}`}>
+    <div className={`card-surface p-2.5 text-center ${accent ? 'border-[var(--orange)]' : ''}`}>
       <div className="text-lg mb-0.5" aria-hidden="true">{icon}</div>
-      <div className={`text-xl font-bold leading-tight ${accent ? '' : 'text-white'}`}>{value}</div>
-      <div className="text-[10px] opacity-60 mt-0.5">{label}</div>
+      <div className={`text-xl font-bold leading-tight ${accent ? 'text-[var(--orange)]' : 'text-[var(--text-primary)]'}`}>{value}</div>
+      <div className="text-[10px] text-[var(--text-muted)] font-semibold mt-0.5">{label}</div>
     </div>
   )
 }
