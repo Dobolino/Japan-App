@@ -187,10 +187,10 @@ export const useStore = create<AppState>()(
         })),
 
       rateReview: (id, rating) => {
-        const correct = rating >= 2
+        const correct = rating >= 1
 
         if (isGrammarSrsId(id)) {
-          const { grammarSrs, progress } = get()
+          const { grammarSrs } = get()
           const entry = grammarSrs[id]
           if (!entry) return
 
@@ -205,12 +205,12 @@ export const useStore = create<AppState>()(
                 correctCount: entry.correctCount + (correct ? 1 : 0),
               },
             },
-            progress: applyProgressPatch(progress, correct),
+            progress: applyProgressPatch(s.progress, correct),
           }))
           return
         }
 
-        const { items, progress } = get()
+        const { items } = get()
         const item = items[id]
         if (!item) return
 
@@ -225,7 +225,7 @@ export const useStore = create<AppState>()(
               correctCount: item.correctCount + (correct ? 1 : 0),
             },
           },
-          progress: applyProgressPatch(progress, correct),
+          progress: applyProgressPatch(s.progress, correct),
         }))
       },
 
