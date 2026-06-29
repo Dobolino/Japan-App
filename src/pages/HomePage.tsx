@@ -15,7 +15,7 @@ const CAT_CONFIG: { key: ItemCategory; kana: string; label: string; emoji: strin
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { progress, items, getDueItems, getDueGrammarCount, setActiveCategory, storyProgress } = useStore()
+  const { progress, items, getDueItems, getDueGrammarCount, setActiveCategory, storyProgress, displayPrefs, setDisplayPrefs } = useStore()
   const all = Object.values(items)
   const due = getDueItems(undefined, 999).length + getDueGrammarCount()
 
@@ -52,6 +52,14 @@ export default function HomePage() {
             <h1 className="text-xl font-bold text-[var(--header-text)]">Japanisch lernen</h1>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDisplayPrefs({ theme: displayPrefs.theme === 'dark' ? 'light' : 'dark' })}
+              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg active:scale-90 transition-transform"
+              aria-label="Hell/Dunkel"
+            >
+              {displayPrefs.theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <div className="text-right">
               <div className="text-[10px] text-[var(--header-text-muted)] uppercase tracking-wide">Level</div>
               <div className="text-sm text-[var(--header-text)] font-bold">{xpNow}/{XP_PER_LEVEL} XP</div>

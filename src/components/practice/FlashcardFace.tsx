@@ -140,6 +140,10 @@ export default function FlashcardFace({
               {isJpFront ? (
                 <>
                   <JapanesePrompt card={card} size={multiChar ? 'sentence' : 'display'} />
+                  {/* Always show reading for sentences/grammar; romaji hint for single chars */}
+                  {(isGrammar || card.kind === 'sentence') && card.promptReading && phase === 'answer' && (
+                    <p className="jp text-sm text-[var(--blue)] font-semibold mt-2 opacity-80">{card.promptReading}</p>
+                  )}
                   {(showRomajiHint || !multiChar) && !card.promptReading && (
                     <p className="text-xl text-[var(--blue)] font-bold mt-3">{card.promptRomaji}</p>
                   )}
@@ -174,7 +178,15 @@ export default function FlashcardFace({
               {isJpFront ? (
                 <div className="meaning-hero meaning-hero--answer">{card.promptMeaning}</div>
               ) : (
-                <JapaneseAnswer card={card} />
+                <>
+                  <JapaneseAnswer card={card} />
+                  {/* Always show reading below Japanese answer */}
+                  {(card.answerReading || card.answerRomaji) && (
+                    <p className="jp text-sm text-[var(--blue)] font-semibold mt-2 opacity-80">
+                      {card.answerReading ?? card.answerRomaji}
+                    </p>
+                  )}
+                </>
               )}
 
               {!isJpFront && card.kind === 'lemma' && item.exampleWord && (
