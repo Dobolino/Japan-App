@@ -36,7 +36,7 @@ export default function HomePage() {
 
   const todayCorrect =
     progress.todayDate === localDateKey() ? (progress.todayCorrect ?? 0) : 0
-  const dailyGoal = 20
+  const dailyGoal = displayPrefs.dailyGoal ?? 20
   const dailyDone = Math.min(todayCorrect, dailyGoal)
 
   const hour = new Date().getHours()
@@ -97,7 +97,7 @@ export default function HomePage() {
         <div className="card-surface px-4 py-3 shrink-0">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Tagesziel</span>
-            <span className="text-xs font-bold text-[var(--green)]">{dailyDone}/{dailyGoal} XP</span>
+            <span className="text-xs font-bold text-[var(--green)]">{dailyDone}/{dailyGoal}</span>
           </div>
           <div className="progress-track">
             <div className="progress-fill h-full" style={{ width: `${(dailyDone / dailyGoal) * 100}%` }} />
@@ -119,6 +119,24 @@ export default function HomePage() {
             <span className="jp text-2xl text-[var(--blue)]">読</span>
           </div>
         </button>
+
+        {/* Next learning step */}
+        {(() => {
+          const next = CAT_CONFIG.map(({ key, label, emoji }) => {
+            const s = catStats(key)
+            const pct = s.total > 0 ? s.mastered / s.total : 0
+            return { key, label, emoji, pct, s }
+          }).sort((a, b) => a.pct - b.pct)[0]
+          if (!next || next.pct >= 1) return null
+          return (
+            <div className="card-surface px-3 py-2 shrink-0 border-[var(--green)]">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Nächster Schritt</p>
+              <p className="text-sm font-bold text-[var(--text-primary)] mt-0.5">
+                {next.emoji} {next.label} · {Math.round(next.pct * 100)}% gemeistert
+              </p>
+            </div>
+          )
+        })()}
 
         <DisplaySettings />
 

@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { grammarData, GRAMMAR_CATEGORIES } from '@/data/grammar'
 import type { GrammarPoint } from '@/data/grammar'
-import RubyText from '@/components/RubyText'
-import { playJapanese, unlockAudio } from '@/utils/audio'
-import { AudioIcon } from '@/components/icons/UiIcons'
+import JapaneseExample from '@/components/JapaneseExample'
 
 const CATEGORY_COLORS: Record<string, string> = {
   Partikel: 'bg-[#eef2ff] text-[var(--blue)] border-[#bce8ff]',
@@ -94,23 +92,13 @@ function GrammarCard({
             <div className="space-y-2">
               {g.examples.map((ex, i) => (
                 <div key={i} className="rounded-xl bg-[var(--bg-muted)] p-3 border border-[var(--border)]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      unlockAudio()
-                      playJapanese(`${g.id}-ex${i}`, ex.jp)
-                    }}
-                    className="flex items-start gap-2 w-full text-left active:opacity-70"
-                  >
-                    <div className="flex-1">
-                      <RubyText text={ex.jp} reading={ex.reading} size="compact" />
-                      <div className="text-[var(--text-muted)] text-xs mt-0.5 jp">{ex.reading}</div>
-                      <div className="text-[var(--text-secondary)] text-sm mt-1 font-semibold">{ex.de}</div>
-                    </div>
-                    <span className="text-[var(--blue)] flex-none mt-0.5">
-                      <AudioIcon className="w-5 h-5" />
-                    </span>
-                  </button>
+                  <JapaneseExample
+                    jp={ex.jp}
+                    reading={ex.reading}
+                    de={ex.de}
+                    audioId={`${g.id}-ex${i}`}
+                    size="compact"
+                  />
                 </div>
               ))}
             </div>

@@ -58,6 +58,8 @@ export interface DisplayPrefs {
   showFurigana: boolean
   showRomaji: boolean
   theme: ThemeMode
+  /** Daily XP goal (correct answers today) */
+  dailyGoal: number
 }
 
 export interface StoryProgress {

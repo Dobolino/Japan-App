@@ -14,6 +14,7 @@ export function usePracticeSession() {
   const getDueItems = useStore((s) => s.getDueItems)
   const grammarSrs = useStore((s) => s.grammarSrs)
   const rateReview = useStore((s) => s.rateReview)
+  const getPinnedItems = useStore((s) => s.getPinnedItems)
   const startStudySession = useStore((s) => s.startStudySession)
 
   const [practiceMode, setPracticeMode] = useState<PracticeMode>('srs')
@@ -57,9 +58,15 @@ export function usePracticeSession() {
   )
 
   const startSRS = useCallback(() => {
+    const pinned = getPinnedItems().filter(
+      (p) => filterCat === 'all' || p.category === filterCat
+    )
     const due = getDueItems(filterCat === 'all' ? undefined : filterCat, 16)
+    const dueIds = new Set(due.map((d) => d.id))
+    const extraPinned = pinned.filter((p) => !dueIds.has(p.id)).slice(0, 4)
+    const mergedItems = [...extraPinned, ...due].slice(0, 16)
     const grammarCards = pickGrammarReviewCards(grammarSrs, grammarData, 4)
-    const built = buildReviewQueue(due, { limit: 20, grammarCards })
+    const built = buildReviewQueue(mergedItems, { limit: 20, grammarCards })
     if (!built.length) return
     startStudySession()
     setQueue(built)
@@ -68,7 +75,7 @@ export function usePracticeSession() {
     setTyped('')
     setLastCheckedCorrect(null)
     setPhase('question')
-  }, [filterCat, getDueItems, grammarSrs, startStudySession])
+  }, [filterCat, getDueItems, getPinnedItems, grammarSrs, startStudySession])
 
   const startFlashcard = useCallback(() => {
     const built = buildFlashcardQueue(allItems, 20)

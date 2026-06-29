@@ -44,6 +44,7 @@ export default function PracticeIdle({
 }: Props) {
   const navigate = useNavigate()
   const getDueGrammarCount = useStore((s) => s.getDueGrammarCount)
+  const pinnedCount = useStore((s) => s.pinnedReviewIds.length)
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
   const dueGrammar = getDueGrammarCount()
@@ -83,7 +84,12 @@ export default function PracticeIdle({
                 </>
               )}
             </p>
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">Inkl. Beispiel- & Grammatiksätze</p>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1">
+              Inkl. Beispiel- & Grammatiksätze
+              {pinnedCount > 0 && (
+                <> · <span className="text-[var(--green)] font-bold">{pinnedCount} gemerkt</span></>
+              )}
+            </p>
           </div>
 
           {totalDue > 0 ? (

@@ -34,6 +34,7 @@ interface AppState {
   displayPrefs: DisplayPrefs
   activeCategory: ItemCategory
   storyProgress: StoryProgress
+  pinnedReviewIds: string[]
 
   initItems: () => void
   initGrammarSrs: () => void
@@ -48,6 +49,9 @@ interface AppState {
   getDueItems: (category?: string, limit?: number) => LearningItem[]
   getDueGrammarCount: () => number
   getItemsByCategory: (category: string) => LearningItem[]
+  pinForReview: (id: string) => void
+  unpinForReview: (id: string) => void
+  getPinnedItems: () => LearningItem[]
 }
 
 const defaultProgress: UserProgress = {
@@ -68,8 +72,9 @@ const defaultStoryProgress: StoryProgress = { completed: [] }
 
 const defaultDisplayPrefs: DisplayPrefs = {
   showFurigana: true,
-  showRomaji: false,
+  showRomaji: true,
   theme: 'light',
+  dailyGoal: 20,
 }
 
 function mergeStoredItem(seed: LearningItem, stored: LearningItem): LearningItem {
@@ -142,6 +147,7 @@ export const useStore = create<AppState>()(
       displayPrefs: defaultDisplayPrefs,
       activeCategory: 'hiragana',
       storyProgress: defaultStoryProgress,
+      pinnedReviewIds: [],
 
       initItems: () => {
         const { items } = get()
@@ -234,7 +240,7 @@ export const useStore = create<AppState>()(
       resetProgress: () => {
         const reset: Record<string, LearningItem> = {}
         for (const item of ALL_SEED) reset[item.id] = { ...item }
-        set({ items: reset, grammarSrs: seedGrammarSrs(), progress: defaultProgress, storyProgress: defaultStoryProgress })
+        set({ items: reset, grammarSrs: seedGrammarSrs(), progress: defaultProgress, storyProgress: defaultStoryProgress, pinnedReviewIds: [] })
       },
 
       getDueItems: (category, limit = 20) => {
@@ -264,6 +270,20 @@ export const useStore = create<AppState>()(
 
       getItemsByCategory: (category) =>
         Object.values(get().items).filter((i) => i.category === category),
+
+      pinForReview: (id) =>
+        set((s) => {
+          if (s.pinnedReviewIds.includes(id)) return s
+          return { pinnedReviewIds: [...s.pinnedReviewIds, id].slice(-20) }
+        }),
+
+      unpinForReview: (id) =>
+        set((s) => ({ pinnedReviewIds: s.pinnedReviewIds.filter((x) => x !== id) })),
+
+      getPinnedItems: () => {
+        const { items, pinnedReviewIds } = get()
+        return pinnedReviewIds.map((id) => items[id]).filter(Boolean)
+      },
     }),
     {
       name: 'japp-store',
@@ -274,6 +294,7 @@ export const useStore = create<AppState>()(
           displayPrefs?: DisplayPrefs
           grammarSrs?: Record<string, GrammarSrsItem>
           storyProgress?: StoryProgress
+          pinnedReviewIds?: string[]
         }
         const progress = state.progress ?? {}
         if ('totalSessions' in progress && !('cardsReviewed' in progress)) {
@@ -285,12 +306,17 @@ export const useStore = create<AppState>()(
         }
         if (!state.displayPrefs) {
           state.displayPrefs = defaultDisplayPrefs
-        } else if (!('theme' in state.displayPrefs)) {
+        } else {
+          const prefs = state.displayPrefs as DisplayPrefs
           state.displayPrefs = {
             ...defaultDisplayPrefs,
-            ...(state.displayPrefs as DisplayPrefs),
-            theme: 'light',
+            ...prefs,
+            theme: prefs.theme ?? 'light',
+            dailyGoal: prefs.dailyGoal ?? 20,
           }
+        }
+        if (!state.pinnedReviewIds) {
+          state.pinnedReviewIds = []
         }
         if (!state.grammarSrs || !Object.keys(state.grammarSrs).length) {
           state.grammarSrs = seedGrammarSrs()
@@ -306,6 +332,7 @@ export const useStore = create<AppState>()(
         progress: s.progress,
         displayPrefs: s.displayPrefs,
         storyProgress: s.storyProgress,
+        pinnedReviewIds: s.pinnedReviewIds,
       }),
     }
   )

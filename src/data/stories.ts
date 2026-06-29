@@ -154,6 +154,45 @@ export const stories: Story[] = [
       },
     ],
   },
+  {
+    id: 'story-shopping',
+    title: 'Einkaufen',
+    description: 'Preise, kaufen, を-Partikel',
+    level: 'N5',
+    grammarTags: ['を', 'は', 'です'],
+    lines: [
+      { speaker: 'A', jp: 'これは本です。', reading: 'これはほんです。', de: 'Das ist ein Buch.' },
+      { speaker: 'B', jp: '五百円を払います。', reading: 'ごひゃくえんをはらいます。', de: 'Ich bezahle 500 Yen.' },
+      { speaker: 'A', jp: '水を飲みます。', reading: 'みずをのみます。', de: 'Ich trinke Wasser.' },
+      { speaker: 'B', jp: '日本語を勉強します。', reading: 'にほんごをべんきょうします。', de: 'Ich lerne Japanisch.' },
+    ],
+  },
+  {
+    id: 'story-morning',
+    title: 'Morgenroutine',
+    description: 'Zeit mit に, tägliche Handlungen',
+    level: 'N5',
+    grammarTags: ['に', 'を', 'ます'],
+    lines: [
+      { speaker: 'A', jp: '六時に起きます。', reading: 'ろくじにおきます。', de: 'Ich stehe um sechs Uhr auf.' },
+      { speaker: 'B', jp: '朝ごはんを食べます。', reading: 'あさごはんをたべます。', de: 'Ich esse Frühstück.' },
+      { speaker: 'A', jp: '学校に行きます。', reading: 'がっこうにいきます。', de: 'Ich gehe zur Schule.' },
+      { speaker: 'B', jp: '友達と話します。', reading: 'ともだちとはなします。', de: 'Ich spreche mit Freunden.' },
+    ],
+  },
+  {
+    id: 'story-weekend',
+    title: 'Am Wochenende',
+    description: 'Freizeit, と-Partikel, Verben',
+    level: 'N5',
+    grammarTags: ['と', 'で', 'を'],
+    lines: [
+      { speaker: 'A', jp: '猫と犬が好きです。', reading: 'ねこといぬがすきです。', de: 'Ich mag Katzen und Hunde.' },
+      { speaker: 'B', jp: '公園で走ります。', reading: 'こうえんではしります。', de: 'Ich laufe im Park.' },
+      { speaker: 'A', jp: '映画を見ます。', reading: 'えいがをみます。', de: 'Ich schaue einen Film.' },
+      { speaker: 'B', jp: '家で休みます。', reading: 'いえでやすみます。', de: 'Ich ruhe mich zu Hause aus.' },
+    ],
+  },
 ]
 
 export function getStory(id: string): Story | undefined {

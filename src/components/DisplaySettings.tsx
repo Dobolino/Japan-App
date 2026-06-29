@@ -7,7 +7,9 @@ const THEME_OPTIONS: { key: ThemeMode; label: string }[] = [
   { key: 'system', label: 'System' },
 ]
 
-/** Global display prefs: theme, furigana, romaji. */
+const GOAL_OPTIONS = [10, 20, 30]
+
+/** Global display prefs: theme, furigana, romaji, daily goal. */
 export default function DisplaySettings() {
   const { displayPrefs, setDisplayPrefs } = useStore()
 
@@ -33,11 +35,31 @@ export default function DisplaySettings() {
 
       <div>
         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+          Tagesziel (richtige Antworten)
+        </p>
+        <div className="flex gap-2">
+          {GOAL_OPTIONS.map((goal) => (
+            <button
+              key={goal}
+              type="button"
+              onClick={() => setDisplayPrefs({ dailyGoal: goal })}
+              className={`flex-1 chip text-xs ${displayPrefs.dailyGoal === goal ? 'chip--green' : ''}`}
+            >
+              {goal}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
           Lesehilfen
         </p>
         <div className="flex flex-col gap-2">
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-sm font-semibold text-[var(--text-secondary)]">Furigana (über Kanji)</span>
+            <span className="text-sm font-semibold text-[var(--text-secondary)]">
+              Furigana (kleine Zeichen über Kanji)
+            </span>
             <input
               type="checkbox"
               checked={displayPrefs.showFurigana}
@@ -46,7 +68,9 @@ export default function DisplaySettings() {
             />
           </label>
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-sm font-semibold text-[var(--text-secondary)]">Romaji (unter dem Text)</span>
+            <span className="text-sm font-semibold text-[var(--text-secondary)]">
+              Romaji in Übung &amp; Lesen
+            </span>
             <input
               type="checkbox"
               checked={displayPrefs.showRomaji}
@@ -54,6 +78,9 @@ export default function DisplaySettings() {
               className="accent-[var(--blue)] w-5 h-5"
             />
           </label>
+          <p className="text-[10px] text-[var(--text-muted)] font-semibold leading-snug">
+            Grammatik-Beispiele zeigen Aussprache (Romaji) immer an. Furigana = Lesung der Kanji.
+          </p>
         </div>
       </div>
     </div>
