@@ -38,7 +38,7 @@ export default function PracticePage() {
 
   if (!session.current) {
     return (
-      <div className="flex items-center justify-center h-full text-white/40">
+      <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
         Keine Karten in der Warteschlange
       </div>
     )
@@ -52,13 +52,18 @@ export default function PracticePage() {
       phase={session.phase}
       direction={session.direction}
       practiceMode={session.practiceMode}
+      productionMode={session.productionMode}
       typed={session.typed}
       setTyped={session.setTyped}
       showRomajiHint={session.showRomajiHint}
       onToggleRomajiHint={() => session.setShowRomajiHint((v) => !v)}
       autoPlayAudio={session.autoPlayAudio}
+      lastCheckedCorrect={session.lastCheckedCorrect}
+      onCheck={session.checkAnswer}
+      onSkip={session.skipQuestion}
       onReveal={session.reveal}
       onAdvance={session.advance}
+      onConfirmWrong={session.confirmWrong}
     />
   )
 }
