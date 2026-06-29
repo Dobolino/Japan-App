@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useStore } from '@/store/useStore'
 import { unlockAudio } from '@/utils/audio'
 import type { ItemCategory } from '@/types'
 import type { PracticeMode, Direction } from '@/hooks/usePracticeSession'
@@ -42,10 +43,13 @@ export default function PracticeIdle({
   setAutoPlayAudio,
 }: Props) {
   const navigate = useNavigate()
+  const getDueGrammarCount = useStore((s) => s.getDueGrammarCount)
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
+  const dueGrammar = getDueGrammarCount()
   const dueReview = dueItems.filter((i) => i.repetitions > 0).length
   const dueNew = dueItems.filter((i) => i.repetitions === 0).length
+  const totalDue = dueItems.length + dueGrammar
 
   const startSRS = () => {
     unlockAudio()
@@ -64,7 +68,7 @@ export default function PracticeIdle({
           <div className="text-center">
             <h1 className="text-2xl font-bold text-[var(--text-primary)]">Wiederholen</h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1 font-semibold">
-              Tippe die Antwort auf Japanisch — Satz oder Wort
+              Tippe die Antwort auf Japanisch — Wort, Satz oder Grammatik
             </p>
           </div>
 
@@ -72,13 +76,19 @@ export default function PracticeIdle({
             <p className="text-[var(--text-secondary)] text-sm">
               <span className="font-bold text-[var(--text-primary)]">{dueReview}</span> fällig ·{' '}
               <span className="font-bold text-[var(--blue)]">{dueNew}</span> neu
+              {dueGrammar > 0 && (
+                <>
+                  {' '}
+                  · <span className="font-bold text-[var(--orange)]">{dueGrammar}</span> Grammatik
+                </>
+              )}
             </p>
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">Inkl. Beispielsätze im Kontext</p>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1">Inkl. Beispiel- & Grammatiksätze</p>
           </div>
 
-          {dueItems.length > 0 ? (
+          {totalDue > 0 ? (
             <button type="button" onClick={startSRS} className="btn-duo">
-              Tageslektion · {Math.min(dueItems.length, 20)} Karten
+              Tageslektion · {Math.min(totalDue, 20)} Karten
             </button>
           ) : (
             <div className="card-surface w-full p-4 text-center">

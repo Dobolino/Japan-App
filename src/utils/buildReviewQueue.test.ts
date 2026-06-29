@@ -24,7 +24,7 @@ const base: LearningItem = {
 
 describe('buildReviewQueue', () => {
   it('creates lemma cards', () => {
-    const q = buildReviewQueue([base], { sentenceRatio: 0, enrichWithSentences: false })
+    const q = buildReviewQueue([base], { sentenceRatio: 0 })
     expect(q).toHaveLength(1)
     expect(q[0].kind).toBe('lemma')
     expect(q[0].answerCharacter).toBe('あ')

@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useStore } from '@/store/useStore'
-import { buildReviewQueue, buildFlashcardQueue, ratingFromProduction, reviewCardMatchesAnswer } from '@/utils/buildReviewQueue'
+import { buildReviewQueue, buildFlashcardQueue, ratingFromProduction, reviewCardMatchesAnswer, pickGrammarReviewCards } from '@/utils/buildReviewQueue'
+import { grammarData } from '@/data/grammar'
 import type { ReviewCard } from '@/types/review'
 import type { SRSRating, ItemCategory } from '@/types'
 
@@ -11,6 +12,7 @@ export type PracticeMode = 'srs' | 'flashcard'
 export function usePracticeSession() {
   const items = useStore((s) => s.items)
   const getDueItems = useStore((s) => s.getDueItems)
+  const grammarSrs = useStore((s) => s.grammarSrs)
   const rateReview = useStore((s) => s.rateReview)
   const startStudySession = useStore((s) => s.startStudySession)
 
@@ -55,8 +57,9 @@ export function usePracticeSession() {
   )
 
   const startSRS = useCallback(() => {
-    const due = getDueItems(filterCat === 'all' ? undefined : filterCat, 20)
-    const built = buildReviewQueue(due, { limit: 20 })
+    const due = getDueItems(filterCat === 'all' ? undefined : filterCat, 16)
+    const grammarCards = pickGrammarReviewCards(grammarSrs, grammarData, 4)
+    const built = buildReviewQueue(due, { limit: 20, grammarCards })
     if (!built.length) return
     startStudySession()
     setQueue(built)
@@ -65,7 +68,7 @@ export function usePracticeSession() {
     setTyped('')
     setLastCheckedCorrect(null)
     setPhase('question')
-  }, [filterCat, getDueItems, startStudySession])
+  }, [filterCat, getDueItems, grammarSrs, startStudySession])
 
   const startFlashcard = useCallback(() => {
     const built = buildFlashcardQueue(allItems, 20)

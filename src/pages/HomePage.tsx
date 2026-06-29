@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { XP_PER_LEVEL, xpInLevel, xpToLevel } from '@/constants/srs'
 import { localDateKey } from '@/utils/date'
+import DisplaySettings from '@/components/DisplaySettings'
+import { stories } from '@/data/stories'
 import type { ItemCategory } from '@/types'
 
 const CAT_CONFIG: { key: ItemCategory; kana: string; label: string; emoji: string }[] = [
@@ -13,9 +15,9 @@ const CAT_CONFIG: { key: ItemCategory; kana: string; label: string; emoji: strin
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { progress, items, getDueItems, setActiveCategory } = useStore()
+  const { progress, items, getDueItems, getDueGrammarCount, setActiveCategory, storyProgress } = useStore()
   const all = Object.values(items)
-  const due = getDueItems(undefined, 999).length
+  const due = getDueItems(undefined, 999).length + getDueGrammarCount()
 
   const catStats = (cat: ItemCategory) => {
     const ci = all.filter((i) => i.category === cat)
@@ -93,6 +95,24 @@ export default function HomePage() {
             <div className="progress-fill h-full" style={{ width: `${(dailyDone / dailyGoal) * 100}%` }} />
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => navigate('/immerse')}
+          className="card-surface w-full p-3 text-left shrink-0 active:translate-y-0.5 transition-transform border-[var(--blue)]"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-[var(--text-primary)]">📖 Geschichten lesen</p>
+              <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-semibold">
+                Tap-to-Lookup · {storyProgress.completed.length}/{stories.length} abgeschlossen
+              </p>
+            </div>
+            <span className="jp text-2xl text-[var(--blue)]">読</span>
+          </div>
+        </button>
+
+        <DisplaySettings />
 
         {/* Lesson path — category cards */}
         <div className="flex-1 min-h-[120px]">

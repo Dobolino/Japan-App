@@ -52,6 +52,31 @@ export interface UserProgress {
   todayDate: string | null
 }
 
+export interface DisplayPrefs {
+  showFurigana: boolean
+  showRomaji: boolean
+}
+
+export interface StoryProgress {
+  completed: string[]
+}
+
+/** SRS state for grammar example sentences (id: grammar:{pointId}:{exampleIndex}) */
+export interface GrammarSrsItem {
+  id: string
+  grammarId: string
+  exampleIndex: number
+  title: string
+  status: SRSStatus
+  easeFactor: number
+  interval: number
+  repetitions: number
+  nextReviewDate: string
+  lastReviewDate: string | null
+  errorCount: number
+  correctCount: number
+}
+
 export interface DrawingStroke {
   points: { x: number; y: number }[]
 }

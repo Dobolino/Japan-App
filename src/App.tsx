@@ -10,14 +10,19 @@ import LearnPage from '@/pages/LearnPage'
 import PracticePage from '@/pages/PracticePage'
 import StatsPage from '@/pages/StatsPage'
 import CharacterDetailPage from '@/pages/CharacterDetailPage'
+import ImmersePage from '@/pages/ImmersePage'
 
 function AppRoutes() {
   const initItems = useStore((s) => s.initItems)
+  const initGrammarSrs = useStore((s) => s.initGrammarSrs)
   const hydrated = useStoreHydration()
 
   useEffect(() => {
-    if (hydrated) initItems()
-  }, [hydrated, initItems])
+    if (hydrated) {
+      initItems()
+      initGrammarSrs()
+    }
+  }, [hydrated, initItems, initGrammarSrs])
 
   useEffect(() => {
     const onInteract = () => {
@@ -50,6 +55,8 @@ function AppRoutes() {
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/learn/:id" element={<CharacterDetailPage />} />
             <Route path="/practice" element={<PracticePage />} />
+            <Route path="/immerse" element={<ImmersePage />} />
+            <Route path="/immerse/:storyId" element={<ImmersePage />} />
             <Route path="/stats" element={<StatsPage />} />
           </Routes>
         </main>

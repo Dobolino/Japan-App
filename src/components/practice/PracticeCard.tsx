@@ -49,7 +49,8 @@ export default function PracticeCard({
 }: Props) {
   const progressPct = queueLength > 0 ? ((index + 1) / queueLength) * 100 : 0
   const typedCorrect = typed ? reviewCardMatchesAnswer(typed, current) : false
-  const kindLabel = current.kind === 'sentence' ? 'Satz' : 'Wort'
+  const kindLabel =
+    current.kind === 'grammar-sentence' ? 'Grammatik' : current.kind === 'sentence' ? 'Satz' : 'Wort'
 
   useCardAudio(current, phase, autoPlayAudio, direction)
 
