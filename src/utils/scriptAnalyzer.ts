@@ -55,15 +55,15 @@ export const SCRIPT_LABEL: Record<ScriptType, string> = {
 }
 
 export const SCRIPT_COLOR: Record<ScriptType, string> = {
-  kanji: 'text-orange-400',
-  hiragana: 'text-blue-400',
-  katakana: 'text-green-400',
-  other: 'text-white/60',
+  kanji: 'text-[var(--script-kanji)]',
+  hiragana: 'text-[var(--script-hira)]',
+  katakana: 'text-[var(--script-kata)]',
+  other: 'text-[var(--script-other)]',
 }
 
 export const SCRIPT_BG: Record<ScriptType, string> = {
-  kanji: 'bg-orange-500/15 border border-orange-500/30 text-orange-300',
-  hiragana: 'bg-blue-500/15 border border-blue-500/30 text-blue-300',
-  katakana: 'bg-green-500/15 border border-green-500/30 text-green-300',
-  other: 'bg-white/5 border border-white/10 text-white/60',
+  kanji: 'bg-[var(--script-kanji-bg)] border border-[var(--cat-kanji-border)] text-[var(--script-kanji)]',
+  hiragana: 'bg-[var(--script-hira-bg)] border border-[var(--cat-hira-border)] text-[var(--script-hira)]',
+  katakana: 'bg-[var(--script-kata-bg)] border border-[var(--cat-kata-border)] text-[var(--script-kata)]',
+  other: 'bg-[var(--script-other-bg)] border border-[var(--border)] text-[var(--script-other)]',
 }

@@ -52,9 +52,12 @@ export interface UserProgress {
   todayDate: string | null
 }
 
+export type ThemeMode = 'light' | 'dark' | 'system'
+
 export interface DisplayPrefs {
   showFurigana: boolean
   showRomaji: boolean
+  theme: ThemeMode
 }
 
 export interface StoryProgress {

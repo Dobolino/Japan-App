@@ -16,21 +16,20 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('App error:', error, info.componentStack)
+    console.error('App error:', error, info)
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="app-shell flex items-center justify-center p-6 text-center">
-          <div className="space-y-4">
-            <div className="text-4xl" aria-hidden="true">⚠️</div>
-            <h1 className="text-xl font-bold text-white">Etwas ist schiefgelaufen</h1>
-            <p className="text-white/50 text-sm">Bitte die Seite neu laden.</p>
+        <div className="app-shell flex items-center justify-center px-6">
+          <div className="card-surface p-6 text-center max-w-sm">
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Etwas ist schiefgelaufen</h1>
+            <p className="text-[var(--text-secondary)] text-sm mt-2 font-semibold">Bitte die Seite neu laden.</p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="px-5 py-3 rounded-2xl bg-indigo-600 text-white text-sm font-medium"
+              className="btn-duo mt-4 w-full"
             >
               Neu laden
             </button>
@@ -38,6 +37,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         </div>
       )
     }
+
     return this.props.children
   }
 }

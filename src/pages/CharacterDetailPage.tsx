@@ -44,7 +44,8 @@ export default function CharacterDetailPage() {
     }
   }
 
-  const scoreColor = score === null ? '' : score >= 70 ? 'text-green-400' : score >= 40 ? 'text-yellow-400' : 'text-red-400'
+  const scoreColor =
+    score === null ? '' : score >= 70 ? 'text-[var(--green)]' : score >= 40 ? 'text-[var(--orange)]' : 'text-[var(--red)]'
   const scoreLabel = score === null ? '' : score >= 70 ? 'Gut!' : score >= 40 ? 'Fast!' : 'Nochmal versuchen'
 
   return (
@@ -59,7 +60,7 @@ export default function CharacterDetailPage() {
             <span className={`text-[9px] px-2 py-0.5 rounded-full border font-medium ${CAT_CHIP[item.category]}`}>
               {CAT_LABELS[item.category]}
             </span>
-            <span className={`text-[9px] px-2 py-0.5 rounded-full border border-white/10 ${STATUS_TEXT_COLORS[item.status]}`}>
+            <span className={`text-[9px] px-2 py-0.5 rounded-full border border-[var(--border)] ${STATUS_TEXT_COLORS[item.status]}`}>
               {STATUS_LABELS[item.status]}
             </span>
           </div>
@@ -98,29 +99,29 @@ export default function CharacterDetailPage() {
         {tab === 'info' && (
           <div className="scroll-area h-full px-3 py-3 space-y-2">
             {isKanji && (
-              <div className="rounded-xl bg-white/5 p-3 grid grid-cols-2 gap-2 text-sm">
+              <div className="panel-muted p-3 grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <div className="text-white/30 text-xs mb-0.5">音 (On)</div>
-                  <div className="text-white text-sm">{item.onyomi?.join('、') || '—'}</div>
+                  <div className="text-[var(--text-muted)] text-xs mb-0.5 font-bold">音 (On)</div>
+                  <div className="text-[var(--text-primary)] text-sm jp">{item.onyomi?.join('、') || '—'}</div>
                 </div>
                 <div>
-                  <div className="text-white/30 text-xs mb-0.5">訓 (Kun)</div>
-                  <div className="text-white text-sm">{item.kunyomi?.join('、') || '—'}</div>
+                  <div className="text-[var(--text-muted)] text-xs mb-0.5 font-bold">訓 (Kun)</div>
+                  <div className="text-[var(--text-primary)] text-sm jp">{item.kunyomi?.join('、') || '—'}</div>
                 </div>
               </div>
             )}
             {multiChar && (
-              <div className="rounded-xl bg-white/5 p-3">
-                <p className="text-white/40 text-xs mb-2">Zeichen &amp; Aussprache</p>
+              <div className="panel-muted p-3">
+                <p className="text-[var(--text-muted)] text-xs mb-2 font-bold">Zeichen &amp; Aussprache</p>
                 <ReadingBreakdown character={item.character} romaji={item.romaji} size="md" />
               </div>
             )}
             {item.exampleWord && (
-              <div className="rounded-xl bg-white/5 p-3">
-                <div className="text-white/40 text-xs mb-1">Beispiel</div>
+              <div className="panel-muted p-3">
+                <div className="text-[var(--text-muted)] text-xs mb-1 font-bold">Beispiel</div>
                 <button type="button" onClick={() => playJapanese(item.id + '-ex', item.exampleWord!)} className="text-left w-full">
                   <ReadingBreakdown character={item.exampleWord} romaji={item.exampleReading ?? ''} size="sm" compact />
-                  <div className="text-white/50 text-xs mt-1">{item.exampleMeaning}</div>
+                  <div className="text-[var(--text-secondary)] text-xs mt-1 font-semibold">{item.exampleMeaning}</div>
                 </button>
               </div>
             )}
@@ -187,21 +188,21 @@ function SRSCard({
   done: boolean
 }) {
   return (
-    <div className="rounded-xl bg-white/5 p-3">
+    <div className="panel-muted p-3">
       <div className="flex justify-between items-center mb-2">
-        <span className="text-white/40 text-xs">Lernstatus</span>
-        <span className={`text-xs font-medium ${STATUS_TEXT_COLORS[item.status]}`}>{STATUS_LABELS[item.status]}</span>
+        <span className="text-[var(--text-muted)] text-xs font-bold">Lernstatus</span>
+        <span className={`text-xs font-bold ${STATUS_TEXT_COLORS[item.status]}`}>{STATUS_LABELS[item.status]}</span>
       </div>
       {!done ? (
         <div className="grid grid-cols-4 gap-1" role="group" aria-label="SRS-Bewertung">
           {SRS_RATINGS.map(({ r, label, color }) => (
-            <button key={r} type="button" onClick={() => onRate(r)} className={`py-1.5 rounded-lg text-xs font-medium active:scale-95 ${color}`}>
+            <button key={r} type="button" onClick={() => onRate(r)} className={`py-1.5 rounded-lg text-xs font-bold active:scale-95 ${color}`}>
               {label}
             </button>
           ))}
         </div>
       ) : (
-        <p className="text-white/40 text-xs text-center">
+        <p className="text-[var(--text-muted)] text-xs text-center font-semibold">
           Gespeichert ✓ · {item.interval} Tag{item.interval !== 1 ? 'en' : ''}
         </p>
       )}

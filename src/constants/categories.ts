@@ -1,10 +1,10 @@
 import type { ItemCategory } from '@/types'
 
 export const CAT_CHIP: Record<ItemCategory, string> = {
-  hiragana: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  katakana: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  kanji: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-  vocabulary: 'bg-green-500/20 text-green-300 border-green-500/30',
+  hiragana: 'bg-[var(--cat-hira-bg)] text-[var(--cat-hira-fg)] border-[var(--cat-hira-border)]',
+  katakana: 'bg-[var(--cat-kata-bg)] text-[var(--cat-kata-fg)] border-[var(--cat-kata-border)]',
+  kanji: 'bg-[var(--cat-kanji-bg)] text-[var(--cat-kanji-fg)] border-[var(--cat-kanji-border)]',
+  vocabulary: 'bg-[var(--cat-vocab-bg)] text-[var(--cat-vocab-fg)] border-[var(--cat-vocab-border)]',
 }
 
 export const CAT_GRADIENT: Record<ItemCategory, string> = {

@@ -69,6 +69,7 @@ const defaultStoryProgress: StoryProgress = { completed: [] }
 const defaultDisplayPrefs: DisplayPrefs = {
   showFurigana: true,
   showRomaji: false,
+  theme: 'light',
 }
 
 function mergeStoredItem(seed: LearningItem, stored: LearningItem): LearningItem {
@@ -284,6 +285,12 @@ export const useStore = create<AppState>()(
         }
         if (!state.displayPrefs) {
           state.displayPrefs = defaultDisplayPrefs
+        } else if (!('theme' in state.displayPrefs)) {
+          state.displayPrefs = {
+            ...defaultDisplayPrefs,
+            ...(state.displayPrefs as DisplayPrefs),
+            theme: 'light',
+          }
         }
         if (!state.grammarSrs || !Object.keys(state.grammarSrs).length) {
           state.grammarSrs = seedGrammarSrs()

@@ -48,16 +48,16 @@ export default function HomePage() {
       <div className="header-banner shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-white/70 text-sm">{greeting}</p>
-            <h1 className="text-xl font-bold text-white">Japanisch lernen</h1>
+            <p className="text-[var(--header-text-muted)] text-sm">{greeting}</p>
+            <h1 className="text-xl font-bold text-[var(--header-text)]">Japanisch lernen</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-right">
-              <div className="text-[10px] text-white/60 uppercase tracking-wide">Level</div>
-              <div className="text-sm text-white font-bold">{xpNow}/{XP_PER_LEVEL} XP</div>
+              <div className="text-[10px] text-[var(--header-text-muted)] uppercase tracking-wide">Level</div>
+              <div className="text-sm text-[var(--header-text)] font-bold">{xpNow}/{XP_PER_LEVEL} XP</div>
             </div>
             <div className="w-11 h-11 rounded-2xl bg-[#ff9600] border-2 border-[#e68600] flex items-center justify-center shadow-[0_3px_0_#e68600]">
-              <span className="text-white font-bold text-lg">{level}</span>
+              <span className="text-[var(--header-text)] font-bold text-lg">{level}</span>
             </div>
           </div>
         </div>

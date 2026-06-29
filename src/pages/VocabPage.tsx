@@ -23,8 +23,8 @@ export default function VocabPage() {
   return (
     <div className="page-screen">
       <div className="px-4 pt-3 pb-2 shrink-0">
-        <h1 className="text-xl font-bold text-white">Vokabeln</h1>
-        <p className="text-white/40 text-xs">{mastered}/{total} beherrscht</p>
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">Vokabeln</h1>
+        <p className="text-[var(--text-muted)] text-xs font-semibold">{mastered}/{total} beherrscht</p>
       </div>
 
       <div className="overflow-x-auto flex gap-2 px-4 pb-2 shrink-0 scrollbar-none">
@@ -33,24 +33,22 @@ export default function VocabPage() {
             key={key}
             type="button"
             onClick={() => setActiveCat(key)}
-            className={`flex-none flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              activeCat === key ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/50'
+            className={`flex-none flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+              activeCat === key ? 'chip chip--active' : 'chip'
             }`}
           >
-            <span>{icon}</span>{label}
+            <span>{icon}</span>
+            {label}
           </button>
         ))}
       </div>
 
       <div className="scroll-area flex-1 min-h-0 px-4 pb-2 space-y-2">
         {vocabItems.length === 0 && (
-          <p className="text-center text-white/30 text-sm mt-12">Keine Vokabeln gefunden</p>
+          <p className="text-center text-[var(--text-muted)] text-sm mt-12 font-semibold">Keine Vokabeln gefunden</p>
         )}
         {vocabItems.map((item) => (
-          <div
-            key={item.id}
-            className="w-full rounded-2xl bg-white/5 border border-white/8 p-3 flex items-stretch gap-2"
-          >
+          <div key={item.id} className="card-surface p-3 flex items-stretch gap-2">
             <button
               type="button"
               onClick={() => navigate(`/learn/${item.id}`)}
@@ -62,16 +60,19 @@ export default function VocabPage() {
                   <ReadingBreakdown character={item.character} romaji={item.romaji} size="sm" compact />
                 ) : (
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl jp font-bold text-white">{item.character}</span>
-                    <span className="text-xs text-cyan-300/70">{item.romaji}</span>
+                    <span className="text-xl jp font-bold text-[var(--text-primary)]">{item.character}</span>
+                    <span className="text-xs text-[var(--blue)] font-semibold">{item.romaji}</span>
                   </div>
                 )}
               </div>
-              <div className="text-base font-semibold text-cyan-300/90 pl-4">{item.meaning}</div>
+              <div className="text-base font-bold text-[var(--text-secondary)] pl-4">{item.meaning}</div>
             </button>
             <button
               type="button"
-              onClick={() => { unlockAudio(); playJapanese(item.id, item.character) }}
+              onClick={() => {
+                unlockAudio()
+                playJapanese(item.id, item.character)
+              }}
               className="audio-fab audio-fab--sm self-center"
               aria-label={`${item.character} anhören`}
             >

@@ -96,7 +96,7 @@ function AnimateSVG({ character, size }: { character: string; size: number }) {
     return (
       <div className="flex flex-col items-center gap-4">
         <div
-          className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-3"
+          className="rounded-2xl overflow-hidden border border-[var(--border)] flex items-center justify-center p-3"
           style={{ width: size, height: size, background: '#f5f0e8' }}
         >
           <span className="text-black/30 text-sm text-center px-4">Keine Strichdaten</span>
@@ -156,7 +156,7 @@ function AnimateSVGLoaded({
   return (
     <div className="flex flex-col items-center gap-4">
       <div
-        className="rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-3"
+        className="rounded-2xl overflow-hidden border border-[var(--border)] flex items-center justify-center p-3"
         style={{ width: size, height: size, background: '#f5f0e8' }}
       >
         {loading ? (
@@ -175,7 +175,7 @@ function AnimateSVGLoaded({
         <button
           type="button"
           onClick={onReplay}
-          className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-semibold text-base active:scale-95 transition-transform"
+          className="btn-duo px-6 py-3 text-base"
         >
           ↺ Nochmal
         </button>
@@ -266,7 +266,7 @@ function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluat
   return (
     <div className="flex flex-col items-center gap-3">
       <div
-        className="rounded-2xl overflow-hidden border border-white/10"
+        className="rounded-2xl overflow-hidden border border-[var(--border)]"
         style={{ width: size, height: size, background: 'rgba(255,255,255,0.03)' }}
       >
         <canvas
@@ -284,7 +284,7 @@ function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluat
       <button
         type="button"
         onClick={clear}
-        className="px-4 py-1.5 rounded-full bg-white/10 text-white/60 text-sm active:scale-95 transition-transform"
+        className="action-chip text-sm"
       >
         Löschen
       </button>

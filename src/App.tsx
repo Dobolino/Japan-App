@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { useStoreHydration } from '@/hooks/useStoreHydration'
+import { useTheme } from '@/hooks/useTheme'
 import { unlockAudio } from '@/utils/audio'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
@@ -16,6 +17,7 @@ function AppRoutes() {
   const initItems = useStore((s) => s.initItems)
   const initGrammarSrs = useStore((s) => s.initGrammarSrs)
   const hydrated = useStoreHydration()
+  useTheme()
 
   useEffect(() => {
     if (hydrated) {
