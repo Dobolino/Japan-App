@@ -140,7 +140,7 @@ export const grammarData: GrammarPoint[] = [
     examples: [
       { jp: '私の本です。', reading: 'わたしのほんです。', de: 'Das ist mein Buch.' },
       { jp: '日本の食べ物が好きです。', reading: 'にほんのたべものがすきです。', de: 'Ich mag japanisches Essen.' },
-      { jp: '山田さんの車はあそこです。', reading: 'やまださんのくるまはあそこです。', de: 'Herr Yamamdas Auto ist dort drüben.' },
+      { jp: '山田さんの車はあそこです。', reading: 'やまださんのくるまはあそこです。', de: 'Herr Yamadas Auto ist dort drüben.' },
     ],
   },
   {

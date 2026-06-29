@@ -103,7 +103,8 @@ function GrammarCard({
                     className="flex items-start gap-2 w-full text-left active:opacity-70"
                   >
                     <div className="flex-1">
-                      <RubyText text={ex.jp} reading={ex.reading} romaji={ex.reading} size="compact" />
+                      <RubyText text={ex.jp} reading={ex.reading} size="compact" />
+                      <div className="text-[var(--text-muted)] text-xs mt-0.5 jp">{ex.reading}</div>
                       <div className="text-[var(--text-secondary)] text-sm mt-1 font-semibold">{ex.de}</div>
                     </div>
                     <span className="text-[var(--blue)] flex-none mt-0.5">
