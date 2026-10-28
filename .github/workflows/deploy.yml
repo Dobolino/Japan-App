@@ -35,7 +35,7 @@ jobs:
             fi
           fi
       - run: npm run build
-      - name: Publish the app and request a Pages build
+      - name: Publish the built app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,25 +43,46 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
           npm exec -- gh-pages -d dist --nojekyll -m "Deploy ${GITHUB_SHA}"
-          pages_source="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.source.branch + ":" + .source.path + ":" + .build_type')"
-          printf 'Pages source before deployment: %s\n' "$pages_source" >> "$GITHUB_STEP_SUMMARY"
-          if [[ "$pages_source" != 'gh-pages:/:legacy' ]]; then
-            if ! pages_result="$(gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" \
-              -f 'source[branch]=gh-pages' -f 'source[path]=/' -f build_type=legacy 2>&1)"; then
-              printf '\nCould not select the built app as the Pages source:\n%s\n' "$pages_result" >> "$GITHUB_STEP_SUMMARY"
-              printf '\nSet Pages to Deploy from a branch, gh-pages, /(root): https://github.com/%s/settings/pages\n' "$GITHUB_REPOSITORY" >> "$GITHUB_STEP_SUMMARY"
-              exit 1
-            fi
-          fi
+      - name: Check and select the built Pages source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: python
+        run: |
+          import json
+          import os
+          import subprocess
+
+          endpoint = f"repos/{os.environ['GITHUB_REPOSITORY']}/pages"
+          def api(method, payload=None):
+              command = ['gh', 'api', '--method', method, endpoint]
+              if payload is not None:
+                  command += ['--input', '-']
+              result = subprocess.run(command, input=json.dumps(payload) if payload is not None else None, text=True, capture_output=True)
+              if result.returncode:
+                  message = (result.stderr + result.stdout).strip()
+                  message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  print(f'::error title=GitHub Pages configuration::{message}')
+                  raise SystemExit(result.returncode)
+              return json.loads(result.stdout)
+
+          current = api('GET')
+          print(f"::notice::Current Pages source: {current.get('source')}, build type: {current.get('build_type')}")
+          if current.get('source') != {'branch': 'gh-pages', 'path': '/'} or current.get('build_type') != 'legacy':
+              api('PUT', {'source': {'branch': 'gh-pages', 'path': '/'}, 'build_type': 'legacy'})
+          selected = api('GET')
+          assert selected['source'] == {'branch': 'gh-pages', 'path': '/'}, selected['source']
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Pages source: gh-pages / (legacy)\n')
+      - name: Request a Pages build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           pages_commit="$(git ls-remote origin refs/heads/gh-pages | cut -f1)"
           if ! gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status, url}'; then
-            # Changing the Pages source can already have queued this exact build.
             latest_commit="$(gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '.commit')"
             latest_status="$(gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '.status')"
             if [[ "$latest_commit" != "$pages_commit" || ! "$latest_status" =~ ^(queued|building|built)$ ]]; then
               exit 1
             fi
           fi
-          gh api "repos/${GITHUB_REPOSITORY}/pages" \
-            --jq '"Pages source: \(.source.branch) \(.source.path) (\(.build_type))"' >> "$GITHUB_STEP_SUMMARY"
           printf '\nPublished app version: %s\n' "$(node -p 'require("./package.json").version')" >> "$GITHUB_STEP_SUMMARY"
