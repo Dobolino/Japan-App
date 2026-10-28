@@ -92,9 +92,15 @@ src/
 
 `base` in `vite.config.ts` ist auf `/Japan-App/` gesetzt (GitHub Pages). Anpassen, falls das Repo anders heißt.
 
+Der Workflow [Build and deploy app](.github/workflows/deploy.yml) läuft nach Pushes auf `main` oder `master` und lässt sich manuell starten. Er prüft Lint, Tests und Build, veröffentlicht `dist` im bestehenden Branch `gh-pages` und fordert anschließend einen Pages-Build an. Die GitHub-Pages-Quelle bleibt `gh-pages` im Stammverzeichnis. Bereits generierte optionale Audiodateien werden übernommen. Für normale App-Updates ist kein OpenAI-Schlüssel erforderlich.
+
+Für eine Veröffentlichung über die lokale Git-Anmeldung:
+
 ```bash
 npm run deploy
 ```
+
+Bei einer auf dem Home-Bildschirm installierten App: vollständig schließen und erneut öffnen, damit die erste neue Version geladen wird. Ab Version 1.1.0 prüft die App Updates auch beim Wiederöffnen und nach Rückkehr ins Netz. Eine neue Version erscheint mit „Jetzt aktualisieren“; deine gespeicherten Lektionen und Notizen bleiben erhalten. Unter Einstellungen stehen die App-Version und „Nach Aktualisierungen suchen“.
 
 ## Lizenz
 

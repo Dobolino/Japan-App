@@ -1623,6 +1623,19 @@ summary {
   font-size: 13px;
   line-height: 1.5;
 }
+.app-update-notice {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 8px 20px;
+  background: var(--cat-hira-bg);
+  color: var(--blue);
+  font-size: 13px;
+  line-height: 1.5;
+}
 .practice-active {
   overflow-y: auto;
   padding-bottom: 18px;

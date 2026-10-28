@@ -56,3 +56,11 @@ Falsche Antworten erhalten außerdem eine zehnminütige Wiederholungsstufe und e
 - 320 × 568, 390 × 844 und 1440 × 1000, heller/dunkler Modus; Produktions-PWA mit Offline-Neuladen.
 
 Die Browserprüfung verwendet Chromium. Nachsprechen wurde mit kontrollierter Sprachausgabe auf Tempo, Wiederholung und Abbruch geprüft. Japanische Systemstimmen, physische iPhones/Safari und eine unabhängige sprachdidaktische Prüfung der gesamten Inhalte bleiben reale Geräte- bzw. Fachprüfungen. MP3-Dateien sind optional; ohne Datei wird die japanische System-Sprachausgabe verwendet, deren Verfügbarkeit und Offlinefähigkeit vom Gerät abhängen.
+
+## Veröffentlichung und installierte Webapp (28. Oktober 2026)
+
+Der ursprüngliche Workflow veröffentlichte nur nach manuellem Start zusammen mit der optionalen Audiogenerierung. Ein normaler Merge aktualisierte deshalb den Quellcode, während im Branch `gh-pages` weiterhin die ältere gebaute Oberfläche lag.
+
+Version 1.1.0 ergänzt die automatische Veröffentlichung auf die vorhandene Pages-Quelle, eine sichtbare Versionsnummer in den Einstellungen sowie aktive Updateprüfungen beim Wiederöffnen, bei wiederhergestellter Internetverbindung und regelmäßig im Vordergrund. Ein bereites Update lädt den Bildschirm erst nach „Jetzt aktualisieren“ neu; der lokale Lernstand wird dabei nicht gelöscht.
+
+Geprüft wurde im Chromium-Browser der tatsächliche alte Pages-Service-Worker mit gespeicherten Lernzählern: Übernahme nach 1.1.0 und anschließend ein simuliertes Folgeupdate 1.1.1 mit explizitem Neuladen, unverändertem Fortschritt und offline fortsetzbarem Lektionsfeedback. Die 87 vorhandenen Tests, ESLint und Produktionsbuild sind weiterhin erfolgreich. Die Live-Domain und GitHub-API sind aus dieser Cloud-Umgebung durch die Netzwerkregeln nicht direkt erreichbar; die veröffentlichten Dateien werden zusätzlich über den Git-Branch geprüft.

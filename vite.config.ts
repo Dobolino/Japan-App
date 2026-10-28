@@ -11,6 +11,7 @@ const REPO_NAME = 'Japan-App'
 
 export default defineConfig({
   base: `/${REPO_NAME}/`,
+  define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? 'development') },
   plugins: [
     react(),
     tailwindcss(),

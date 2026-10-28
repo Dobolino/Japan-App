@@ -1,0 +1,46 @@
+name: Build and deploy app
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - name: Keep previously generated optional audio
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null; then
+            git fetch --no-tags --depth=1 origin gh-pages
+            if git cat-file -e FETCH_HEAD:audio 2>/dev/null; then
+              git archive FETCH_HEAD audio | tar -x -C public
+            fi
+          fi
+      - run: npm run build
+      - name: Publish the app and request a Pages build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth setup-git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          npm exec -- gh-pages -d dist --nojekyll -m "Deploy ${GITHUB_SHA}"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status, url}'

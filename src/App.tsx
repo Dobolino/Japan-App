@@ -6,6 +6,7 @@ import { unlockAudio } from '@/utils/audio'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
 import StorageNotice from '@/components/StorageNotice'
+import AppUpdateNotice from '@/components/AppUpdateNotice'
 import HomePage from '@/pages/HomePage'
 import LearnPage from '@/pages/LearnPage'
 import PracticePage from '@/pages/PracticePage'
@@ -51,6 +52,7 @@ function AppRoutes() {
     <HashRouter>
       <div className="app-shell">
         <StorageNotice />
+        <AppUpdateNotice />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
