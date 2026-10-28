@@ -6,83 +6,94 @@ const THEME_OPTIONS: { key: ThemeMode; label: string }[] = [
   { key: 'dark', label: 'Dunkel' },
   { key: 'system', label: 'System' },
 ]
-
 const GOAL_OPTIONS = [10, 20, 30]
 
-/** Global display prefs: theme, furigana, romaji, daily goal. */
 export default function DisplaySettings() {
   const { displayPrefs, setDisplayPrefs } = useStore()
-
   return (
-    <div className="card-surface w-full p-3 space-y-4">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
-          Erscheinungsbild
-        </p>
-        <div className="flex gap-2">
+    <div>
+      <section className="card-surface settings-section" aria-labelledby="theme-title">
+        <h2 id="theme-title" className="settings-legend">
+          Dein Erscheinungsbild
+        </h2>
+        <p className="settings-help">Wähle die Darstellung, die für dich angenehm ist.</p>
+        <div className="settings-options" role="group" aria-label="Erscheinungsbild">
           {THEME_OPTIONS.map(({ key, label }) => (
             <button
               key={key}
               type="button"
+              aria-pressed={displayPrefs.theme === key}
               onClick={() => setDisplayPrefs({ theme: key })}
-              className={`flex-1 chip text-xs ${displayPrefs.theme === key ? 'chip--active' : ''}`}
+              className={`flex-1 chip ${displayPrefs.theme === key ? 'chip--active' : ''}`}
             >
               {label}
             </button>
           ))}
         </div>
-      </div>
-
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
-          Tagesziel (richtige Antworten)
+      </section>
+      <section className="card-surface settings-section" aria-labelledby="goal-title">
+        <h2 id="goal-title" className="settings-legend">
+          Ein Ziel, das zu dir passt
+        </h2>
+        <p className="settings-help">
+          So viele richtige Antworten möchtest du pro Tag schaffen. Du kannst dein Ziel jederzeit ändern.
         </p>
-        <div className="flex gap-2">
+        <div className="settings-options" role="group" aria-label="Tagesziel">
           {GOAL_OPTIONS.map((goal) => (
             <button
               key={goal}
               type="button"
+              aria-pressed={displayPrefs.dailyGoal === goal}
               onClick={() => setDisplayPrefs({ dailyGoal: goal })}
-              className={`flex-1 chip text-xs ${displayPrefs.dailyGoal === goal ? 'chip--green' : ''}`}
+              className={`flex-1 chip ${displayPrefs.dailyGoal === goal ? 'chip--active' : ''}`}
             >
-              {goal}
+              {goal} Antworten
             </button>
           ))}
         </div>
-      </div>
-
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
-          Lesehilfen
-        </p>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-sm font-semibold text-[var(--text-secondary)]">
-              Furigana (kleine Zeichen über Kanji)
+      </section>
+      <section className="card-surface settings-section" aria-labelledby="reading-aids-title">
+        <h2 id="reading-aids-title" className="settings-legend">
+          Deine Lesehilfen
+        </h2>
+        <p className="settings-help">Unterstützung beim Lesen von japanischen Wörtern und Sätzen.</p>
+        <label className="settings-toggle">
+          <div>
+            <strong>Furigana</strong>
+            <span>Kleine Lesezeichen über den Kanji.</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={displayPrefs.showFurigana}
+            onChange={(e) => setDisplayPrefs({ showFurigana: e.target.checked })}
+          />
+        </label>
+        <label className="settings-toggle">
+          <div>
+            <strong>Romaji</strong>
+            <span>Aussprache in lateinischen Buchstaben.</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={displayPrefs.showRomaji}
+            onChange={(e) => setDisplayPrefs({ showRomaji: e.target.checked })}
+          />
+        </label>
+        <label className="settings-toggle">
+          <div>
+            <strong>Lesehilfen schrittweise reduzieren</strong>
+            <span>
+              Bei sicher erkannten Inhalten werden Hilfen ausgeblendet. Du kannst sie beim Üben jederzeit
+              einblenden.
             </span>
-            <input
-              type="checkbox"
-              checked={displayPrefs.showFurigana}
-              onChange={(e) => setDisplayPrefs({ showFurigana: e.target.checked })}
-              className="accent-[var(--green)] w-5 h-5"
-            />
-          </label>
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-sm font-semibold text-[var(--text-secondary)]">
-              Romaji in Übung &amp; Lesen
-            </span>
-            <input
-              type="checkbox"
-              checked={displayPrefs.showRomaji}
-              onChange={(e) => setDisplayPrefs({ showRomaji: e.target.checked })}
-              className="accent-[var(--blue)] w-5 h-5"
-            />
-          </label>
-          <p className="text-[10px] text-[var(--text-muted)] font-semibold leading-snug">
-            Grammatik-Beispiele zeigen Aussprache (Romaji) immer an. Furigana = Lesung der Kanji.
-          </p>
-        </div>
-      </div>
+          </div>
+          <input
+            type="checkbox"
+            checked={displayPrefs.adaptiveAids ?? true}
+            onChange={(event) => setDisplayPrefs({ adaptiveAids: event.target.checked })}
+          />
+        </label>
+      </section>
     </div>
   )
 }

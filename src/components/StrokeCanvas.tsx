@@ -1,293 +1,179 @@
-import { useRef, useEffect, useCallback, useState } from 'react'
-import type { StrokeSegment, DrawingStroke } from '@/types'
-
-const BASE_URL = import.meta.env.BASE_URL
-
-function svgUrl(char: string) {
-  const cp = char.codePointAt(0)?.toString(16).padStart(4, '0')
-  return cp ? `${BASE_URL}strokes/${cp}.svg` : null
-}
-
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { evaluateDrawing, extractReference } from '@/utils/drawing'
+import type { DrawingStroke, StrokeSegment } from '@/types'
 interface Props {
-  strokes: StrokeSegment[]
   mode: 'animate' | 'draw'
-  size?: number
   character?: string
-  onStrokesChange?: (strokes: DrawingStroke[]) => void
+  size?: number
+  strokes?: StrokeSegment[]
   onEvaluate?: (score: number) => void
+  onReset?: () => void
 }
-
-const PAD = 0.1
-
-function drawGrid(ctx: CanvasRenderingContext2D, size: number) {
-  ctx.save()
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)'
-  ctx.lineWidth = 1
-  ctx.setLineDash([4, 4])
-  ctx.beginPath()
-  ctx.moveTo(size / 2, 0)
-  ctx.lineTo(size / 2, size)
-  ctx.moveTo(0, size / 2)
-  ctx.lineTo(size, size / 2)
-  ctx.stroke()
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)'
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.lineTo(size, size)
-  ctx.moveTo(size, 0)
-  ctx.lineTo(0, size)
-  ctx.stroke()
-  ctx.restore()
-}
-
-function drawUserStrokes(ctx: CanvasRenderingContext2D, userStrokes: DrawingStroke[]) {
-  ctx.save()
-  ctx.strokeStyle = '#818cf8'
-  ctx.lineWidth = ctx.canvas.width * 0.035
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-  for (const stroke of userStrokes) {
-    if (stroke.points.length < 2) continue
-    ctx.beginPath()
-    ctx.moveTo(stroke.points[0].x, stroke.points[0].y)
-    for (let i = 1; i < stroke.points.length; i++) {
-      ctx.lineTo(stroke.points[i].x, stroke.points[i].y)
-    }
-    ctx.stroke()
-  }
-  ctx.restore()
-}
-
-function evaluate(userStrokes: DrawingStroke[], refStrokes: StrokeSegment[], size: number): number {
-  if (userStrokes.length === 0) return 0
-
-  const countDiff = Math.abs(userStrokes.length - refStrokes.length)
-  const countScore = Math.max(0, 40 - countDiff * 15)
-
-  const allPts = userStrokes.flatMap((s) => s.points)
-  const minX = Math.min(...allPts.map((p) => p.x)) / size
-  const maxX = Math.max(...allPts.map((p) => p.x)) / size
-  const minY = Math.min(...allPts.map((p) => p.y)) / size
-  const maxY = Math.max(...allPts.map((p) => p.y)) / size
-
-  const refPts = refStrokes.flatMap((s) => s.points)
-  const refMinX = Math.min(...refPts.map(([x]) => x)) * (1 - 2 * PAD) + PAD
-  const refMaxX = Math.max(...refPts.map(([x]) => x)) * (1 - 2 * PAD) + PAD
-  const refMinY = Math.min(...refPts.map(([, y]) => y)) * (1 - 2 * PAD) + PAD
-  const refMaxY = Math.max(...refPts.map(([, y]) => y)) * (1 - 2 * PAD) + PAD
-
-  const overlap =
-    Math.max(0, Math.min(maxX, refMaxX) - Math.max(minX, refMinX)) *
-    Math.max(0, Math.min(maxY, refMaxY) - Math.max(minY, refMinY))
-  const union =
-    (Math.max(maxX, refMaxX) - Math.min(minX, refMinX)) *
-    (Math.max(maxY, refMaxY) - Math.min(minY, refMinY))
-  const iou = union > 0 ? overlap / union : 0
-  const bbScore = Math.round(iou * 60)
-
-  return Math.min(100, countScore + bbScore)
-}
-
-function AnimateSVG({ character, size }: { character: string; size: number }) {
-  const [replayKey, setReplayKey] = useState(0)
-  const url = svgUrl(character)
-
-  if (!url) {
-    return (
-      <div className="flex flex-col items-center gap-4">
-        <div
-          className="rounded-2xl overflow-hidden border border-[var(--border)] flex items-center justify-center p-3"
-          style={{ width: size, height: size, background: '#f5f0e8' }}
-        >
-          <span className="text-black/30 text-sm text-center px-4">Keine Strichdaten</span>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <AnimateSVGLoaded
-      key={`${url}-${replayKey}`}
-      character={character}
-      size={size}
-      url={url}
-      onReplay={() => setReplayKey((k) => k + 1)}
-    />
-  )
-}
-
-function AnimateSVGLoaded({
-  character,
-  size,
-  url,
-  onReplay,
-}: {
-  character: string
-  size: number
-  url: string
-  onReplay: () => void
-}) {
-  const [svgContent, setSvgContent] = useState<string | null>(null)
-  const [failed, setFailed] = useState(false)
-
+export default function StrokeCanvas({ mode, character = '', size = 280, onEvaluate, onReset }: Props) {
+  const [replay, setReplay] = useState(0),
+    [reference, setReference] = useState<StrokeSegment[]>([]),
+    [error, setError] = useState('')
+  const [result, setResult] = useState<ReturnType<typeof evaluateDrawing> | null>(null),
+    [count, setCount] = useState(0)
+  const canvas = useRef<HTMLCanvasElement>(null),
+    drawn = useRef<DrawingStroke[]>([]),
+    drawing = useRef(false)
+  const url = `${import.meta.env.BASE_URL}strokes/${character.codePointAt(0)?.toString(16).padStart(4, '0')}.svg`
   useEffect(() => {
+    if (mode !== 'draw') return
     let cancelled = false
     fetch(url)
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error('SVG not found'))))
-      .then((text) => {
-        if (!cancelled) {
-          setSvgContent(text)
-          setFailed(false)
-        }
+      .then((response) => {
+        if (!response.ok) throw new Error('Keine Strichdaten verfügbar.')
+        return response.text()
       })
-      .catch(() => {
-        if (!cancelled) {
-          setSvgContent(null)
-          setFailed(true)
-        }
+      .then((text) => {
+        if (!cancelled) setReference(extractReference(text))
+      })
+      .catch((e: Error) => {
+        if (!cancelled) setError(e.message)
       })
     return () => {
       cancelled = true
     }
-  }, [url])
-
-  const loading = !svgContent && !failed
-
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <div
-        className="rounded-2xl overflow-hidden border border-[var(--border)] flex items-center justify-center p-3"
-        style={{ width: size, height: size, background: '#f5f0e8' }}
-      >
-        {loading ? (
-          <span className="text-black/30 text-sm">Lädt…</span>
-        ) : svgContent ? (
-          <div
-            className="w-[90%] h-[90%] [&_svg]:w-full [&_svg]:h-full"
-            dangerouslySetInnerHTML={{ __html: svgContent }}
-            aria-label={`Strichreihenfolge für ${character}`}
-          />
-        ) : (
-          <span className="text-black/30 text-sm text-center px-4">Keine Strichdaten</span>
-        )}
-      </div>
-      {svgContent && (
-        <button
-          type="button"
-          onClick={onReplay}
-          className="btn-duo px-6 py-3 text-base"
-        >
-          ↺ Nochmal
-        </button>
-      )}
-    </div>
-  )
-}
-
-export default function StrokeCanvas({ strokes, mode, size = 280, character, onStrokesChange, onEvaluate }: Props) {
-  if (mode === 'animate' && character) {
-    return <AnimateSVG character={character} size={size} />
-  }
-
-  return (
-    <DrawCanvas
-      strokes={strokes}
-      size={size}
-      character={character}
-      onStrokesChange={onStrokesChange}
-      onEvaluate={onEvaluate}
-    />
-  )
-}
-
-function DrawCanvas({ strokes, size = 280, character, onStrokesChange, onEvaluate }: Omit<Props, 'mode'>) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const isDrawing = useRef(false)
-  const userStrokes = useRef<DrawingStroke[]>([])
-
+  }, [url, mode])
   const redraw = useCallback(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!ctx || !canvas) return
+    const element = canvas.current,
+      ctx = element?.getContext('2d')
+    if (!element || !ctx) return
     ctx.clearRect(0, 0, size, size)
-    drawGrid(ctx, size)
-    if (character) {
-      ctx.save()
-      ctx.globalAlpha = 0.13
-      ctx.fillStyle = '#e8e8f0'
-      ctx.font = `${size * 0.72}px "Hiragino Sans", "Yu Gothic", sans-serif`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(character, size / 2, size / 2)
-      ctx.restore()
+    const style = getComputedStyle(document.documentElement)
+    ctx.strokeStyle = style.getPropertyValue('--border')
+    ctx.lineWidth = 1
+    ctx.setLineDash([4, 5])
+    ctx.beginPath()
+    ctx.moveTo(size / 2, 0)
+    ctx.lineTo(size / 2, size)
+    ctx.moveTo(0, size / 2)
+    ctx.lineTo(size, size / 2)
+    ctx.stroke()
+    ctx.setLineDash([])
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = style.getPropertyValue('--text-muted')
+    ctx.globalAlpha = 0.16
+    ctx.lineWidth = size * 0.025
+    for (const stroke of reference) {
+      ctx.beginPath()
+      stroke.points.forEach(([x, y], index) =>
+        index ? ctx.lineTo(x * size, y * size) : ctx.moveTo(x * size, y * size)
+      )
+      ctx.stroke()
     }
-    drawUserStrokes(ctx, userStrokes.current)
-  }, [size, character])
-
+    ctx.globalAlpha = 1
+    ctx.strokeStyle = style.getPropertyValue('--blue')
+    ctx.lineWidth = size * 0.027
+    for (const stroke of drawn.current) {
+      ctx.beginPath()
+      stroke.points.forEach((point, index) =>
+        index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)
+      )
+      ctx.stroke()
+    }
+  }, [reference, size])
   useEffect(() => {
     redraw()
+    const observer = new MutationObserver(redraw)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
   }, [redraw])
-
-  const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const rect = canvasRef.current!.getBoundingClientRect()
+  const point = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
     return {
-      x: (e.clientX - rect.left) * (size / rect.width),
-      y: (e.clientY - rect.top) * (size / rect.height),
+      x: ((event.clientX - rect.left) * size) / rect.width,
+      y: ((event.clientY - rect.top) * size) / rect.height,
     }
   }
-
-  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    isDrawing.current = true
-    ;(e.target as HTMLCanvasElement).setPointerCapture(e.pointerId)
-    userStrokes.current.push({ points: [getPos(e)] })
-    redraw()
-  }
-
-  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing.current) return
-    userStrokes.current[userStrokes.current.length - 1].points.push(getPos(e))
-    redraw()
-  }
-
-  const onPointerUp = () => {
-    if (!isDrawing.current) return
-    isDrawing.current = false
-    onStrokesChange?.(userStrokes.current)
-    onEvaluate?.(evaluate(userStrokes.current, strokes, size))
-  }
-
-  const clear = () => {
-    userStrokes.current = []
-    onStrokesChange?.([])
-    onEvaluate?.(0)
-    redraw()
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div
-        className="rounded-2xl overflow-hidden border border-[var(--border)]"
-        style={{ width: size, height: size, background: 'rgba(255,255,255,0.03)' }}
-      >
-        <canvas
-          ref={canvasRef}
-          width={size}
-          height={size}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerUp}
-          aria-label={character ? `${character} zeichnen` : 'Zeichenfläche'}
-          style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
-        />
+  if (mode === 'animate')
+    return (
+      <div className="stroke-workspace">
+        <img key={replay} src={url} alt={`Strichreihenfolge für ${character}`} className="stroke-animation" />
+        <button type="button" className="btn-duo btn-duo--outline mt-4" onClick={() => setReplay(replay + 1)}>
+          Animation wiederholen
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={clear}
-        className="action-chip text-sm"
-      >
-        Löschen
-      </button>
+    )
+  const clear = () => {
+    drawn.current = []
+    drawing.current = false
+    setCount(0)
+    setResult(null)
+    onReset?.()
+    redraw()
+  }
+  return (
+    <div className="stroke-workspace">
+      <p id="drawing-help" className="text-sm text-[var(--text-secondary)] mb-3">
+        {reference.length
+          ? `${reference.length} Striche: Zeichne die Vorlage nach und prüfe erst das fertige Zeichen.`
+          : 'Strichvorlage wird geladen …'}
+      </p>
+      {error && (
+        <p role="alert" className="form-error">
+          {error}
+        </p>
+      )}
+      <canvas
+        ref={canvas}
+        width={size}
+        height={size}
+        className="drawing-canvas"
+        aria-label={`${character} zeichnen`}
+        aria-describedby="drawing-help"
+        onPointerDown={(event) => {
+          if (!reference.length) return
+          drawing.current = true
+          event.currentTarget.setPointerCapture(event.pointerId)
+          drawn.current.push({ points: [point(event)] })
+          setResult(null)
+          onReset?.()
+          redraw()
+        }}
+        onPointerMove={(event) => {
+          if (drawing.current) {
+            drawn.current[drawn.current.length - 1].points.push(point(event))
+            redraw()
+          }
+        }}
+        onPointerUp={() => {
+          drawing.current = false
+          setCount(drawn.current.filter((stroke) => stroke.points.length > 1).length)
+        }}
+        onPointerCancel={() => {
+          drawing.current = false
+          setCount(drawn.current.length)
+        }}
+      />
+      <div className="flex gap-3 mt-4">
+        <button type="button" className="btn-duo btn-duo--outline" onClick={clear}>
+          Löschen
+        </button>
+        <button
+          type="button"
+          className="btn-duo"
+          disabled={!count || !reference.length}
+          onClick={() => {
+            const evaluation = evaluateDrawing(drawn.current, reference, size)
+            setResult(evaluation)
+            onEvaluate?.(evaluation.score)
+          }}
+        >
+          Zeichnung prüfen
+        </button>
+      </div>
+      {result && (
+        <p role="status" className="text-sm mt-4 leading-relaxed">
+          {result.score}% · {result.message}
+        </p>
+      )}
+      <p className="text-xs text-[var(--text-muted)] mt-4">
+        Die Formhilfe vergleicht Strichzahl, Verlauf, Richtung und Reihenfolge mit der Animationsvorlage.
+      </p>
     </div>
   )
 }

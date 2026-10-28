@@ -1,4 +1,5 @@
 import { shuffle } from '@/utils/shuffle'
+import { matchesAlternatives } from '@/utils/transliteration'
 import type { LearningItem } from '@/types'
 import {
   cardVariantForItem,
@@ -35,15 +36,22 @@ export function buildFlashcardQueue(items: LearningItem[], limit = 20): ReviewCa
 }
 
 /** Pick due grammar example cards for the session. */
-export function pickGrammarReviewCards(grammarSrs: Record<string, GrammarSrsItem>, grammarData: GrammarPoint[], limit = 4): ReviewCard[] {
+export function pickGrammarReviewCards(
+  grammarSrs: Record<string, GrammarSrsItem>,
+  grammarData: GrammarPoint[],
+  limit = 4
+): ReviewCard[] {
   const now = new Date().toISOString()
   const entries = Object.values(grammarSrs)
 
   const due = entries
-    .filter((g) => g.repetitions > 0 && g.nextReviewDate <= now)
+    .filter((g) => g.lastReviewDate !== null && g.nextReviewDate <= now)
     .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate))
 
-  const fresh = shuffle(entries.filter((g) => g.repetitions === 0)).slice(0, Math.max(0, limit - due.length))
+  const fresh = shuffle(entries.filter((g) => g.lastReviewDate === null)).slice(
+    0,
+    Math.max(0, limit - due.length)
+  )
 
   const picked = [...due, ...fresh].slice(0, limit)
   const cards: ReviewCard[] = []
@@ -59,26 +67,12 @@ export function pickGrammarReviewCards(grammarSrs: Record<string, GrammarSrsItem
 
 /** Match typed answer against a review card (lemma or full sentence). */
 export function reviewCardMatchesAnswer(typed: string, card: ReviewCard): boolean {
-  const trimmed = typed.trim()
-  if (!trimmed) return false
-  if (trimmed === card.answerCharacter) return true
-
-  const norm = (s: string) =>
-    s
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, '')
-      .replace(/[。、！？]/g, '')
-      .replace(/[āáàâ]/g, 'a')
-      .replace(/[īíìî]/g, 'i')
-      .replace(/[ūúùû]/g, 'u')
-      .replace(/[ēéèê]/g, 'e')
-      .replace(/[ōóòô]/g, 'o')
-
-  const targets = [card.answerRomaji]
-  if (card.answerReading) targets.push(card.answerReading)
-
-  return targets.some((t) => norm(trimmed) === norm(t))
+  return matchesAlternatives(typed, [
+    card.answerCharacter,
+    ...card.answerRomaji.split(' / '),
+    ...(card.answerReading ? [card.answerReading] : []),
+    ...(card.acceptedAnswers ?? []),
+  ])
 }
 
 export function ratingFromProduction(correct: boolean, skipped: boolean): 0 | 2 | 3 {

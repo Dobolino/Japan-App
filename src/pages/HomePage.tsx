@@ -1,194 +1,208 @@
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { XP_PER_LEVEL, xpInLevel, xpToLevel } from '@/constants/srs'
 import { localDateKey } from '@/utils/date'
-import DisplaySettings from '@/components/DisplaySettings'
+import { reviewCounts } from '@/utils/reviewCounts'
 import { stories } from '@/data/stories'
-import type { ItemCategory } from '@/types'
+import { lessons } from '@/data/curriculum'
+import PageHeader from '@/components/PageHeader'
+import { ArrowIcon, ReadingIcon, TargetIcon } from '@/components/icons/UiIcons'
 
-const CAT_CONFIG: { key: ItemCategory; kana: string; label: string; emoji: string }[] = [
-  { key: 'hiragana', kana: 'あ', label: 'Hiragana', emoji: '🔤' },
-  { key: 'katakana', kana: 'ア', label: 'Katakana', emoji: '🔡' },
-  { key: 'kanji', kana: '漢', label: 'Kanji N5', emoji: '🈶' },
-  { key: 'vocabulary', kana: '語', label: 'Vokabeln', emoji: '💬' },
-]
+const COURSES = [
+  { key: 'hiragana', kana: 'あ', label: 'Hiragana', description: 'Deine ersten japanischen Zeichen' },
+  { key: 'katakana', kana: 'ア', label: 'Katakana', description: 'Die Schrift für Wörter aus aller Welt' },
+  { key: 'kanji', kana: '漢', label: 'Kanji N5', description: 'Zeichen erkennen und verstehen' },
+  { key: 'vocabulary', kana: '語', label: 'Vokabeln', description: 'Wörter für deinen Alltag' },
+  { key: 'grammar', kana: '文', label: 'Grammatik', description: 'Aus Wörtern werden Sätze' },
+] as const
 
 export default function HomePage() {
-  const navigate = useNavigate()
-  const { progress, items, getDueItems, getDueGrammarCount, setActiveCategory, storyProgress, displayPrefs, setDisplayPrefs } = useStore()
+  const {
+    progress,
+    items,
+    grammarSrs,
+    exampleSrs,
+    storyProgress,
+    displayPrefs,
+    completedLessons,
+    activeSession,
+  } = useStore()
   const all = Object.values(items)
-  const due = getDueItems(undefined, 999).length + getDueGrammarCount()
-
-  const catStats = (cat: ItemCategory) => {
-    const ci = all.filter((i) => i.category === cat)
-    const mastered = ci.filter((i) => i.status === 'mastered').length
-    return { mastered, total: ci.length }
-  }
-
-  const goLearn = (cat: ItemCategory) => {
-    setActiveCategory(cat)
-    navigate('/learn')
-  }
-
-  const level = xpToLevel(progress.xp ?? 0)
-  const xpNow = xpInLevel(progress.xp ?? 0)
-  const xpPct = Math.round((xpNow / XP_PER_LEVEL) * 100)
-
-  const todayCorrect =
-    progress.todayDate === localDateKey() ? (progress.todayCorrect ?? 0) : 0
+  const grammar = Object.values(grammarSrs)
+  const { due } = reviewCounts([...all, ...grammar, ...Object.values(exampleSrs)])
+  const resumable = activeSession && activeSession.phase !== 'done'
+  const nextLesson =
+    lessons.find(
+      (lesson) =>
+        !completedLessons[lesson.id] && (!lesson.prerequisite || completedLessons[lesson.prerequisite])
+    ) ?? lessons[0]
+  const firstVisit = progress.cardsReviewed === 0
+  const todayCorrect = progress.todayDate === localDateKey() ? (progress.todayCorrect ?? 0) : 0
   const dailyGoal = displayPrefs.dailyGoal ?? 20
-  const dailyDone = Math.min(todayCorrect, dailyGoal)
-
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Guten Morgen!' : hour < 18 ? 'Hallo!' : 'Guten Abend!'
+  const goalReached = todayCorrect >= dailyGoal
+  const goalPercent = Math.min(100, Math.round((todayCorrect / dailyGoal) * 100))
+  const nextStory = stories.find((story) => !storyProgress.completed.includes(story.id)) ?? stories[0]
 
   return (
-    <div className="page-screen">
-      {/* Duolingo-style header banner */}
-      <div className="header-banner shrink-0">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-[var(--header-text-muted)] text-sm">{greeting}</p>
-            <h1 className="text-xl font-bold text-[var(--header-text)]">Japanisch lernen</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setDisplayPrefs({ theme: displayPrefs.theme === 'dark' ? 'light' : 'dark' })}
-              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg active:scale-90 transition-transform"
-              aria-label="Hell/Dunkel"
+    <div className="scroll-area h-full">
+      <div className="page-width dashboard">
+        <PageHeader
+          eyebrow="JAPP · JAPANISCH LERNEN"
+          title={firstVisit ? 'Dein Japanisch beginnt hier.' : 'Schön, dass du da bist.'}
+          description="Ein kleiner Schritt. Jeden Tag ein Stück weiter."
+        />
+
+        <div className="dashboard-top">
+          <section className="today-card" aria-labelledby="next-step-title">
+            <div className="today-card-copy">
+              <p className="eyebrow">Dein nächster Schritt</p>
+              <h2 id="next-step-title">
+                {firstVisit
+                  ? 'Hallo, Hiragana.'
+                  : due > 0
+                    ? 'Mach dein Wissen sicherer.'
+                    : 'Zeit für etwas Neues.'}
+              </h2>
+              <p>
+                {firstVisit
+                  ? 'Entdecke die ersten Zeichen, höre ihre Aussprache und probiere die Strichfolge aus.'
+                  : due > 0
+                    ? `${due} ${due === 1 ? 'Wiederholung wartet' : 'Wiederholungen warten'} auf dich. Festige, was du schon gelernt hast.`
+                    : 'Vertiefe deine Zeichen und entdecke neue Wörter – in deinem Tempo.'}
+              </p>
+              <Link
+                to={resumable ? '/practice' : due > 0 ? '/practice' : `/lesson/${nextLesson.id}`}
+                className="btn-duo today-cta"
+              >
+                {resumable
+                  ? 'Lektion fortsetzen'
+                  : firstVisit
+                    ? 'Erste Lektion beginnen'
+                    : due > 0
+                      ? 'Wiederholen'
+                      : 'Nächste Lektion'}{' '}
+                <ArrowIcon />
+              </Link>
+              <span className="today-card-note">
+                {firstVisit
+                  ? 'Für deinen Einstieg · ohne Vorkenntnisse'
+                  : 'Dein Fortschritt bleibt auf diesem Gerät gespeichert'}
+              </span>
+            </div>
+            <div className="today-art" aria-hidden="true">
+              <span className="jp">あ</span>
+              <span>Ein Zeichen. Ein Anfang.</span>
+            </div>
+          </section>
+
+          <section className="card-surface daily-card" aria-labelledby="daily-goal-title">
+            <div className="section-heading">
+              <div className="section-icon">
+                <TargetIcon />
+              </div>
+              <h2 id="daily-goal-title">Dein Tagesziel</h2>
+              <Link to="/settings" className="text-link">
+                Anpassen
+              </Link>
+            </div>
+            <div className="goal-value">
+              {todayCorrect}
+              <span> / {dailyGoal}</span>
+            </div>
+            <p className="text-sm text-[var(--text-secondary)]">
+              {goalReached ? 'Tagesziel erreicht. Gut gemacht!' : 'richtige Antworten heute'}
+            </p>
+            <div
+              className="progress-track mt-4"
+              role="progressbar"
+              aria-label="Tagesziel"
+              aria-valuenow={Math.min(todayCorrect, dailyGoal)}
+              aria-valuemin={0}
+              aria-valuemax={dailyGoal}
             >
-              {displayPrefs.theme === 'dark' ? '☀️' : '🌙'}
-            </button>
-            <div className="text-right">
-              <div className="text-[10px] text-[var(--header-text-muted)] uppercase tracking-wide">Level</div>
-              <div className="text-sm text-[var(--header-text)] font-bold">{xpNow}/{XP_PER_LEVEL} XP</div>
+              <div className="progress-fill" style={{ width: `${goalPercent}%` }} />
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-[#ff9600] border-2 border-[#e68600] flex items-center justify-center shadow-[0_3px_0_#e68600]">
-              <span className="text-[var(--header-text)] font-bold text-lg">{level}</span>
+            <div className="daily-footer">
+              <span>Level {xpToLevel(progress.xp ?? 0)}</span>
+              <span>
+                {xpInLevel(progress.xp ?? 0)} / {XP_PER_LEVEL} XP
+              </span>
             </div>
-          </div>
-        </div>
-        <div className="progress-track">
-          <div className="progress-fill progress-fill--orange h-full" style={{ width: `${xpPct}%` }} />
-        </div>
-      </div>
-
-      <div className="scroll-area flex-1 min-h-0 px-4 pt-4 pb-2 flex flex-col gap-3">
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-2 shrink-0">
-          <StatCard icon="🔥" value={String(progress.currentStreak ?? 0)} label="Serie" accent />
-          <StatCard icon="⚡" value={String(todayCorrect)} label="Heute" />
-          <StatCard icon="📅" value={String(due)} label="Fällig" accent={due > 0} />
+          </section>
         </div>
 
-        {/* Main CTA — like Duolingo "Continue" */}
-        {due > 0 ? (
-          <button type="button" onClick={() => navigate('/practice')} className="btn-duo shrink-0">
-            Lektion fortsetzen · {due} Karten
-          </button>
-        ) : (
-          <button type="button" onClick={() => navigate('/learn')} className="btn-duo btn-duo--blue shrink-0">
-            Neues lernen
-          </button>
-        )}
-
-        {/* Daily goal */}
-        <div className="card-surface px-4 py-3 shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Tagesziel</span>
-            <span className="text-xs font-bold text-[var(--green)]">{dailyDone}/{dailyGoal}</span>
-          </div>
-          <div className="progress-track">
-            <div className="progress-fill h-full" style={{ width: `${(dailyDone / dailyGoal) * 100}%` }} />
-          </div>
+        <div className="learning-shortcuts mt-5">
+          <Link to="/course" className="text-link">
+            Dein Kurs →
+          </Link>
+          <Link to="/missions" className="text-link">
+            Alltagsmissionen →
+          </Link>
+          <Link to="/training" className="text-link">
+            Lernwerkstatt →
+          </Link>
+          <Link to="/notebook" className="text-link">
+            Lernheft →
+          </Link>
         </div>
-
-        <button
-          type="button"
-          onClick={() => navigate('/immerse')}
-          className="card-surface w-full p-3 text-left shrink-0 active:translate-y-0.5 transition-transform border-[var(--blue)]"
-        >
-          <div className="flex items-center justify-between">
+        <section className="learning-section" aria-labelledby="learning-title">
+          <div className="section-heading">
             <div>
-              <p className="text-sm font-bold text-[var(--text-primary)]">📖 Geschichten lesen</p>
-              <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-semibold">
-                Tap-to-Lookup · {storyProgress.completed.length}/{stories.length} abgeschlossen
-              </p>
+              <p className="eyebrow">Schritt für Schritt</p>
+              <h2 id="learning-title">Deine Lernbereiche</h2>
             </div>
-            <span className="jp text-2xl text-[var(--blue)]">読</span>
+            <Link to="/learn" className="text-link">
+              Alle ansehen <ArrowIcon className="w-4 h-4" />
+            </Link>
           </div>
-        </button>
-
-        {/* Next learning step */}
-        {(() => {
-          const next = CAT_CONFIG.map(({ key, label, emoji }) => {
-            const s = catStats(key)
-            const pct = s.total > 0 ? s.mastered / s.total : 0
-            return { key, label, emoji, pct, s }
-          }).sort((a, b) => a.pct - b.pct)[0]
-          if (!next || next.pct >= 1) return null
-          return (
-            <div className="card-surface px-3 py-2 shrink-0 border-[var(--green)]">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Nächster Schritt</p>
-              <p className="text-sm font-bold text-[var(--text-primary)] mt-0.5">
-                {next.emoji} {next.label} · {Math.round(next.pct * 100)}% gemeistert
-              </p>
-            </div>
-          )
-        })()}
-
-        <DisplaySettings />
-
-        {/* Lesson path — category cards */}
-        <div className="flex-1 min-h-[120px]">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Lernpfad</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {CAT_CONFIG.map(({ key, kana, label, emoji }) => {
-              const s = catStats(key)
-              const pct = s.total > 0 ? (s.mastered / s.total) * 100 : 0
+          <div className="course-list">
+            {COURSES.map(({ key, kana, label, description }, index) => {
+              const entries =
+                key === 'grammar' ? grammar : all.filter((item) => item.category === key && !item.historical)
+              const mastered = entries.filter((item) => item.status === 'mastered').length
+              const started = entries.some((item) => item.lastReviewDate !== null)
+              const pct = entries.length ? Math.round((mastered / entries.length) * 100) : 0
               return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => goLearn(key)}
-                  className="card-surface p-3 text-left active:translate-y-0.5 transition-transform min-h-[100px] flex flex-col justify-between"
-                >
-                  <div className="flex items-start justify-between">
-                    <span className="text-2xl jp font-bold text-[var(--text-primary)]">{kana}</span>
-                    <span className="text-lg" aria-hidden="true">{emoji}</span>
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[var(--text-primary)]">{label}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{s.mastered}/{s.total} gemeistert</div>
-                    <div className="progress-track mt-1.5 h-2">
-                      <div className="progress-fill progress-fill--blue h-full" style={{ width: `${pct}%` }} />
+                <Link key={key} to={`/learn?category=${key}`} className="course-row">
+                  <span className={`course-kana course-kana--${key} jp`} aria-hidden="true">
+                    {kana}
+                  </span>
+                  <div className="course-copy">
+                    <span className="course-number">Lernbereich {String(index + 1).padStart(2, '0')}</span>
+                    <h3>{label}</h3>
+                    <p>{description}</p>
+                    <div className="course-progress">
+                      <span>
+                        {mastered} / {entries.length} beherrscht
+                      </span>
+                      <span>{started ? `${pct}%` : 'Neu entdecken'}</span>
+                    </div>
+                    <div className="progress-track">
+                      <div className="progress-fill" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
-                </button>
+                  <ArrowIcon className="course-arrow w-5 h-5" />
+                </Link>
               )
             })}
           </div>
-        </div>
+        </section>
 
-        {(progress.currentStreak ?? 0) >= 3 && (
-          <div className="card-surface px-3 py-2 text-center shrink-0 border-[#ff9600]">
-            <span className="text-[var(--orange)] text-sm font-bold">🔥 {progress.currentStreak} Tage Serie!</span>
+        <Link to={`/immerse/${nextStory.id}`} className="reading-feature card-surface">
+          <div className="section-icon">
+            <ReadingIcon />
           </div>
-        )}
+          <div>
+            <p className="eyebrow">Japanisch im Kontext</p>
+            <h2>{nextStory.title}</h2>
+            <p>
+              Eine kurze Geschichte mit Worterklärungen. {storyProgress.completed.length} / {stories.length}{' '}
+              gelesen.
+            </p>
+          </div>
+          <ArrowIcon className="w-5 h-5 shrink-0" />
+        </Link>
       </div>
-    </div>
-  )
-}
-
-function StatCard({ icon, value, label, accent }: {
-  icon: string; value: string; label: string; accent?: boolean
-}) {
-  return (
-    <div className={`card-surface p-2.5 text-center ${accent ? 'border-[var(--orange)]' : ''}`}>
-      <div className="text-lg mb-0.5" aria-hidden="true">{icon}</div>
-      <div className={`text-xl font-bold leading-tight ${accent ? 'text-[var(--orange)]' : 'text-[var(--text-primary)]'}`}>{value}</div>
-      <div className="text-[10px] text-[var(--text-muted)] font-semibold mt-0.5">{label}</div>
     </div>
   )
 }

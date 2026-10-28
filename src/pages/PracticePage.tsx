@@ -9,13 +9,11 @@ export default function PracticePage() {
   if (session.phase === 'idle') {
     return (
       <PracticeIdle
-        practiceMode={session.practiceMode}
-        setPracticeMode={session.setPracticeMode}
+        canStartSrs={session.canStartSrs}
         direction={session.direction}
         setDirection={session.setDirection}
         filterCat={session.filterCat}
         setFilterCat={session.setFilterCat}
-        dueItems={session.dueItems}
         allItems={session.allItems}
         onStartSRS={session.startSRS}
         onStartFlashcard={session.startFlashcard}
@@ -29,7 +27,7 @@ export default function PracticePage() {
     return (
       <PracticeDone
         sessionRatings={session.sessionRatings}
-        practiceMode={session.practiceMode}
+        direction={session.direction}
         onBack={session.resetToIdle}
         onRestart={session.restart}
       />

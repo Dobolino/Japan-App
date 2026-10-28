@@ -1,23 +1,35 @@
 import { breakdownReading, type ReadingPart } from '@/utils/readingBreakdown'
 import { SCRIPT_BG, SCRIPT_COLOR } from '@/utils/scriptAnalyzer'
+import { useReadingAids } from '@/hooks/useReadingAids'
 
 interface Props {
   character: string
   romaji: string
   size?: 'sm' | 'md' | 'lg'
   compact?: boolean
+  showReadings?: boolean
 }
 
 const CHAR_SIZE = { sm: 'text-2xl', md: 'text-4xl', lg: 'text-5xl sm:text-6xl' }
 const READ_SIZE = { sm: 'text-[10px]', md: 'text-xs', lg: 'text-sm' }
 
-export default function ReadingBreakdown({ character, romaji, size = 'md', compact = false }: Props) {
+export default function ReadingBreakdown({
+  character,
+  romaji,
+  size = 'md',
+  compact = false,
+  showReadings,
+}: Props) {
+  const aids = useReadingAids(character)
+  const visible = showReadings ?? aids.showRomaji
   const parts = breakdownReading(character, romaji)
   if (parts.length <= 1 && character.length <= 1) {
     return (
       <div className="text-center">
         <div className={`jp font-bold text-[var(--text-primary)] ${CHAR_SIZE[size]}`}>{character}</div>
-        {!compact && <div className={`text-[var(--blue)] mt-1 font-semibold ${READ_SIZE[size]}`}>{romaji}</div>}
+        {!compact && visible && (
+          <div className={`text-[var(--blue)] mt-1 font-semibold ${READ_SIZE[size]}`}>{romaji}</div>
+        )}
       </div>
     )
   }
@@ -26,10 +38,16 @@ export default function ReadingBreakdown({ character, romaji, size = 'md', compa
     <div className="w-full">
       <div className={`flex flex-wrap justify-center ${compact ? 'gap-2' : 'gap-3'}`}>
         {parts.map((part, i) => (
-          <ReadingCell key={`${part.char}-${i}`} part={part} size={size} compact={compact} />
+          <ReadingCell
+            key={`${part.char}-${i}`}
+            part={part}
+            size={size}
+            compact={compact}
+            visible={visible}
+          />
         ))}
       </div>
-      {!compact && (
+      {!compact && visible && (
         <p className={`text-center text-[var(--blue)] mt-3 font-semibold ${READ_SIZE[size]}`}>
           Gesamt: {romaji}
         </p>
@@ -38,7 +56,17 @@ export default function ReadingBreakdown({ character, romaji, size = 'md', compa
   )
 }
 
-function ReadingCell({ part, size, compact }: { part: ReadingPart; size: 'sm' | 'md' | 'lg'; compact?: boolean }) {
+function ReadingCell({
+  part,
+  size,
+  compact,
+  visible,
+}: {
+  part: ReadingPart
+  size: 'sm' | 'md' | 'lg'
+  compact?: boolean
+  visible: boolean
+}) {
   const colorClass = SCRIPT_COLOR[part.type]
   const bgClass = compact ? '' : SCRIPT_BG[part.type]
 
@@ -47,10 +75,20 @@ function ReadingCell({ part, size, compact }: { part: ReadingPart; size: 'sm' | 
       className={`flex flex-col items-center min-w-[52px] ${compact ? 'px-1' : `px-3 py-2 rounded-2xl border ${bgClass}`}`}
     >
       <span className={`jp font-bold leading-none ${colorClass} ${CHAR_SIZE[size]}`}>{part.char}</span>
-      <span className={`text-[var(--blue)] font-bold mt-1.5 ${READ_SIZE[size]}`}>{part.reading || '—'}</span>
-      {!compact && (
+      {visible && (
+        <span className={`text-[var(--blue)] font-bold mt-1.5 ${READ_SIZE[size]}`}>
+          {part.reading || '—'}
+        </span>
+      )}
+      {!compact && visible && (
         <span className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-wide">
-          {part.type === 'kanji' ? 'Kanji' : part.type === 'hiragana' ? 'Hira' : part.type === 'katakana' ? 'Kata' : ''}
+          {part.type === 'kanji'
+            ? 'Kanji'
+            : part.type === 'hiragana'
+              ? 'Hira'
+              : part.type === 'katakana'
+                ? 'Kata'
+                : ''}
         </span>
       )}
     </div>

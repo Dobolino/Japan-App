@@ -1,5 +1,5 @@
 import { alignFurigana, isKanaReading } from '@/utils/furigana'
-import { useStore } from '@/store/useStore'
+import { useReadingAids } from '@/hooks/useReadingAids'
 
 interface Props {
   text: string
@@ -27,7 +27,7 @@ export default function RubyText({
   showRomaji: romajiProp,
   className = '',
 }: Props) {
-  const prefs = useStore((s) => s.displayPrefs)
+  const prefs = useReadingAids(text)
   const showFurigana = furiganaProp ?? prefs.showFurigana
   const showRomaji = romajiProp ?? prefs.showRomaji
 
@@ -36,7 +36,7 @@ export default function RubyText({
   const segments = canRuby ? alignFurigana(text, reading) : [{ text }]
 
   return (
-    <span className={`jp inline-block ${sizeClass} ${className}`.trim()}>
+    <span lang="ja" className={`jp inline-block ${sizeClass} ${className}`.trim()}>
       {segments.map((seg, i) =>
         seg.reading ? (
           <ruby key={i} className="ruby-base">

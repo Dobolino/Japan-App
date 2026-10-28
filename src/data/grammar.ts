@@ -23,11 +23,16 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Subjekt → Objekt → Verb',
     level: 'N5',
     category: 'Satzstruktur',
-    explanation: 'Im Japanischen steht das Verb immer am Satzende. Subjekt und Objekt kommen davor, in der Reihenfolge S-O-V.',
+    explanation:
+      'Im japanischen Hauptsatz steht das Verb normalerweise am Satzende. Eine häufige Grundreihenfolge ist Subjekt–Objekt–Verb. Andere Satzteile können ihre Reihenfolge ändern; die Partikeln zeigen ihre Funktion.',
     structure: '[Subjekt は/が] + [Objekt を] + [Verb]',
     examples: [
       { jp: '私はりんごを食べます。', reading: 'わたしはりんごをたべます。', de: 'Ich esse einen Apfel.' },
-      { jp: '田中さんは本を読みます。', reading: 'たなかさんはほんをよみます。', de: 'Herr Tanaka liest ein Buch.' },
+      {
+        jp: '田中さんは本を読みます。',
+        reading: 'たなかさんはほんをよみます。',
+        de: 'Herr Tanaka liest ein Buch.',
+      },
     ],
   },
 
@@ -38,7 +43,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Thema-Partikel',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'は markiert das Thema des Satzes — worüber gerade gesprochen wird. Es betont Kontrast oder gibt bekannte Information an.',
+    explanation:
+      'は markiert das Thema des Satzes — worüber gerade gesprochen wird. Es betont Kontrast oder gibt bekannte Information an.',
     structure: '[Thema] は + [Aussage]',
     examples: [
       { jp: '私は学生です。', reading: 'わたしはがくせいです。', de: 'Ich bin Student.' },
@@ -52,11 +58,16 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Subjekt-Partikel',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'が markiert das grammatische Subjekt. Wird benutzt bei neuer Information, bei Fragen nach dem Subjekt (だれが？), und bei bestimmten Verben (好き、わかる、ある、いる).',
+    explanation:
+      'が markiert das grammatische Subjekt. Wird benutzt bei neuer Information, bei Fragen nach dem Subjekt (だれが？), und bei bestimmten Verben (好き、わかる、ある、いる).',
     structure: '[Subjekt] が + [Verb/Adjektiv]',
     examples: [
       { jp: '誰が来ましたか？', reading: 'だれがきましたか？', de: 'Wer ist gekommen?' },
-      { jp: '私は日本語がわかります。', reading: 'わたしはにほんごがわかります。', de: 'Ich verstehe Japanisch.' },
+      {
+        jp: '私は日本語がわかります。',
+        reading: 'わたしはにほんごがわかります。',
+        de: 'Ich verstehe Japanisch.',
+      },
       { jp: '雨が降っています。', reading: 'あめがふっています。', de: 'Es regnet.' },
     ],
   },
@@ -66,7 +77,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Objekt-Partikel',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'を markiert das direkte Objekt einer Handlung — also das, womit etwas getan wird.',
+    explanation:
+      'を markiert das direkte Objekt einer Handlung: das, worauf sich die Handlung richtet. Ein Mittel oder Werkzeug wird dagegen oft mit で markiert.',
     structure: '[Objekt] を + [transitives Verb]',
     examples: [
       { jp: '水を飲みます。', reading: 'みずをのみます。', de: 'Ich trinke Wasser.' },
@@ -80,7 +92,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Richtung / Ort / Zeit',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'に hat viele Bedeutungen: 1) Ziel einer Bewegung (gehen zu), 2) Ort des Seins (bei いる/ある), 3) Uhrzeit/Datum, 4) Empfänger einer Handlung.',
+    explanation:
+      'に hat viele Bedeutungen: 1) Ziel einer Bewegung (gehen zu), 2) Ort des Seins (bei いる/ある), 3) Uhrzeit/Datum, 4) Empfänger einer Handlung.',
     structure: '[Ort/Zeit/Ziel] に + [Verb]',
     examples: [
       { jp: '学校に行きます。', reading: 'がっこうにいきます。', de: 'Ich gehe zur Schule.' },
@@ -94,10 +107,15 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Ort der Handlung / Mittel',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'で markiert: 1) den Ort, an dem eine Handlung stattfindet (≠ に für Sein), 2) das Mittel/Werkzeug, 3) Transportmittel.',
+    explanation:
+      'で markiert: 1) den Ort, an dem eine Handlung stattfindet (≠ に für Sein), 2) das Mittel/Werkzeug, 3) Transportmittel.',
     structure: '[Ort/Mittel] で + [Verb]',
     examples: [
-      { jp: '図書館で勉強します。', reading: 'としょかんでべんきょうします。', de: 'Ich lerne in der Bibliothek.' },
+      {
+        jp: '図書館で勉強します。',
+        reading: 'としょかんでべんきょうします。',
+        de: 'Ich lerne in der Bibliothek.',
+      },
       { jp: '箸で食べます。', reading: 'はしでたべます。', de: 'Ich esse mit Stäbchen.' },
       { jp: 'バスで行きます。', reading: 'バスでいきます。', de: 'Ich fahre mit dem Bus.' },
     ],
@@ -108,11 +126,16 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Und / Zusammen mit',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'と verbindet Nomen ("und", vollständige Liste) oder drückt Begleitung aus ("zusammen mit").',
+    explanation:
+      'と verbindet Nomen ("und", vollständige Liste) oder drückt Begleitung aus ("zusammen mit").',
     structure: '[Nomen] と [Nomen] / [Person] と + [Verb]',
     examples: [
       { jp: '猫と犬が好きです。', reading: 'ねこといぬがすきです。', de: 'Ich mag Katzen und Hunde.' },
-      { jp: '友達と映画を見ます。', reading: 'ともだちとえいがをみます。', de: 'Ich schaue mit Freunden einen Film.' },
+      {
+        jp: '友達と映画を見ます。',
+        reading: 'ともだちとえいがをみます。',
+        de: 'Ich schaue mit Freunden einen Film.',
+      },
     ],
   },
   {
@@ -135,12 +158,21 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Besitz / Zugehörigkeit',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'の verbindet zwei Nomen: das erste besitzt/beschreibt das zweite. Wie "-s" oder "von" im Deutschen.',
+    explanation:
+      'の verbindet zwei Nomen: das erste besitzt/beschreibt das zweite. Wie "-s" oder "von" im Deutschen.',
     structure: '[Besitzer] の + [Besitz]',
     examples: [
       { jp: '私の本です。', reading: 'わたしのほんです。', de: 'Das ist mein Buch.' },
-      { jp: '日本の食べ物が好きです。', reading: 'にほんのたべものがすきです。', de: 'Ich mag japanisches Essen.' },
-      { jp: '山田さんの車はあそこです。', reading: 'やまださんのくるまはあそこです。', de: 'Herr Yamadas Auto ist dort drüben.' },
+      {
+        jp: '日本の食べ物が好きです。',
+        reading: 'にほんのたべものがすきです。',
+        de: 'Ich mag japanisches Essen.',
+      },
+      {
+        jp: '山田さんの車はあそこです。',
+        reading: 'やまださんのくるまはあそこです。',
+        de: 'Herr Yamadas Auto ist dort drüben.',
+      },
     ],
   },
   {
@@ -152,7 +184,11 @@ export const grammarData: GrammarPoint[] = [
     explanation: 'から = von/ab (Start), まで = bis (Ende). Können zusammen oder einzeln verwendet werden.',
     structure: '[Start] から [Ziel/Zeit] まで',
     examples: [
-      { jp: '九時から五時まで働きます。', reading: 'くじからごじまではたらきます。', de: 'Ich arbeite von 9 bis 17 Uhr.' },
+      {
+        jp: '九時から五時まで働きます。',
+        reading: 'くじからごじまではたらきます。',
+        de: 'Ich arbeite von 9 bis 17 Uhr.',
+      },
       { jp: '東京から大阪まで。', reading: 'とうきょうからおおさかまで。', de: 'Von Tokyo nach Osaka.' },
     ],
   },
@@ -164,7 +200,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Höfliche Formen',
     level: 'N5',
     category: 'Verben',
-    explanation: 'です macht Nomen/Adjektive höflich. ます ist die höfliche Verbendung. Für Vergangenheit: でした / ました. Für Verneinung: ではありません / ません.',
+    explanation:
+      'です macht Nomen/Adjektive höflich. ます ist die höfliche Verbendung. Für Vergangenheit: でした / ました. Für Verneinung: ではありません / ません.',
     structure: '[Nomen/Adj] + です  /  [Verbstamm] + ます',
     examples: [
       { jp: '学生です。', reading: 'がくせいです。', de: 'Ich bin Student.' },
@@ -179,7 +216,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Verbindung / Verlaufsform',
     level: 'N5',
     category: 'Verben',
-    explanation: 'Die て-Form verbindet Verben ("und dann"), bildet die Verlaufsform (〜ている), und drückt Bitten aus (〜てください).',
+    explanation:
+      'Die て-Form verbindet Verben ("und dann"), bildet die Verlaufsform (〜ている), und drückt Bitten aus (〜てください).',
     structure: 'Verb → て-Form + いる / ください / ...',
     examples: [
       { jp: '食べて、寝ます。', reading: 'たべて、ねます。', de: 'Ich esse und schlafe dann.' },
@@ -193,7 +231,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Verneinung (informell)',
     level: 'N5',
     category: 'Verben',
-    explanation: 'Die ない-Form ist die informelle Verneinung eines Verbs. る-Verben: る→ない. う-Verben: u→aない. する→しない, くる→こない.',
+    explanation:
+      'Die ない-Form ist die informelle Verneinung eines Verbs. る-Verben: る→ない. う-Verben: u→aない. する→しない, くる→こない.',
     structure: '[Verbstamm] + ない',
     examples: [
       { jp: '食べない。', reading: 'たべない。', de: 'Ich esse nicht. (informell)' },
@@ -207,7 +246,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Wunsch: möchten',
     level: 'N5',
     category: 'Verben',
-    explanation: 'たい drückt den Wunsch aus, etwas zu tun ("möchte ..."). Wird an den Verbstamm (ます-Stamm) angehängt. Konjugiert wie ein い-Adjektiv.',
+    explanation:
+      'たい drückt den Wunsch aus, etwas zu tun ("möchte ..."). Wird an den Verbstamm (ます-Stamm) angehängt. Konjugiert wie ein い-Adjektiv.',
     structure: '[Verbstamm] + たい',
     examples: [
       { jp: '日本に行きたいです。', reading: 'にほんにいきたいです。', de: 'Ich möchte nach Japan gehen.' },
@@ -221,7 +261,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Verlaufsform / Zustand',
     level: 'N5',
     category: 'Verben',
-    explanation: '〜ている hat zwei Bedeutungen: 1) laufende Handlung ("gerade dabei"), 2) anhaltender Zustand nach einer Handlung.',
+    explanation:
+      '〜ている hat zwei Bedeutungen: 1) laufende Handlung ("gerade dabei"), 2) anhaltender Zustand nach einer Handlung.',
     structure: '[て-Form] + いる',
     examples: [
       { jp: 'テレビを見ています。', reading: 'テレビをみています。', de: 'Ich schaue gerade TV.' },
@@ -237,7 +278,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Konjugation',
     level: 'N5',
     category: 'Adjektive',
-    explanation: 'い-Adjektive enden auf い und können direkt vor Nomen oder als Prädikat stehen. Vergangenheit: い→かった. Verneinung: い→くない.',
+    explanation:
+      'い-Adjektive enden auf い und können direkt vor Nomen oder als Prädikat stehen. Vergangenheit: い→かった. Verneinung: い→くない.',
     structure: '[Adj-い] / [Adj-かった] / [Adj-くない]',
     examples: [
       { jp: '大きい犬です。', reading: 'おおきいいぬです。', de: 'Das ist ein großer Hund.' },
@@ -251,7 +293,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Konjugation',
     level: 'N5',
     category: 'Adjektive',
-    explanation: 'な-Adjektive brauchen な vor Nomen und です als Prädikat. Verneinung: ではありません. Vergangenheit: でした.',
+    explanation:
+      'な-Adjektive brauchen な vor Nomen und です als Prädikat. Verneinung: ではありません. Vergangenheit: でした.',
     structure: '[Adj] な + [Nomen] / [Adj] + です',
     examples: [
       { jp: 'きれいな花です。', reading: 'きれいなはなです。', de: 'Das ist eine schöne Blume.' },
@@ -267,7 +310,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'なに・どこ・いつ・だれ・どう',
     level: 'N5',
     category: 'Ausdrücke',
-    explanation: 'Fragewörter stehen an derselben Stelle wie die Antwort im Satz — nicht am Satzanfang wie im Deutschen/Englischen.',
+    explanation:
+      'Fragewörter stehen an derselben Stelle wie die Antwort im Satz — nicht am Satzanfang wie im Deutschen/Englischen.',
     structure: '[Fragewort] を/が/は/で + [Verb]？',
     examples: [
       { jp: 'これは何ですか？', reading: 'これはなんですか？', de: 'Was ist das?' },
@@ -282,10 +326,15 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Es gibt / Existenz',
     level: 'N5',
     category: 'Verben',
-    explanation: 'ある = es gibt / vorhanden sein (für Dinge, Pflanzen). いる = es gibt / vorhanden sein (für Menschen, Tiere). Ort mit に.',
+    explanation:
+      'ある = es gibt / vorhanden sein (für Dinge, Pflanzen). いる = es gibt / vorhanden sein (für Menschen, Tiere). Ort mit に.',
     structure: '[Ort] に [Nomen] が ある/いる',
     examples: [
-      { jp: '机の上に本があります。', reading: 'つくえのうえにほんがあります。', de: 'Auf dem Tisch ist ein Buch.' },
+      {
+        jp: '机の上に本があります。',
+        reading: 'つくえのうえにほんがあります。',
+        de: 'Auf dem Tisch ist ein Buch.',
+      },
       { jp: '公園に子供がいます。', reading: 'こうえんにこどもがいます。', de: 'Im Park sind Kinder.' },
       { jp: 'お金がありません。', reading: 'おかねがありません。', de: 'Ich habe kein Geld.' },
     ],
@@ -296,7 +345,8 @@ export const grammarData: GrammarPoint[] = [
     subtitle: 'Fragesatz-Partikel',
     level: 'N5',
     category: 'Partikel',
-    explanation: 'か am Satzende macht einen Aussagesatz zur Frage — kein Fragezeichen nötig, keine Wortstellung ändern.',
+    explanation:
+      'か am Satzende macht einen Aussagesatz zur Frage — kein Fragezeichen nötig, keine Wortstellung ändern.',
     structure: '[Aussagesatz] + か？',
     examples: [
       { jp: '日本人ですか？', reading: 'にほんじんですか？', de: 'Sind Sie Japaner?' },
@@ -306,4 +356,11 @@ export const grammarData: GrammarPoint[] = [
   },
 ]
 
-export const GRAMMAR_CATEGORIES = ['Alle', 'Partikel', 'Verben', 'Adjektive', 'Satzstruktur', 'Ausdrücke'] as const
+export const GRAMMAR_CATEGORIES = [
+  'Alle',
+  'Partikel',
+  'Verben',
+  'Adjektive',
+  'Satzstruktur',
+  'Ausdrücke',
+] as const

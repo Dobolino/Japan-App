@@ -3,11 +3,27 @@ import type { ItemCategory, SRSRating } from '@/types'
 export const XP_PER_CORRECT = 10
 export const XP_PER_LEVEL = 200
 
-export const RATING_BUTTONS: { rating: SRSRating; label: string; sub: string; color: string }[] = [
-  { rating: 0, label: 'Nochmal', sub: '<1 min', color: 'bg-[var(--rating-red-bg)] text-[var(--rating-red-fg)] border-[var(--rating-red-fg)]/30' },
-  { rating: 1, label: 'Schwer', sub: '<1 Tag', color: 'bg-[var(--rating-orange-bg)] text-[var(--rating-orange-fg)] border-[var(--rating-orange-fg)]/30' },
-  { rating: 2, label: 'Gut', sub: '~4 Tage', color: 'bg-[var(--rating-blue-bg)] text-[var(--rating-blue-fg)] border-[var(--rating-blue-fg)]/30' },
-  { rating: 3, label: 'Einfach', sub: '>7 Tage', color: 'bg-[var(--rating-green-bg)] text-[var(--rating-green-fg)] border-[var(--rating-green-fg)]/30' },
+export const RATING_BUTTONS: { rating: SRSRating; label: string; color: string }[] = [
+  {
+    rating: 0,
+    label: 'Nochmal',
+    color: 'bg-[var(--rating-red-bg)] text-[var(--rating-red-fg)] border-[var(--rating-red-fg)]/30',
+  },
+  {
+    rating: 1,
+    label: 'Schwer',
+    color: 'bg-[var(--rating-orange-bg)] text-[var(--rating-orange-fg)] border-[var(--rating-orange-fg)]/30',
+  },
+  {
+    rating: 2,
+    label: 'Gut',
+    color: 'bg-[var(--rating-blue-bg)] text-[var(--rating-blue-fg)] border-[var(--rating-blue-fg)]/30',
+  },
+  {
+    rating: 3,
+    label: 'Einfach',
+    color: 'bg-[var(--rating-green-bg)] text-[var(--rating-green-fg)] border-[var(--rating-green-fg)]/30',
+  },
 ]
 
 export const SRS_RATINGS: { r: SRSRating; label: string; color: string }[] = [

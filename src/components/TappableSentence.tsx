@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef, useId } from 'react'
+import { useReadingAids } from '@/hooks/useReadingAids'
 import { Link, useNavigate } from 'react-router-dom'
 import { playJapanese, unlockAudio } from '@/utils/audio'
 import { AudioIcon } from '@/components/icons/UiIcons'
@@ -26,7 +27,7 @@ export default function TappableSentence({
   const [active, setActive] = useState<number | null>(null)
   const navigate = useNavigate()
   const { pinForReview, unpinForReview, pinnedReviewIds } = useStore()
-  const showRomaji = useStore((s) => s.displayPrefs.showRomaji)
+  const { showRomaji } = useReadingAids(text)
 
   const speak = useCallback(() => {
     if (!audioId) return
@@ -97,6 +98,27 @@ function TokenChip({
   onPin: () => void
   onPractice: () => void
 }) {
+  const aids = useReadingAids(token.surface)
+  const [position, setPosition] = useState({ left: 12, top: 12 })
+  const container = useRef<HTMLSpanElement>(null),
+    trigger = useRef<HTMLButtonElement>(null),
+    popupId = useId()
+  useEffect(() => {
+    if (!open) return
+    const close = (event: KeyboardEvent | PointerEvent) => {
+      if (event instanceof KeyboardEvent && event.key === 'Escape') {
+        onToggle()
+        trigger.current?.focus()
+      } else if (event instanceof PointerEvent && !container.current?.contains(event.target as Node))
+        onToggle()
+    }
+    document.addEventListener('keydown', close)
+    document.addEventListener('pointerdown', close)
+    return () => {
+      document.removeEventListener('keydown', close)
+      document.removeEventListener('pointerdown', close)
+    }
+  }, [open, onToggle])
   const isParticle = token.pos === 'particle'
   const chipClass = isParticle
     ? 'token-chip token-chip--particle'
@@ -107,18 +129,47 @@ function TokenChip({
   const fontSize = size === 'sentence' ? 'text-lg sm:text-xl' : 'text-base'
 
   return (
-    <span className="relative inline-block">
+    <span ref={container} className="relative inline-block">
       <button
         type="button"
-        onClick={onToggle}
+        ref={trigger}
+        onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect()
+          setPosition({
+            left: Math.max(12, Math.min(window.innerWidth - 252, rect.left)),
+            top: Math.max(12, Math.min(window.innerHeight - 436, rect.bottom + 8)),
+          })
+          onToggle()
+        }}
+        aria-controls={open ? popupId : undefined}
         className={`${chipClass} jp ${fontSize} font-medium px-1 py-0.5 rounded-lg transition-transform active:scale-95 ${isPinned ? 'ring-2 ring-[var(--green)]' : ''}`}
         aria-expanded={open}
       >
-        {token.surface}
+        {aids.showFurigana && token.reading && /[一-龯]/.test(token.surface) ? (
+          <ruby lang="ja">
+            {token.surface}
+            <rt className="ruby-reading">{token.reading}</rt>
+          </ruby>
+        ) : (
+          token.surface
+        )}
       </button>
 
       {open && (
-        <div className="token-popover" role="tooltip">
+        <div
+          id={popupId}
+          className="token-popover"
+          style={{
+            position: 'fixed',
+            transform: 'none',
+            left: position.left,
+            top: position.top,
+            maxHeight: 'calc(100dvh - 32px)',
+            overflowY: 'auto',
+          }}
+          role="dialog"
+          aria-label={`${token.surface}: Worterklärung`}
+        >
           <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-bold mb-1">
             {isParticle ? 'Partikel' : 'Wort'}
           </p>
@@ -126,9 +177,7 @@ function TokenChip({
           {token.reading && token.reading !== token.surface && (
             <p className="text-sm text-[var(--blue)] font-semibold mt-0.5">{token.reading}</p>
           )}
-          {token.romaji && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">Romaji: {token.romaji}</p>
-          )}
+          {token.romaji && <p className="text-xs text-[var(--text-muted)] mt-0.5">Romaji: {token.romaji}</p>}
           {token.meaning && (
             <p className="text-sm text-[var(--text-secondary)] font-semibold mt-1">{token.meaning}</p>
           )}

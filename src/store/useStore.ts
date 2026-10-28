@@ -1,48 +1,25 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { LearningItem, UserProgress, SRSRating, ItemCategory, DisplayPrefs, GrammarSrsItem, StoryProgress } from '@/types'
-import { hiraganaData } from '@/data/hiragana'
-import { katakanaData } from '@/data/katakana'
-import { vocabularyData } from '@/data/vocabulary'
-import { kanjiN5Data } from '@/data/kanji-n5'
-import { grammarData } from '@/data/grammar'
-import { XP_PER_CORRECT, xpToLevel } from '@/constants/srs'
-import { updateStreak } from '@/utils/date'
-import { sm2 } from '@/utils/sm2'
-import { shuffle } from '@/utils/shuffle'
-import { isGrammarSrsId } from '@/types/review'
-
-const ALL_SEED = [...hiraganaData, ...katakanaData, ...vocabularyData, ...kanjiN5Data]
-
-const SRS_FIELDS = [
-  'status',
-  'easeFactor',
-  'interval',
-  'repetitions',
-  'nextReviewDate',
-  'lastReviewDate',
-  'errorCount',
-  'correctCount',
-] as const satisfies readonly (keyof LearningItem)[]
-
+import { persist, createJSONStorage } from 'zustand/middleware'
+import type { LearningItem, SRSRating, ItemCategory, DisplayPrefs } from '@/types'
+import type {
+  PersistentState,
+  NotebookEntry,
+  LessonResult,
+  LessonDraft,
+  SessionSnapshot,
+  ActivityDraft,
+} from './types'
+import { initialState, persistentSnapshot, restoreState, STORE_VERSION } from './persistence'
+import { applyReview } from './reviewModel'
+import { selectReviewItems } from '@/utils/reviewCounts'
+import { createBackup } from '@/utils/backup'
 export { xpToLevel, xpInLevel } from '@/constants/srs'
-
-interface AppState {
-  items: Record<string, LearningItem>
-  grammarSrs: Record<string, GrammarSrsItem>
-  progress: UserProgress
-  displayPrefs: DisplayPrefs
-  activeCategory: ItemCategory
-  storyProgress: StoryProgress
-  pinnedReviewIds: string[]
-
-  initItems: () => void
-  initGrammarSrs: () => void
-  setActiveCategory: (cat: ItemCategory) => void
+export interface AppState extends PersistentState {
+  setActiveCategory: (category: ItemCategory) => void
   setDisplayPrefs: (prefs: Partial<DisplayPrefs>) => void
-  markStoryComplete: (storyId: string) => void
+  markStoryComplete: (id: string) => void
   updateItem: (id: string, updates: Partial<LearningItem>) => void
-  rateReview: (id: string, rating: SRSRating) => void
+  rateReview: (id: string, rating: SRSRating, eventId?: string) => void
   recordReview: (id: string, correct: boolean) => void
   startStudySession: () => void
   resetProgress: () => void
@@ -52,288 +29,203 @@ interface AppState {
   pinForReview: (id: string) => void
   unpinForReview: (id: string) => void
   getPinnedItems: () => LearningItem[]
+  introduceItems: (ids: string[], grammarIds?: string[]) => void
+  completeLesson: (id: string, result: LessonResult) => void
+  saveLessonDraft: (id: string, draft: LessonDraft | null) => void
+  updateNotebook: (id: string, entry: Partial<NotebookEntry>) => void
+  setLearningGoal: (goal: PersistentState['learningGoal']) => void
+  saveSession: (session: SessionSnapshot | null) => void
+  submitSessionRating: (rating: SRSRating) => void
+  finishTraining: (id: string, result: LessonResult) => void
+  saveActivity: (id: string, draft: ActivityDraft | null) => void
+  replaceState: (state: PersistentState) => void
 }
-
-const defaultProgress: UserProgress = {
-  studySessions: 0,
-  cardsReviewed: 0,
-  currentStreak: 0,
-  longestStreak: 0,
-  lastStudyDate: null,
-  totalCorrect: 0,
-  totalErrors: 0,
-  xp: 0,
-  level: 1,
-  todayCorrect: 0,
-  todayDate: null,
-}
-
-const defaultStoryProgress: StoryProgress = { completed: [] }
-
-const defaultDisplayPrefs: DisplayPrefs = {
-  showFurigana: true,
-  showRomaji: true,
-  theme: 'light',
-  dailyGoal: 20,
-}
-
-function mergeStoredItem(seed: LearningItem, stored: LearningItem): LearningItem {
-  const srs = Object.fromEntries(
-    SRS_FIELDS.map((key) => [key, stored[key] ?? seed[key]])
-  ) as Pick<LearningItem, (typeof SRS_FIELDS)[number]>
-
-  return {
-    ...seed,
-    ...srs,
-    easeFactor: stored.easeFactor ?? 2.5,
-    interval: stored.interval ?? 1,
-    repetitions: stored.repetitions ?? 0,
-  }
-}
-
-function seedGrammarSrs(): Record<string, GrammarSrsItem> {
-  const today = new Date().toISOString()
-  const out: Record<string, GrammarSrsItem> = {}
-  for (const g of grammarData) {
-    g.examples.forEach((_, exIndex) => {
-      const id = `grammar:${g.id}:${exIndex}`
-      out[id] = {
-        id,
-        grammarId: g.id,
-        exampleIndex: exIndex,
-        title: g.title,
-        status: 'new',
-        easeFactor: 2.5,
-        interval: 1,
-        repetitions: 0,
-        nextReviewDate: today,
-        lastReviewDate: null,
-        errorCount: 0,
-        correctCount: 0,
+export const storageState = { failed: false, damagedRaw: null as string | null }
+const storage = createJSONStorage<PersistentState>(() => ({
+  getItem: (key: string) => {
+    if (typeof localStorage === 'undefined') return null
+    let raw: string | null
+    try {
+      raw = localStorage.getItem(key)
+    } catch {
+      storageState.failed = true
+      return null
+    }
+    if (key === 'japp-store' && raw) {
+      let parsed
+      try {
+        parsed = JSON.parse(raw)
+        if (!parsed || typeof parsed !== 'object') throw new Error('Ungültiger Lernstand')
+      } catch {
+        storageState.failed = true
+        storageState.damagedRaw = raw
+        try {
+          localStorage.setItem('japp-unreadable', raw)
+        } catch {
+          /* Original remains available for download in memory. */
+        }
+        return null
       }
-    })
-  }
-  return out
-}
-
-function applyProgressPatch(progress: UserProgress, correct: boolean) {
-  const today = new Date().toLocaleDateString('sv-SE')
-  const todayCorrect =
-    (progress.todayDate === today ? progress.todayCorrect : 0) + (correct ? 1 : 0)
-  const earnedXp = correct ? XP_PER_CORRECT : 0
-  const newXp = (progress.xp ?? 0) + earnedXp
-  const streakUpdate = updateStreak(progress)
-
-  return {
-    ...progress,
-    totalCorrect: progress.totalCorrect + (correct ? 1 : 0),
-    totalErrors: progress.totalErrors + (correct ? 0 : 1),
-    ...streakUpdate,
-    lastStudyDate: new Date().toISOString(),
-    cardsReviewed: progress.cardsReviewed + 1,
-    xp: newXp,
-    level: xpToLevel(newXp),
-    todayCorrect,
-    todayDate: today,
-  }
-}
-
+      try {
+        if (
+          typeof parsed.version === 'number' &&
+          parsed.version < STORE_VERSION &&
+          !localStorage.getItem('japp-recovery')
+        )
+          localStorage.setItem('japp-recovery', createBackup(restoreState(parsed.state)))
+      } catch {
+        storageState.failed = true
+      }
+    }
+    // A failed recovery copy must not discard the readable original learner state.
+    return raw
+  },
+  setItem: (key: string, value: string) => {
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(key, value)
+    } catch {
+      storageState.failed = true
+      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('japp-storage-error'))
+    }
+  },
+  removeItem: (key: string) => {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(key)
+  },
+}))
 export const useStore = create<AppState>()(
-  persist(
+  persist<AppState, [], [], PersistentState>(
     (set, get) => ({
-      items: {},
-      grammarSrs: {},
-      progress: defaultProgress,
-      displayPrefs: defaultDisplayPrefs,
-      activeCategory: 'hiragana',
-      storyProgress: defaultStoryProgress,
-      pinnedReviewIds: [],
-
-      initItems: () => {
-        const { items } = get()
-        const seed: Record<string, LearningItem> = {}
-        for (const item of ALL_SEED) {
-          const stored = items[item.id]
-          seed[item.id] = stored ? mergeStoredItem(item, stored) : item
-        }
-        set({ items: seed })
+      ...initialState(),
+      setActiveCategory: (activeCategory) => set({ activeCategory }),
+      setDisplayPrefs: (prefs) => set((state) => ({ displayPrefs: { ...state.displayPrefs, ...prefs } })),
+      markStoryComplete: (id) =>
+        set((state) => ({
+          storyProgress: { completed: [...new Set([...state.storyProgress.completed, id])] },
+        })),
+      updateItem: (id, updates) =>
+        set((state) =>
+          state.items[id] ? { items: { ...state.items, [id]: { ...state.items[id], ...updates } } } : {}
+        ),
+      rateReview: (id, rating, eventId) => set((state) => applyReview(state, id, rating, eventId)),
+      recordReview: (id, correct) => get().rateReview(id, correct ? 2 : 0),
+      startStudySession: () =>
+        set((state) => ({
+          progress: { ...state.progress, studySessions: state.progress.studySessions + 1 },
+        })),
+      resetProgress: () =>
+        set((state) => ({
+          ...initialState(),
+          displayPrefs: state.displayPrefs,
+          learningGoal: state.learningGoal,
+        })),
+      getDueItems: (category, limit = 20) => {
+        const state = get()
+        return selectReviewItems(
+          Object.values(state.items).filter(
+            (item) =>
+              (!category || item.category === category) &&
+              (item.lastReviewDate !== null || state.introducedIds.includes(item.id))
+          ),
+          limit
+        )
       },
-
-      initGrammarSrs: () => {
-        const seeded = seedGrammarSrs()
-        const { grammarSrs } = get()
-        const merged: Record<string, GrammarSrsItem> = { ...seeded }
-        for (const id of Object.keys(grammarSrs)) {
-          if (merged[id]) merged[id] = { ...merged[id], ...grammarSrs[id] }
-        }
-        set({ grammarSrs: merged })
-      },
-
-      setActiveCategory: (cat) => set({ activeCategory: cat }),
-
-      setDisplayPrefs: (prefs) =>
-        set((s) => ({ displayPrefs: { ...s.displayPrefs, ...prefs } })),
-
-      markStoryComplete: (storyId) =>
-        set((s) => {
-          if (s.storyProgress.completed.includes(storyId)) return s
+      getDueGrammarCount: () =>
+        Object.values(get().grammarSrs).filter(
+          (item) => item.lastReviewDate !== null && item.nextReviewDate <= new Date().toISOString()
+        ).length,
+      getItemsByCategory: (category) =>
+        Object.values(get().items).filter((item) => item.category === category),
+      pinForReview: (id) =>
+        set((state) =>
+          state.items[id] ? { pinnedReviewIds: [...new Set([...state.pinnedReviewIds, id])] } : {}
+        ),
+      unpinForReview: (id) =>
+        set((state) => ({ pinnedReviewIds: state.pinnedReviewIds.filter((value) => value !== id) })),
+      getPinnedItems: () =>
+        get()
+          .pinnedReviewIds.map((id) => get().items[id])
+          .filter(Boolean),
+      introduceItems: (ids, grammar = []) =>
+        set((state) => ({
+          introducedIds: [
+            ...new Set([...state.introducedIds, ...ids.filter((id) => Boolean(state.items[id]))]),
+          ],
+          introducedGrammarIds: [...new Set([...state.introducedGrammarIds, ...grammar])],
+        })),
+      completeLesson: (id, result) =>
+        set((state) => ({
+          completedLessons: { ...state.completedLessons, [id]: result },
+          lessonDrafts: Object.fromEntries(Object.entries(state.lessonDrafts).filter(([key]) => key !== id)),
+        })),
+      saveLessonDraft: (id, draft) =>
+        set((state) => ({
+          lessonDrafts: draft
+            ? { ...state.lessonDrafts, [id]: draft }
+            : Object.fromEntries(Object.entries(state.lessonDrafts).filter(([key]) => key !== id)),
+        })),
+      updateNotebook: (id, entry) =>
+        set((state) =>
+          state.items[id]
+            ? {
+                notebook: {
+                  ...state.notebook,
+                  [id]: {
+                    ...(state.notebook[id] ?? { note: '', example: '', tags: [] }),
+                    ...entry,
+                    updatedAt: new Date().toISOString(),
+                  },
+                },
+              }
+            : {}
+        ),
+      setLearningGoal: (learningGoal) => set({ learningGoal }),
+      saveSession: (activeSession) => set({ activeSession }),
+      submitSessionRating: (rating) =>
+        set((state) => {
+          const session = state.activeSession,
+            card = session?.queue[session.index]
+          if (!session || !card || session.phase !== 'answer') return {}
+          const queue = [...session.queue],
+            retries = [...session.retries]
+          if (rating === 0 && !retries.includes(card.srsId)) {
+            retries.push(card.srsId)
+            queue.splice(Math.min(session.index + 4, queue.length), 0, {
+              ...card,
+              cardId: `${card.cardId}:retry`,
+            })
+          }
+          const index = session.index + 1
           return {
-            storyProgress: {
-              completed: [...s.storyProgress.completed, storyId],
+            ...applyReview(state, card.srsId, rating, `${session.id}:${session.index}`),
+            activeSession: {
+              ...session,
+              queue,
+              retries,
+              index,
+              ratings: [...session.ratings, rating],
+              typed: '',
+              correct: null,
+              phase: index >= queue.length ? 'done' : 'question',
             },
           }
         }),
-
-      updateItem: (id, updates) =>
-        set((s) => ({ items: { ...s.items, [id]: { ...s.items[id], ...updates } } })),
-
-      startStudySession: () =>
-        set((s) => ({
-          progress: { ...s.progress, studySessions: s.progress.studySessions + 1 },
+      saveActivity: (id, draft) =>
+        set((state) => ({
+          activityDrafts: draft
+            ? { ...state.activityDrafts, [id]: draft }
+            : Object.fromEntries(Object.entries(state.activityDrafts).filter(([key]) => key !== id)),
         })),
-
-      rateReview: (id, rating) => {
-        const correct = rating >= 1
-
-        if (isGrammarSrsId(id)) {
-          const { grammarSrs } = get()
-          const entry = grammarSrs[id]
-          if (!entry) return
-
-          set((s) => ({
-            grammarSrs: {
-              ...s.grammarSrs,
-              [id]: {
-                ...entry,
-                ...sm2(entry as unknown as LearningItem, rating),
-                lastReviewDate: new Date().toISOString(),
-                errorCount: entry.errorCount + (correct ? 0 : 1),
-                correctCount: entry.correctCount + (correct ? 1 : 0),
-              },
-            },
-            progress: applyProgressPatch(s.progress, correct),
-          }))
-          return
-        }
-
-        const { items } = get()
-        const item = items[id]
-        if (!item) return
-
-        set((s) => ({
-          items: {
-            ...s.items,
-            [id]: {
-              ...item,
-              ...sm2(item, rating),
-              lastReviewDate: new Date().toISOString(),
-              errorCount: item.errorCount + (correct ? 0 : 1),
-              correctCount: item.correctCount + (correct ? 1 : 0),
-            },
-          },
-          progress: applyProgressPatch(s.progress, correct),
-        }))
-      },
-
-      recordReview: (id, correct) => get().rateReview(id, correct ? 2 : 0),
-
-      resetProgress: () => {
-        const reset: Record<string, LearningItem> = {}
-        for (const item of ALL_SEED) reset[item.id] = { ...item }
-        set({ items: reset, grammarSrs: seedGrammarSrs(), progress: defaultProgress, storyProgress: defaultStoryProgress, pinnedReviewIds: [] })
-      },
-
-      getDueItems: (category, limit = 20) => {
-        const now = new Date().toISOString()
-        const allItems = Object.values(get().items).filter(
-          (i) => !category || i.category === category
-        )
-
-        const reviews = allItems
-          .filter((i) => i.repetitions > 0 && i.nextReviewDate <= now)
-          .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate))
-
-        const newCards = shuffle(allItems.filter((i) => i.repetitions === 0)).slice(
-          0,
-          Math.max(0, 10 - reviews.length)
-        )
-
-        return [...reviews, ...newCards].slice(0, limit)
-      },
-
-      getDueGrammarCount: () => {
-        const now = new Date().toISOString()
-        return Object.values(get().grammarSrs).filter(
-          (g) => g.repetitions === 0 || g.nextReviewDate <= now
-        ).length
-      },
-
-      getItemsByCategory: (category) =>
-        Object.values(get().items).filter((i) => i.category === category),
-
-      pinForReview: (id) =>
-        set((s) => {
-          if (s.pinnedReviewIds.includes(id)) return s
-          return { pinnedReviewIds: [...s.pinnedReviewIds, id].slice(-20) }
-        }),
-
-      unpinForReview: (id) =>
-        set((s) => ({ pinnedReviewIds: s.pinnedReviewIds.filter((x) => x !== id) })),
-
-      getPinnedItems: () => {
-        const { items, pinnedReviewIds } = get()
-        return pinnedReviewIds.map((id) => items[id]).filter(Boolean)
-      },
+      finishTraining: (id, result) =>
+        set((state) => ({ trainingResults: { ...state.trainingResults, [id]: result } })),
+      replaceState: (state) => set(restoreState(state)),
     }),
     {
       name: 'japp-store',
-      version: 3,
-      migrate: (persisted) => {
-        const state = persisted as {
-          progress?: Record<string, unknown>
-          displayPrefs?: DisplayPrefs
-          grammarSrs?: Record<string, GrammarSrsItem>
-          storyProgress?: StoryProgress
-          pinnedReviewIds?: string[]
-        }
-        const progress = state.progress ?? {}
-        if ('totalSessions' in progress && !('cardsReviewed' in progress)) {
-          progress.cardsReviewed = progress.totalSessions
-          delete progress.totalSessions
-        }
-        if (!('studySessions' in progress)) {
-          progress.studySessions = 0
-        }
-        if (!state.displayPrefs) {
-          state.displayPrefs = defaultDisplayPrefs
-        } else {
-          const prefs = state.displayPrefs as DisplayPrefs
-          state.displayPrefs = {
-            ...defaultDisplayPrefs,
-            ...prefs,
-            theme: prefs.theme ?? 'light',
-            dailyGoal: prefs.dailyGoal ?? 20,
-          }
-        }
-        if (!state.pinnedReviewIds) {
-          state.pinnedReviewIds = []
-        }
-        if (!state.grammarSrs || !Object.keys(state.grammarSrs).length) {
-          state.grammarSrs = seedGrammarSrs()
-        }
-        if (!state.storyProgress) {
-          state.storyProgress = defaultStoryProgress
-        }
-        return persisted
-      },
-      partialize: (s) => ({
-        items: s.items,
-        grammarSrs: s.grammarSrs,
-        progress: s.progress,
-        displayPrefs: s.displayPrefs,
-        storyProgress: s.storyProgress,
-        pinnedReviewIds: s.pinnedReviewIds,
-      }),
+      version: STORE_VERSION,
+      storage,
+      partialize: persistentSnapshot,
+      migrate: restoreState,
+      merge: (saved, current) => ({ ...current, ...restoreState(saved) }),
     }
   )
 )

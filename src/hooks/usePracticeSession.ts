@@ -1,213 +1,128 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
-import { buildReviewQueue, buildFlashcardQueue, ratingFromProduction, reviewCardMatchesAnswer, pickGrammarReviewCards } from '@/utils/buildReviewQueue'
-import { grammarData } from '@/data/grammar'
-import type { ReviewCard } from '@/types/review'
+import { buildFlashcardQueue, reviewCardMatchesAnswer } from '@/utils/buildReviewQueue'
+import { createStudyPlan } from '@/utils/studyPlan'
 import type { SRSRating, ItemCategory } from '@/types'
-
+import type { SessionSnapshot } from '@/store/types'
 export type Phase = 'idle' | 'question' | 'answer' | 'done'
 export type Direction = 'jp-de' | 'de-jp'
 export type PracticeMode = 'srs' | 'flashcard'
-
 export function usePracticeSession() {
-  const items = useStore((s) => s.items)
-  const getDueItems = useStore((s) => s.getDueItems)
-  const grammarSrs = useStore((s) => s.grammarSrs)
-  const rateReview = useStore((s) => s.rateReview)
-  const getPinnedItems = useStore((s) => s.getPinnedItems)
-  const startStudySession = useStore((s) => s.startStudySession)
-
-  const [practiceMode, setPracticeMode] = useState<PracticeMode>('srs')
-  const [phase, setPhase] = useState<Phase>('idle')
-  const [direction, setDirection] = useState<Direction>('de-jp')
+  const store = useStore(),
+    session = store.activeSession
+  const [directionPref, setDirection] = useState<Direction>(session?.direction ?? 'de-jp')
   const [filterCat, setFilterCat] = useState<ItemCategory | 'all'>('all')
-  const [queue, setQueue] = useState<ReviewCard[]>([])
-  const [index, setIndex] = useState(0)
-  const [sessionRatings, setSessionRatings] = useState<SRSRating[]>([])
-  const [typed, setTyped] = useState('')
-  const [showRomajiHint, setShowRomajiHint] = useState(false)
-  const [autoPlayAudio, setAutoPlayAudio] = useState(false)
-  const [lastCheckedCorrect, setLastCheckedCorrect] = useState<boolean | null>(null)
-
-  const productionMode = direction === 'de-jp'
-
-  const dueItems = getDueItems(filterCat === 'all' ? undefined : filterCat, 999)
-
-  const allItems = useMemo(() => {
-    const all = Object.values(items)
-    return filterCat === 'all' ? all : all.filter((i) => i.category === filterCat)
-  }, [filterCat, items])
-
-  const current = queue[index]
-
-  const goNext = useCallback(
-    (rating: SRSRating) => {
-      if (!current) return
-      rateReview(current.srsId, rating)
-      setSessionRatings((r) => [...r, rating])
-      setTyped('')
-      setLastCheckedCorrect(null)
-      if (index + 1 < queue.length) {
-        setIndex((i) => i + 1)
-        setPhase('question')
-      } else {
-        setPhase('done')
-      }
-    },
-    [current, index, queue.length, rateReview]
+  const [showRomajiHint, setShowRomajiHint] = useState(false),
+    [autoPlayAudio, setAutoPlayAudio] = useState(false)
+  const direction = session?.direction ?? directionPref,
+    practiceMode = session?.mode ?? 'srs',
+    phase: Phase = session?.phase ?? 'idle'
+  const current = session?.queue[session.index],
+    productionMode = direction === 'de-jp'
+  const allItems = Object.values(store.items).filter(
+    (item) => filterCat === 'all' || item.category === filterCat
   )
-
-  const startSRS = useCallback(() => {
-    const pinned = getPinnedItems().filter(
-      (p) => filterCat === 'all' || p.category === filterCat
-    )
-    const due = getDueItems(filterCat === 'all' ? undefined : filterCat, 16)
-    const dueIds = new Set(due.map((d) => d.id))
-    const extraPinned = pinned.filter((p) => !dueIds.has(p.id)).slice(0, 4)
-    const mergedItems = [...extraPinned, ...due].slice(0, 16)
-    const grammarCards = pickGrammarReviewCards(grammarSrs, grammarData, 4)
-    const built = buildReviewQueue(mergedItems, { limit: 20, grammarCards })
-    if (!built.length) return
-    startStudySession()
-    setQueue(built)
-    setIndex(0)
-    setSessionRatings([])
-    setTyped('')
-    setLastCheckedCorrect(null)
-    setPhase('question')
-  }, [filterCat, getDueItems, getPinnedItems, grammarSrs, startStudySession])
-
-  const startFlashcard = useCallback(() => {
-    const built = buildFlashcardQueue(allItems, 20)
-    if (!built.length) return
-    startStudySession()
-    setQueue(built)
-    setIndex(0)
-    setSessionRatings([])
-    setTyped('')
-    setLastCheckedCorrect(null)
-    setPhase('question')
-  }, [allItems, startStudySession])
-
-  const checkAnswer = useCallback(() => {
-    if (!current) return
-    const correct = reviewCardMatchesAnswer(typed, current)
-    setLastCheckedCorrect(correct)
-
-    if (productionMode) {
-      if (correct) {
-        goNext(ratingFromProduction(true, false))
-        return
-      }
-      setPhase('answer')
-      return
-    }
-
-    setPhase('answer')
-  }, [current, typed, productionMode, goNext])
-
-  const skipQuestion = useCallback(() => {
-    setLastCheckedCorrect(false)
-    setPhase('answer')
+  const planned = createStudyPlan(store, filterCat)
+  const update = useCallback((patch: Partial<SessionSnapshot>) => {
+    const active = useStore.getState().activeSession
+    if (active) useStore.getState().saveSession({ ...active, ...patch })
   }, [])
-
+  const start = (mode: PracticeMode) => {
+    const queue = mode === 'srs' ? planned : buildFlashcardQueue(allItems, 20)
+    if (!queue.length) return
+    store.startStudySession()
+    store.saveSession({
+      id: crypto.randomUUID(),
+      queue,
+      index: 0,
+      ratings: [],
+      phase: 'question',
+      direction: directionPref,
+      mode,
+      typed: '',
+      correct: null,
+      startedAt: new Date().toISOString(),
+      retries: [],
+    })
+  }
+  const checkAnswer = useCallback(() => {
+    const active = useStore.getState().activeSession,
+      card = active?.queue[active.index]
+    if (active && card && active.phase === 'question')
+      update({ phase: 'answer', correct: reviewCardMatchesAnswer(active.typed, card) })
+  }, [update])
+  const skipQuestion = useCallback(() => update({ phase: 'answer', correct: false }), [update])
   const reveal = useCallback(() => {
-    if (productionMode && !typed.trim()) {
-      skipQuestion()
-      return
-    }
-    if (productionMode && typed.trim()) {
-      checkAnswer()
-      return
-    }
-    setPhase('answer')
-  }, [productionMode, typed, skipQuestion, checkAnswer])
-
-  const advance = useCallback(
-    (rating: SRSRating) => {
-      goNext(rating)
-    },
-    [goNext]
+    if (productionMode) checkAnswer()
+    else update({ phase: 'answer' })
+  }, [productionMode, checkAnswer, update])
+  const advance = useCallback((rating: SRSRating) => {
+    useStore.getState().submitSessionRating(rating)
+    setShowRomajiHint(false)
+  }, [])
+  const confirmWrong = useCallback(
+    () => advance(useStore.getState().activeSession?.correct ? 3 : 0),
+    [advance]
   )
-
-  const confirmWrong = useCallback(() => {
-    goNext(ratingFromProduction(false, !typed.trim()))
-  }, [goNext, typed])
-
-  const resetToIdle = useCallback(() => setPhase('idle'), [])
-
-  const restart = useCallback(() => {
-    if (practiceMode === 'srs') startSRS()
-    else startFlashcard()
-  }, [practiceMode, startSRS, startFlashcard])
-
   useEffect(() => {
-    if (phase !== 'question' && phase !== 'answer') return
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-
-      if (productionMode && phase === 'question') {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          reveal()
-        }
+    if (phase === 'idle' || phase === 'done') return
+    const listener = (event: KeyboardEvent) => {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLButtonElement
+      )
+        return
+      if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault()
+        if (phase === 'question') reveal()
+        else if (productionMode) confirmWrong()
         return
       }
-
-      if (e.key === ' ' || e.key === 'Enter') {
-        if (phase === 'question') {
-          e.preventDefault()
-          reveal()
+      if (phase === 'answer' && !productionMode) {
+        const rating = Number(event.key) - 1
+        if (practiceMode === 'srs' && rating >= 0 && rating <= 3) advance(rating as SRSRating)
+        else if (practiceMode === 'flashcard') {
+          if (/^[1nN]$/.test(event.key)) advance(0)
+          if (/^[4yY]$/.test(event.key)) advance(3)
         }
-        return
-      }
-
-      if (phase !== 'answer' || productionMode) return
-
-      if (practiceMode === 'srs') {
-        const rating = Number(e.key) - 1
-        if (rating >= 0 && rating <= 3) advance(rating as SRSRating)
-      } else {
-        if (e.key === '1' || e.key === 'n' || e.key === 'N') advance(0)
-        if (e.key === '4' || e.key === 'y' || e.key === 'Y') advance(3)
       }
     }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [phase, practiceMode, productionMode, reveal, advance])
-
+    window.addEventListener('keydown', listener)
+    return () => window.removeEventListener('keydown', listener)
+  }, [phase, productionMode, practiceMode, reveal, advance, confirmWrong])
   return {
     practiceMode,
-    setPracticeMode,
     phase,
     direction,
     setDirection,
     filterCat,
     setFilterCat,
-    queue,
-    index,
-    sessionRatings,
-    typed,
-    setTyped,
+    queue: session?.queue ?? [],
+    index: session?.index ?? 0,
+    sessionRatings: session?.ratings ?? [],
+    typed: session?.typed ?? '',
+    setTyped: (typed: string) => update({ typed }),
     showRomajiHint,
     setShowRomajiHint,
     autoPlayAudio,
     setAutoPlayAudio,
-    dueItems,
     allItems,
     current,
     productionMode,
-    lastCheckedCorrect,
-    startSRS,
-    startFlashcard,
+    lastCheckedCorrect: session?.correct ?? null,
+    canStartSrs: planned.length > 0,
+    startSRS: () => start('srs'),
+    startFlashcard: () => start('flashcard'),
     checkAnswer,
     skipQuestion,
+    reveal,
     advance,
     confirmWrong,
-    reveal,
-    resetToIdle,
-    restart,
+    resetToIdle: () => store.saveSession(null),
+    restart: () => {
+      store.saveSession(null)
+      start(practiceMode)
+    },
   }
 }

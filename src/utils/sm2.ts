@@ -1,51 +1,33 @@
 import type { LearningItem, SRSRating, SRSStatus } from '@/types'
-
-/**
- * Simplified SM-2 variant tuned for this app (not identical to Anki).
- *
- * Ratings: 0=Again, 1=Hard, 2=Good, 3=Easy
- * - Again resets repetitions and shortens the interval.
- * - Hard keeps learning but grows interval slowly.
- * - Good / Easy follow spaced intervals with ease-factor adjustments.
- */
-export function sm2(item: LearningItem, rating: SRSRating) {
+type SchedulingState = Pick<LearningItem, 'easeFactor' | 'interval' | 'repetitions'>
+export function sm2(item: SchedulingState, rating: SRSRating, now = new Date()) {
   let { easeFactor, interval, repetitions } = item
-
   if (rating === 0) {
     repetitions = 0
-    interval = 1
+    interval = 0
     easeFactor = Math.max(1.3, easeFactor - 0.2)
   } else if (rating === 1) {
     easeFactor = Math.max(1.3, easeFactor - 0.15)
     interval = Math.max(1, Math.round(interval * 1.2))
-    repetitions += 1
-  } else if (rating === 2) {
-    if (repetitions === 0) interval = 1
-    else if (repetitions === 1) interval = 4
-    else interval = Math.round(interval * easeFactor)
-    repetitions += 1
+    repetitions++
   } else {
-    if (repetitions === 0) interval = 1
-    else if (repetitions === 1) interval = 4
-    else interval = Math.round(interval * easeFactor * 1.3)
-    easeFactor = Math.min(3.0, easeFactor + 0.15)
-    repetitions += 1
+    interval =
+      repetitions === 0
+        ? 1
+        : repetitions === 1
+          ? 4
+          : Math.max(1, Math.round(interval * easeFactor * (rating === 3 ? 1.3 : 1)))
+    repetitions++
+    if (rating === 3) easeFactor = Math.min(3, easeFactor + 0.15)
   }
-
-  let status: SRSStatus
-  if (repetitions === 0) status = 'new'
-  else if (interval <= 1) status = 'learning'
-  else if (interval < 7) status = 'uncertain'
-  else status = 'mastered'
-
-  const next = new Date()
-  next.setDate(next.getDate() + interval)
-
-  return {
-    easeFactor,
-    interval,
-    repetitions,
-    status,
-    nextReviewDate: next.toISOString(),
-  }
+  const status: SRSStatus = interval <= 1 ? 'learning' : interval < 7 ? 'uncertain' : 'mastered'
+  const next = new Date(now)
+  if (rating === 0) next.setMinutes(next.getMinutes() + 10)
+  else next.setDate(next.getDate() + interval)
+  return { easeFactor, interval, repetitions, status, nextReviewDate: next.toISOString() }
+}
+export function reviewIntervalLabel(item: SchedulingState, rating: SRSRating): string {
+  if (rating === 0) return '10 Min.'
+  const { interval } = sm2(item, rating)
+  return `${interval} ${interval === 1 ? 'Tag' : 'Tage'}`
 }

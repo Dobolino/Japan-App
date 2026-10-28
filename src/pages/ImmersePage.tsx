@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import ChoiceActivity from '@/components/ChoiceActivity'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { stories, getStory } from '@/data/stories'
 import TappableSentence from '@/components/TappableSentence'
 import ChunkBuilder from '@/components/ChunkBuilder'
 import { buildChunkExercise } from '@/utils/chunkExercise'
 import { useStore } from '@/store/useStore'
+import PageHeader from '@/components/PageHeader'
+import { ArrowIcon, ReadingIcon, CheckIcon } from '@/components/icons/UiIcons'
 
 export default function ImmersePage() {
   const { storyId } = useParams<{ storyId?: string }>()
@@ -21,7 +24,7 @@ export default function ImmersePage() {
         </div>
       )
     }
-    return <StoryReader story={story} />
+    return <StoryReader key={story.id} story={story} />
   }
 
   return <StoryList />
@@ -31,47 +34,51 @@ function StoryList() {
   const completed = useStore((s) => s.storyProgress.completed)
 
   return (
-    <div className="scroll-area h-full px-4 py-4">
-      <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">Lesen</h1>
-      <p className="text-xs text-[var(--text-muted)] font-semibold mb-4">
-        Tippe auf Wörter für Bedeutung · {stories.length} Mini-Geschichten N5
-      </p>
-
-      <div className="space-y-3">
-        {stories.map((story) => {
-          const done = completed.includes(story.id)
-          return (
-            <Link
-              key={story.id}
-              to={`/immerse/${story.id}`}
-              className="card-surface block p-4 active:translate-y-0.5 transition-transform"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h2 className="font-bold text-[var(--text-primary)]">{story.title}</h2>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5 font-semibold">{story.description}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
+    <div className="scroll-area h-full">
+      <div className="page-width">
+        <PageHeader
+          eyebrow="JAPANISCH IM KONTEXT"
+          title="Kleine Geschichten. Neues verstehen."
+          description={`Lies mit Worterklärungen und übe den Satzbau. ${completed.length} von ${stories.length} Geschichten abgeschlossen.`}
+        />
+        <div className="story-list">
+          {stories.map((story) => {
+            const done = completed.includes(story.id)
+            return (
+              <Link
+                key={story.id}
+                to={`/immerse/${story.id}`}
+                className="card-surface story-card"
+                onClick={() => {
+                  if (done) {
+                    useStore.getState().saveActivity(`reader:${story.id}`, null)
+                    useStore.getState().saveActivity(`story:${story.id}`, null)
+                  }
+                }}
+              >
+                <div className="section-icon">{done ? <CheckIcon /> : <ReadingIcon />}</div>
+                <div className="flex-1 min-w-0">
+                  <span className="eyebrow">
+                    {story.level} · {story.lines.length} Zeilen{done ? ' · Erneut lesen' : ''}
+                  </span>
+                  <h2>{story.title}</h2>
+                  <p>{story.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {story.grammarTags.map((tag) => (
                       <span
                         key={tag}
-                        className="text-[10px] px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--bg-muted)] text-[var(--text-secondary)] font-bold"
+                        className="text-xs px-2 py-1 rounded-md bg-[var(--bg-muted)] text-[var(--text-secondary)]"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
                 </div>
-                {done ? (
-                  <span className="text-[var(--green)] text-lg shrink-0" aria-label="Abgeschlossen">
-                    ✓
-                  </span>
-                ) : (
-                  <span className="text-[var(--text-muted)] text-sm shrink-0">{story.lines.length} Zeilen</span>
-                )}
-              </div>
-            </Link>
-          )
-        })}
+                <ArrowIcon className="w-4 h-4 text-[var(--text-muted)] shrink-0 mt-1" />
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
@@ -80,11 +87,14 @@ function StoryList() {
 function StoryReader({ story }: { story: (typeof stories)[0] }) {
   const navigate = useNavigate()
   const markStoryComplete = useStore((s) => s.markStoryComplete)
-  const [lineIndex, setLineIndex] = useState(0)
+  const store = useStore()
+  const readerId = `reader:${story.id}`
+  const lineIndex = Math.min(store.activityDrafts[readerId]?.index ?? 0, story.lines.length)
+  const [translationFor, setTranslationFor] = useState<number | null>(null)
   const [showChunk, setShowChunk] = useState(false)
   const [chunkDone, setChunkDone] = useState(false)
 
-  const line = story.lines[lineIndex]
+  const line = story.lines[Math.min(lineIndex, story.lines.length - 1)]
   const isLast = lineIndex >= story.lines.length - 1
   const chunkExercise = buildChunkExercise(
     `${story.id}-${lineIndex}`,
@@ -95,20 +105,36 @@ function StoryReader({ story }: { story: (typeof stories)[0] }) {
 
   const next = () => {
     if (isLast) {
-      markStoryComplete(story.id)
-      navigate('/immerse')
+      store.saveActivity(readerId, { index: story.lines.length, answers: [], questionIds: [] })
       return
     }
-    setLineIndex((i) => i + 1)
+    store.saveActivity(readerId, { index: lineIndex + 1, answers: [], questionIds: [] })
     setShowChunk(false)
     setChunkDone(false)
   }
 
+  if (lineIndex >= story.lines.length)
+    return (
+      <ChoiceActivity
+        id={`story:${story.id}`}
+        title="Was hast du verstanden?"
+        description={story.title}
+        questions={story.questions}
+        onComplete={() => markStoryComplete(story.id)}
+        backTo="/immerse"
+        resultHref="/immerse"
+      />
+    )
   return (
     <div className="page-screen">
       <div className="shrink-0 px-4 pt-3 pb-2 border-b-2 border-[var(--border)] bg-[var(--bg-card)]">
         <div className="flex items-center gap-2 mb-2">
-          <button type="button" onClick={() => navigate('/immerse')} className="text-[var(--text-muted)] text-2xl leading-none w-8" aria-label="Zurück">
+          <button
+            type="button"
+            onClick={() => navigate('/immerse')}
+            className="icon-button text-2xl shrink-0"
+            aria-label="Zurück"
+          >
             ‹
           </button>
           <div className="flex-1 min-w-0">
@@ -138,12 +164,20 @@ function StoryReader({ story }: { story: (typeof stories)[0] }) {
             <TappableSentence
               text={line.jp}
               reading={line.reading}
-              audioId={`${story.id}-L${lineIndex}`}
+              audioId={`${story.id}-v2-L${lineIndex}`}
               size="sentence"
             />
-            <p className="text-sm text-[var(--text-secondary)] font-semibold mt-4 border-t-2 border-[var(--border)] pt-3">
-              {line.de}
-            </p>
+            <button
+              type="button"
+              className="text-link mt-4"
+              aria-expanded={translationFor === lineIndex}
+              onClick={() => setTranslationFor(translationFor === lineIndex ? null : lineIndex)}
+            >
+              Übersetzung {translationFor === lineIndex ? 'ausblenden' : 'zeigen'}
+            </button>
+            {translationFor === lineIndex && (
+              <p className="text-sm text-[var(--text-secondary)] mt-3">{line.de}</p>
+            )}
           </div>
 
           <p className="text-[10px] text-center text-[var(--text-muted)] font-semibold">
@@ -151,27 +185,27 @@ function StoryReader({ story }: { story: (typeof stories)[0] }) {
           </p>
 
           {!showChunk ? (
-            <button type="button" onClick={() => setShowChunk(true)} className="btn-duo btn-duo--outline w-full">
+            <button
+              type="button"
+              onClick={() => setShowChunk(true)}
+              className="btn-duo btn-duo--outline w-full"
+            >
               Satzbau üben (SOV)
             </button>
           ) : (
-            <ChunkBuilder
-              exercise={chunkExercise}
-              onComplete={() => setChunkDone(true)}
-            />
+            <ChunkBuilder exercise={chunkExercise} onComplete={() => setChunkDone(true)} />
           )}
 
-          <button
-            type="button"
-            onClick={next}
-            className="btn-duo w-full"
-            disabled={showChunk && !chunkDone}
-          >
-            {isLast ? 'Geschichte abschließen' : 'Nächste Zeile →'}
+          <button type="button" onClick={next} className="btn-duo w-full" disabled={showChunk && !chunkDone}>
+            {isLast ? 'Verständnis prüfen' : 'Nächste Zeile →'}
           </button>
 
           {showChunk && !chunkDone && (
-            <button type="button" onClick={next} className="text-xs text-[var(--text-muted)] font-bold w-full text-center underline">
+            <button
+              type="button"
+              onClick={next}
+              className="text-xs text-[var(--text-muted)] font-bold w-full text-center underline"
+            >
               Übung überspringen
             </button>
           )}

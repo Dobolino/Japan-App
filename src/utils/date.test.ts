@@ -43,4 +43,10 @@ describe('updateStreak', () => {
     const result = updateStreak(progress)
     expect(result.currentStreak).toBe(1)
   })
+  it('uses the event date across midnight and leaves same-day reviews unchanged', () => {
+    const progress = baseProgress()
+    progress.lastStudyDate = new Date(2026, 9, 26, 23, 59).toISOString()
+    expect(updateStreak(progress, new Date(2026, 9, 27, 0, 1)).currentStreak).toBe(6)
+    expect(updateStreak(progress, new Date(2026, 9, 26, 23, 59)).currentStreak).toBe(5)
+  })
 })

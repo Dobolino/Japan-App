@@ -21,8 +21,8 @@ export default defineConfig({
         name: 'Japanisch Lern-App',
         short_name: 'JAPP',
         description: 'Lerne Hiragana, Katakana, Kanji und Vokabeln',
-        theme_color: '#235390',
-        background_color: '#f0f4f8',
+        theme_color: '#315d8a',
+        background_color: '#f6f7f9',
         display: 'standalone',
         orientation: 'portrait',
         scope: `/${REPO_NAME}/`,
@@ -30,7 +30,12 @@ export default defineConfig({
         icons: [
           { src: `/${REPO_NAME}/icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
           { src: `/${REPO_NAME}/icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
-          { src: `/${REPO_NAME}/icons/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: `/${REPO_NAME}/icons/icon-512.png`,
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
       },
       workbox: {
@@ -39,7 +44,10 @@ export default defineConfig({
           {
             urlPattern: /^https:\/\/fonts\./,
             handler: 'CacheFirst',
-            options: { cacheName: 'google-fonts', expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 } },
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
           },
         ],
       },

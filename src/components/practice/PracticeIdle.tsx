@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { unlockAudio } from '@/utils/audio'
-import type { ItemCategory } from '@/types'
-import type { PracticeMode, Direction } from '@/hooks/usePracticeSession'
-import type { LearningItem } from '@/types'
+import { reviewCounts } from '@/utils/reviewCounts'
+import PageHeader from '@/components/PageHeader'
+import { ArrowIcon } from '@/components/icons/UiIcons'
+import type { ItemCategory, LearningItem } from '@/types'
+import type { Direction } from '@/hooks/usePracticeSession'
 
 interface Props {
-  practiceMode: PracticeMode
-  setPracticeMode: (mode: PracticeMode) => void
+  canStartSrs: boolean
   direction: Direction
   setDirection: (dir: Direction) => void
   filterCat: ItemCategory | 'all'
   setFilterCat: (cat: ItemCategory | 'all') => void
-  dueItems: LearningItem[]
   allItems: LearningItem[]
   onStartSRS: () => void
   onStartFlashcard: () => void
@@ -30,137 +30,175 @@ const CAT_OPTIONS: { key: ItemCategory | 'all'; label: string }[] = [
 ]
 
 export default function PracticeIdle({
-  practiceMode,
-  setPracticeMode,
+  canStartSrs,
   direction,
   setDirection,
   filterCat,
   setFilterCat,
-  dueItems,
+  allItems,
   onStartSRS,
   onStartFlashcard,
   autoPlayAudio,
   setAutoPlayAudio,
 }: Props) {
-  const navigate = useNavigate()
-  const getDueGrammarCount = useStore((s) => s.getDueGrammarCount)
-  const pinnedCount = useStore((s) => s.pinnedReviewIds.length)
+  const { grammarSrs, exampleSrs, introducedIds, introducedGrammarIds, items } = useStore()
+  const pinnedIds = useStore((s) => s.pinnedReviewIds)
+  const pinnedCount = allItems.filter((item) => pinnedIds.includes(item.id)).length
   const [advancedOpen, setAdvancedOpen] = useState(false)
-
-  const dueGrammar = getDueGrammarCount()
-  const dueReview = dueItems.filter((i) => i.repetitions > 0).length
-  const dueNew = dueItems.filter((i) => i.repetitions === 0).length
-  const totalDue = dueItems.length + dueGrammar
-
-  const startSRS = () => {
-    unlockAudio()
-    onStartSRS()
-  }
-
-  const startFlashcard = () => {
-    unlockAudio()
-    onStartFlashcard()
-  }
+  const grammar = filterCat === 'all' ? Object.values(grammarSrs) : []
+  const eligible = allItems.filter((item) => item.lastReviewDate || introducedIds.includes(item.id))
+  const eligibleGrammar = grammar.filter(
+    (item) => item.lastReviewDate || introducedGrammarIds.includes(item.grammarId)
+  )
+  const examples = Object.entries(exampleSrs)
+    .filter(([id]) => filterCat === 'all' || items[id.slice(0, -3)]?.category === filterCat)
+    .map(([, schedule]) => schedule)
+  const { due, fresh } = reviewCounts([...eligible, ...eligibleGrammar, ...examples])
 
   return (
-    <div className="page-screen">
-      <div className="scroll-area flex-1 min-h-0 px-4 pt-4 pb-2">
-        <div className="flex flex-col gap-4 items-center max-w-sm mx-auto w-full">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Wiederholen</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1 font-semibold">
-              Tippe die Antwort auf Japanisch — Wort, Satz oder Grammatik
-            </p>
+    <div className="scroll-area h-full">
+      <div className="page-width practice-setup">
+        <PageHeader
+          eyebrow="ÜBUNG MACHT VERTRAUT"
+          title="Festige, was du lernst."
+          description="Wiederhole Bekanntes und lerne Neues in kleinen Portionen."
+        />
+        <section className="card-surface practice-overview" aria-labelledby="practice-title">
+          <h2 id="practice-title">Deine Tageslektion</h2>
+          <p>
+            Eine Mischung aus neuen Inhalten und Wiederholungen. Bereits geübte Karten bleiben gespeichert.
+          </p>
+          <div className="practice-counts">
+            <div>
+              <strong>{due}</strong>
+              <span>Wiederholungen fällig</span>
+            </div>
+            <div>
+              <strong>{fresh}</strong>
+              <span>neu eingeführte Inhalte</span>
+            </div>
           </div>
-
-          <div className="card-surface w-full p-4 text-center">
-            <p className="text-[var(--text-secondary)] text-sm">
-              <span className="font-bold text-[var(--text-primary)]">{dueReview}</span> fällig ·{' '}
-              <span className="font-bold text-[var(--blue)]">{dueNew}</span> neu
-              {dueGrammar > 0 && (
-                <>
-                  {' '}
-                  · <span className="font-bold text-[var(--orange)]">{dueGrammar}</span> Grammatik
-                </>
-              )}
-            </p>
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">
-              Inkl. Beispiel- & Grammatiksätze
-              {pinnedCount > 0 && (
-                <> · <span className="text-[var(--green)] font-bold">{pinnedCount} gemerkt</span></>
-              )}
-            </p>
+          <p className="eyebrow">Wie möchtest du üben?</p>
+          <div className="mode-picker" role="group" aria-label="Übungsrichtung">
+            <button
+              type="button"
+              className="mode-choice"
+              aria-pressed={direction === 'de-jp'}
+              onClick={() => setDirection('de-jp')}
+            >
+              <strong>Antwort eingeben</strong>
+              <span>
+                Deutsch → Japanisch
+                <br />
+                Japanisch oder Romaji tippen
+              </span>
+            </button>
+            <button
+              type="button"
+              className="mode-choice"
+              aria-pressed={direction === 'jp-de'}
+              onClick={() => setDirection('jp-de')}
+            >
+              <strong>Karte aufdecken</strong>
+              <span>
+                Japanisch → Deutsch
+                <br />
+                Erkennen und selbst bewerten
+              </span>
+            </button>
           </div>
-
-          {totalDue > 0 ? (
-            <button type="button" onClick={startSRS} className="btn-duo">
-              Tageslektion · {Math.min(totalDue, 20)} Karten
+          {canStartSrs ? (
+            <button
+              type="button"
+              disabled={!canStartSrs}
+              onClick={() => {
+                unlockAudio()
+                onStartSRS()
+              }}
+              className="btn-duo button-with-icon"
+            >
+              Tageslektion starten <ArrowIcon />
             </button>
           ) : (
-            <div className="card-surface w-full p-4 text-center">
-              <div className="text-4xl mb-2" aria-hidden="true">🎉</div>
-              <p className="text-[var(--text-secondary)] text-sm font-semibold">Alles erledigt!</p>
-              <button type="button" onClick={() => navigate('/learn')} className="mt-3 text-[var(--blue)] text-sm font-bold underline">
-                Neues lernen
-              </button>
-            </div>
+            <Link to="/course" className="btn-duo button-with-icon">
+              Neue Lektion auswählen <ArrowIcon />
+            </Link>
           )}
-
-          <button type="button" onClick={startFlashcard} className="btn-duo btn-duo--outline btn-duo--sm">
-            Freies Üben · 20 Karten
-          </button>
-
+          <p className="text-xs text-[var(--text-muted)] text-center mt-3">
+            Bis zu 20 Karten · in deinem Tempo
+          </p>
+          {!canStartSrs && (
+            <p role="status" className="text-sm text-[var(--text-secondary)] mt-4 leading-relaxed">
+              Für heute ist alles wiederholt oder noch keine neue Lektion eingeführt.
+              <Link to="/course" className="text-link">
+                Neue Lektion auswählen →
+              </Link>
+            </p>
+          )}
+          <div className="practice-options">
+            <button
+              type="button"
+              className="text-link"
+              aria-expanded={advancedOpen}
+              aria-controls="practice-options"
+              onClick={() => setAdvancedOpen((open) => !open)}
+            >
+              Lektion anpassen <span aria-hidden="true">{advancedOpen ? '−' : '+'}</span>
+            </button>
+            {advancedOpen && (
+              <div id="practice-options" className="practice-options-panel">
+                <p className="eyebrow mb-3">Lernbereich</p>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Lernbereich für die Übung">
+                  {CAT_OPTIONS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={filterCat === key}
+                      onClick={() => setFilterCat(key)}
+                      className={`chip ${filterCat === key ? 'chip--active' : ''}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <label className="settings-toggle mt-3">
+                  <div>
+                    <strong>Automatisch vorlesen</strong>
+                    <span>Im Modus „Karte aufdecken“.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={autoPlayAudio}
+                    onChange={(event) => setAutoPlayAudio(event.target.checked)}
+                  />
+                </label>
+                {pinnedCount > 0 && (
+                  <p className="text-xs text-[var(--text-secondary)] mt-3">
+                    {pinnedCount} gemerkte Inhalte können in deine Lektion einfließen.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+        <section className="card-surface practice-overview practice-extra">
+          <h2>Lieber frei üben?</h2>
+          <p>
+            Eine zufällige Auswahl aus deinem Lernbereich. Deine Bewertungen zählen auch hier für den
+            Lernfortschritt.
+          </p>
           <button
             type="button"
-            onClick={() => setAdvancedOpen((o) => !o)}
-            className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider"
+            disabled={allItems.length === 0}
+            onClick={() => {
+              unlockAudio()
+              onStartFlashcard()
+            }}
+            className="btn-duo btn-duo--outline"
           >
-            {advancedOpen ? '▲ Weniger Optionen' : '▼ Erweiterte Optionen'}
+            Freies Üben starten
           </button>
-
-          {advancedOpen && (
-            <div className="w-full space-y-3 card-surface p-3">
-              <div className="flex flex-wrap gap-2 justify-center">
-                {CAT_OPTIONS.map(({ key, label }) => (
-                  <button key={key} type="button" onClick={() => setFilterCat(key)} className={`chip ${filterCat === key ? 'chip--active' : ''}`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDirection('de-jp')}
-                  className={`flex-1 chip ${direction === 'de-jp' ? 'chip--green' : ''}`}
-                >
-                  🇩🇪 → 🇯🇵 Produktion
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDirection('jp-de')}
-                  className={`flex-1 chip ${direction === 'jp-de' ? 'chip--active' : ''}`}
-                >
-                  🇯🇵 → 🇩🇪 Erkennen
-                </button>
-              </div>
-
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setPracticeMode('srs')} className={`flex-1 chip ${practiceMode === 'srs' ? 'chip--active' : ''}`}>
-                  SRS
-                </button>
-                <button type="button" onClick={() => setPracticeMode('flashcard')} className={`flex-1 chip ${practiceMode === 'flashcard' ? 'chip--active' : ''}`}>
-                  Karteikarten
-                </button>
-              </div>
-
-              <label className="flex items-center justify-between py-1 cursor-pointer">
-                <span className="text-sm font-semibold text-[var(--text-secondary)]">Audio (Erkennen-Modus)</span>
-                <input type="checkbox" checked={autoPlayAudio} onChange={(e) => setAutoPlayAudio(e.target.checked)} className="accent-[var(--green)] w-5 h-5" />
-              </label>
-            </div>
-          )}
-        </div>
+        </section>
       </div>
     </div>
   )

@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import type { ItemCategory } from '@/types'
 import HiraganaGrid from '@/components/HiraganaGrid'
 import KatakanaGrid from '@/components/KatakanaGrid'
+import PageHeader from '@/components/PageHeader'
 import KanjiPage from './KanjiPage'
 import VocabPage from './VocabPage'
 import GrammarPage from './GrammarPage'
 
 type Tab = ItemCategory | 'grammar'
-
 const TABS: { key: Tab; label: string; kana: string }[] = [
   { key: 'hiragana', label: 'Hiragana', kana: 'あ' },
   { key: 'katakana', label: 'Katakana', kana: 'ア' },
@@ -20,36 +20,49 @@ const TABS: { key: Tab; label: string; kana: string }[] = [
 export default function LearnPage() {
   const activeCategory = useStore((s) => s.activeCategory)
   const setActiveCategory = useStore((s) => s.setActiveCategory)
-  const [grammarOpen, setGrammarOpen] = useState(false)
-
-  const tab: Tab = grammarOpen ? 'grammar' : activeCategory
-
-  const handleTab = (t: Tab) => {
-    if (t === 'grammar') {
-      setGrammarOpen(true)
-    } else {
-      setGrammarOpen(false)
-      setActiveCategory(t)
-    }
+  const [params, setParams] = useSearchParams()
+  const selected = TABS.find((t) => t.key === params.get('category'))
+  const tab = selected?.key ?? activeCategory
+  const handleTab = (next: Tab) => {
+    setParams({ category: next }, { replace: true })
+    if (next !== 'grammar') setActiveCategory(next)
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="tab-bar px-2 pt-1 overflow-x-auto scrollbar-none">
+    <div className="page-screen learning-page">
+      <PageHeader
+        eyebrow="ZEICHEN · WÖRTER · GRAMMATIK"
+        title="Deine Lernbibliothek."
+        description="Entdecke die Grundlagen und vertiefe dein Japanisch."
+      />
+      <div className="learning-shortcuts">
+        <Link to="/course" className="text-link">
+          Geführter Kurs
+        </Link>
+        <Link to="/training" className="text-link">
+          Lernwerkstatt
+        </Link>
+        <Link to="/notebook" className="text-link">
+          Lernheft
+        </Link>
+      </div>
+      <nav className="tab-bar" aria-label="Lernbereiche">
         {TABS.map(({ key, label, kana }) => (
           <button
             key={key}
             type="button"
+            aria-pressed={tab === key}
             onClick={() => handleTab(key)}
             className={`tab-bar-btn ${tab === key ? 'tab-bar-btn--active' : ''}`}
           >
-            <span className="text-base leading-none jp">{kana}</span>
+            <span className="text-lg leading-none jp" aria-hidden="true">
+              {kana}
+            </span>
             {label}
           </button>
         ))}
-      </div>
-
-      <div className="flex-1 overflow-hidden">
+      </nav>
+      <div className="flex-1 min-h-0 overflow-hidden" key={tab}>
         {tab === 'hiragana' && <HiraganaGrid />}
         {tab === 'katakana' && <KatakanaGrid />}
         {tab === 'kanji' && <KanjiPage />}

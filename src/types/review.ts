@@ -1,4 +1,6 @@
 import type { LearningItem } from '@/types'
+import { kanaToRomaji } from '@/utils/transliteration'
+import { romajiFromReading } from '@/utils/kanaRomaji'
 import type { GrammarExample, GrammarPoint } from '@/data/grammar'
 
 export type ReviewKind = 'lemma' | 'sentence' | 'grammar-sentence'
@@ -10,6 +12,7 @@ export interface ReviewCard {
   kind: ReviewKind
   answerCharacter: string
   answerRomaji: string
+  acceptedAnswers?: string[]
   /** Hiragana reading for furigana (grammar / full sentences) */
   answerReading?: string
   promptMeaning: string
@@ -28,6 +31,12 @@ export function lemmaCard(item: LearningItem): ReviewCard {
     kind: 'lemma',
     answerCharacter: item.character,
     answerRomaji: item.romaji,
+    acceptedAnswers:
+      item.readings?.flatMap((reading) => [reading.kana, reading.romaji]) ??
+      [...(item.onyomi ?? []), ...(item.kunyomi ?? [])].flatMap((reading) => [
+        reading.replace(/・/g, ''),
+        kanaToRomaji(reading),
+      ]),
     promptMeaning: item.meaning,
     promptCharacter: item.character,
     promptRomaji: item.romaji,
@@ -41,7 +50,7 @@ export function sentenceCard(item: LearningItem): ReviewCard | null {
   const isKanaExample = /^[\u3040-\u30FF\s]+$/.test(item.exampleWord)
   return {
     cardId: `${item.id}:ex`,
-    srsId: item.id,
+    srsId: `${item.id}:ex`,
     kind: 'sentence',
     answerCharacter: item.exampleWord,
     answerRomaji: item.exampleReading,
@@ -63,11 +72,12 @@ export function grammarSentenceCard(g: GrammarPoint, exIndex: number, ex: Gramma
     srsId: id,
     kind: 'grammar-sentence',
     answerCharacter: ex.jp,
-    answerRomaji: ex.reading,
+    answerRomaji: romajiFromReading(ex.reading, ex.jp),
+    acceptedAnswers: [ex.reading, kanaToRomaji(ex.reading), romajiFromReading(ex.reading, ex.jp)],
     answerReading: ex.reading,
     promptMeaning: ex.de,
     promptCharacter: ex.jp,
-    promptRomaji: ex.reading,
+    promptRomaji: romajiFromReading(ex.reading, ex.jp),
     promptReading: ex.reading,
     parent: placeholder,
     contextLabel: g.category,
@@ -97,7 +107,7 @@ function placeholderParent(grammarId: string): LearningItem {
 /** Prefer sentence when example exists (~70% default). */
 export function cardVariantForItem(item: LearningItem, sentenceBias = 0.7): ReviewCard {
   const sentence = sentenceCard(item)
-  if (sentence && Math.random() < sentenceBias) return sentence
+  if (sentence && item.correctCount >= 2 && Math.random() < sentenceBias) return sentence
   return lemmaCard(item)
 }
 

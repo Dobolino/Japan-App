@@ -5,9 +5,13 @@ export function localDateKey(d = new Date()): string {
   return d.toLocaleDateString('sv-SE')
 }
 
-export function updateStreak(progress: UserProgress): { currentStreak: number; longestStreak: number } {
-  const today = localDateKey()
-  const yd = new Date(); yd.setDate(yd.getDate() - 1)
+export function updateStreak(
+  progress: UserProgress,
+  now = new Date()
+): { currentStreak: number; longestStreak: number } {
+  const today = localDateKey(now)
+  const yd = new Date(now)
+  yd.setDate(yd.getDate() - 1)
   const yesterday = localDateKey(yd)
   const last = progress.lastStudyDate ? localDateKey(new Date(progress.lastStudyDate)) : null
 

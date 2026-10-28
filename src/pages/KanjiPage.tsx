@@ -12,20 +12,22 @@ export default function KanjiPage() {
   const kanjiItems = Object.values(items)
     .filter((i) => i.category === 'kanji')
     .filter((i) => {
-      if (filter === 'new') return i.status === 'new'
-      if (filter === 'due') return i.nextReviewDate <= new Date().toISOString()
+      if (filter === 'new') return i.lastReviewDate === null
+      if (filter === 'due') return i.lastReviewDate !== null && i.nextReviewDate <= new Date().toISOString()
       return true
     })
     .sort((a, b) => a.id.localeCompare(b.id))
 
-  const mastered = Object.values(items).filter((i) => i.category === 'kanji' && i.status === 'mastered').length
+  const mastered = Object.values(items).filter(
+    (i) => i.category === 'kanji' && i.status === 'mastered'
+  ).length
   const total = Object.values(items).filter((i) => i.category === 'kanji').length
 
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 pt-4 pb-2 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Kanji N5</h1>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Kanji N5</h2>
           <p className="text-[var(--text-muted)] text-xs font-semibold">
             {mastered}/{total} beherrscht · {total} JLPT N5 Kanji
           </p>
@@ -38,6 +40,7 @@ export default function KanjiPage() {
             key={f}
             type="button"
             onClick={() => setFilter(f)}
+            aria-pressed={filter === f}
             className={`chip ${filter === f ? 'chip--active' : ''}`}
           >
             {f === 'all' ? 'Alle' : f === 'new' ? 'Neu' : 'Fällig'}
@@ -46,18 +49,25 @@ export default function KanjiPage() {
       </div>
 
       <div className="scroll-area flex-1 px-4 pb-4">
+        {kanjiItems.length === 0 && (
+          <p role="status" className="text-sm text-[var(--text-secondary)] py-8 text-center">
+            Hier gibt es gerade keine passenden Kanji.
+          </p>
+        )}
         <div className="grid grid-cols-4 gap-2">
           {kanjiItems.map((item) => (
             <div key={item.id} className="card-surface p-2 flex flex-col items-center gap-1">
               <div className="flex justify-between w-full items-start">
-                <span className="text-[10px] text-[var(--text-muted)] font-semibold">{item.strokeCount}画</span>
+                <span className="text-[10px] text-[var(--text-muted)] font-semibold">
+                  {item.strokeCount}画
+                </span>
                 <button
                   type="button"
                   onClick={() => {
                     unlockAudio()
                     playJapanese(item.id, item.character)
                   }}
-                  className="text-[11px] text-[var(--blue)] active:opacity-70"
+                  className="inline-flex min-w-11 min-h-11 items-center justify-center text-base text-[var(--blue)] active:opacity-70"
                   aria-label={`${item.character} anhören`}
                 >
                   🔊
@@ -72,7 +82,9 @@ export default function KanjiPage() {
                 <span className="text-[10px] text-[var(--text-secondary)] text-center leading-tight font-semibold">
                   {item.meaning}
                 </span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-sm font-bold ${STATUS_COLORS[item.status]}`}>
+                <span
+                  className={`text-[9px] px-1.5 py-0.5 rounded-sm font-bold ${STATUS_COLORS[item.status]}`}
+                >
                   {STATUS_LABELS[item.status]}
                 </span>
               </button>

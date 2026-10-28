@@ -1,30 +1,27 @@
 import { useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
-import { useStore } from '@/store/useStore'
 import { useStoreHydration } from '@/hooks/useStoreHydration'
 import { useTheme } from '@/hooks/useTheme'
 import { unlockAudio } from '@/utils/audio'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
+import StorageNotice from '@/components/StorageNotice'
 import HomePage from '@/pages/HomePage'
 import LearnPage from '@/pages/LearnPage'
 import PracticePage from '@/pages/PracticePage'
 import StatsPage from '@/pages/StatsPage'
 import CharacterDetailPage from '@/pages/CharacterDetailPage'
 import ImmersePage from '@/pages/ImmersePage'
+import SettingsPage from '@/pages/SettingsPage'
+import CoursePage from '@/pages/CoursePage'
+import LessonPage from '@/pages/LessonPage'
+import MissionsPage from '@/pages/MissionsPage'
+import TrainingPage from '@/pages/TrainingPage'
+import NotebookPage from '@/pages/NotebookPage'
 
 function AppRoutes() {
-  const initItems = useStore((s) => s.initItems)
-  const initGrammarSrs = useStore((s) => s.initGrammarSrs)
   const hydrated = useStoreHydration()
   useTheme()
-
-  useEffect(() => {
-    if (hydrated) {
-      initItems()
-      initGrammarSrs()
-    }
-  }, [hydrated, initItems, initGrammarSrs])
 
   useEffect(() => {
     const onInteract = () => {
@@ -43,7 +40,9 @@ function AppRoutes() {
   if (!hydrated) {
     return (
       <div className="app-shell flex items-center justify-center">
-        <p className="text-[var(--text-muted)] text-sm" role="status">Lädt…</p>
+        <p className="text-[var(--text-muted)] text-sm" role="status">
+          Lädt…
+        </p>
       </div>
     )
   }
@@ -51,6 +50,7 @@ function AppRoutes() {
   return (
     <HashRouter>
       <div className="app-shell">
+        <StorageNotice />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -60,6 +60,25 @@ function AppRoutes() {
             <Route path="/immerse" element={<ImmersePage />} />
             <Route path="/immerse/:storyId" element={<ImmersePage />} />
             <Route path="/stats" element={<StatsPage />} />
+            <Route path="/course" element={<CoursePage />} />
+            <Route path="/lesson/:lessonId" element={<LessonPage />} />
+            <Route path="/missions" element={<MissionsPage />} />
+            <Route path="/missions/:missionId" element={<MissionsPage />} />
+            <Route path="/training" element={<TrainingPage />} />
+            <Route path="/training/:mode" element={<TrainingPage />} />
+            <Route path="/notebook" element={<NotebookPage />} />
+            <Route
+              path="*"
+              element={
+                <div className="page-width">
+                  <h1>Seite nicht gefunden</h1>
+                  <a href="#/" className="text-link">
+                    Zur Startseite
+                  </a>
+                </div>
+              }
+            />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
         <BottomNav />

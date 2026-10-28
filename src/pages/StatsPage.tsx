@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import PageHeader from '@/components/PageHeader'
+import WeeklyProgress from '@/components/WeeklyProgress'
 import { useStore } from '@/store/useStore'
 import { STATS_CAT_OPTIONS } from '@/constants/srs'
 import { catFilterLabel } from '@/constants/status'
-import { grammarData } from '@/data/grammar'
 import type { ItemCategory } from '@/types'
 
 type CatFilter = ItemCategory | 'all'
@@ -12,12 +14,10 @@ function pct(mastered: number, total: number): number {
 }
 
 export default function StatsPage() {
-  const { items, progress, grammarSrs, resetProgress } = useStore()
+  const { items, progress, grammarSrs } = useStore()
   const [catFilter, setCatFilter] = useState<CatFilter>('all')
 
-  const all = Object.values(items).filter(
-    (i) => catFilter === 'all' || i.category === catFilter
-  )
+  const all = Object.values(items).filter((i) => catFilter === 'all' || i.category === catFilter)
 
   const byStatus = {
     new: all.filter((i) => i.status === 'new').length,
@@ -70,134 +70,165 @@ export default function StatsPage() {
   )
 
   return (
-    <div className="scroll-area h-full px-4 py-5">
-      <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">Statistik</h1>
-      <p className="text-xs text-[var(--text-muted)] mb-4 font-semibold">
-        {grammarData.length} Grammatikpunkte · JLPT N5 Fortschritt
-      </p>
+    <div className="scroll-area h-full">
+      <div className="page-width">
+        <PageHeader
+          eyebrow="DEIN LERNWEG"
+          title="Sieh, was du schon kannst."
+          description="Deine geübten Inhalte und persönlichen Fortschritte im Überblick."
+        />
 
-      <div className="card-surface p-4 mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">JLPT N5 Gesamt</h2>
-          <span className="text-2xl font-bold text-[var(--green)]">{jlptOverall}%</span>
-        </div>
-        <div className="space-y-3">
-          <JlptRow label="Kanji" emoji="🈶" {...jlpt.kanji} color="progress-fill--orange" />
-          <JlptRow label="Kana" emoji="🔤" {...jlpt.kana} color="progress-fill--blue" />
-          <JlptRow label="Grammatik" emoji="📐" {...jlpt.grammar} color="progress-fill--green" />
-          <JlptRow label="Vokabeln" emoji="💬" {...jlpt.vocab} color="progress-fill--blue" />
-        </div>
-      </div>
-
-      <div className="flex gap-2 mb-5 overflow-x-auto scrollbar-none">
-        {STATS_CAT_OPTIONS.map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setCatFilter(key)}
-            className={`flex-none px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-              catFilter === key ? 'chip chip--active' : 'chip'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <BigStat label="Lernserie" value={`${progress.currentStreak} 🔥`} />
-        <BigStat label="Genauigkeit" value={`${accuracy}%`} />
-        <BigStat label="Gesamt richtig" value={String(progress.totalCorrect)} accent="green" />
-        <BigStat label="Gesamt falsch" value={String(progress.totalErrors)} accent="red" />
-        <BigStat label="Übungssitzungen" value={String(progress.studySessions ?? 0)} />
-        <BigStat label="Karten bewertet" value={String(progress.cardsReviewed ?? 0)} />
-      </div>
-
-      <div className="card-surface p-4 mb-4">
-        <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">
-          {catFilterLabel(catFilter)} — Fortschritt
-        </h2>
-        <div className="space-y-2.5">
-          <StatusRow label="Neu" count={byStatus.new} total={total} color="bg-[var(--border)]" />
-          <StatusRow label="Lernen" count={byStatus.learning} total={total} color="bg-[var(--blue)]" />
-          <StatusRow label="Unsicher" count={byStatus.uncertain} total={total} color="bg-[var(--orange)]" />
-          <StatusRow label="Beherrscht" count={byStatus.mastered} total={total} color="bg-[var(--green)]" />
-        </div>
-      </div>
-
-      {catFilter !== 'all' && (
-        <div className="card-surface p-4 mb-4">
-          <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">Wiederholungsintervalle</h2>
-          <div className="grid grid-cols-4 gap-2 text-center">
-            {[1, 4, 7, 14].map((days) => {
-              const count = all.filter(
-                (i) => i.interval >= days && i.interval < (days === 14 ? Infinity : days * 2)
-              ).length
-              return (
-                <div key={days} className="rounded-xl bg-[var(--bg-muted)] p-2 border border-[var(--border)]">
-                  <div className="text-base font-bold text-[var(--blue)]">{count}</div>
-                  <div className="text-[10px] text-[var(--text-muted)] font-semibold">{days === 14 ? '14+ T' : `~${days}T`}</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {weakest.length > 0 && (
-        <div className="card-surface p-4 mb-4">
-          <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">Meine Schwächen</h2>
-          <div className="flex flex-wrap gap-3">
-            {weakest.map((i) => (
-              <div key={i.id} className="flex flex-col items-center">
-                <span className="jp text-2xl text-[var(--text-primary)]">{i.character}</span>
-                <span className="text-[10px] text-[var(--text-muted)]">{i.romaji}</span>
-                <span className="text-xs text-[var(--red)] font-bold">{i.errorCount}✗</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {champions.length > 0 && (
+        <WeeklyProgress />
         <div className="card-surface p-4 mb-5">
-          <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">Am besten gelernt</h2>
-          <div className="flex flex-wrap gap-3">
-            {champions.map((i) => (
-              <div key={i.id} className="flex flex-col items-center">
-                <span className="jp text-2xl text-[var(--text-primary)]">{i.character}</span>
-                <span className="text-[10px] text-[var(--text-muted)]">{i.romaji}</span>
-                <span className="text-xs text-[var(--green)] font-bold">{i.interval}T</span>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              Beherrschte Lerninhalte
+            </h2>
+            <span className="text-2xl font-bold text-[var(--green)]">{jlptOverall}%</span>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)] mb-5 leading-relaxed">
+            Dein Fortschritt in den Lerninhalten dieser App.
+          </p>
+          <div className="space-y-3">
+            <JlptRow label="Kanji" symbol="漢" {...jlpt.kanji} color="progress-fill--orange" />
+            <JlptRow label="Kana" symbol="あ" {...jlpt.kana} color="progress-fill--blue" />
+            <JlptRow label="Grammatik" symbol="文" {...jlpt.grammar} color="progress-fill--green" />
+            <JlptRow label="Vokabeln" symbol="語" {...jlpt.vocab} color="progress-fill--blue" />
           </div>
         </div>
-      )}
 
-      <button
-        type="button"
-        onClick={() => {
-          if (window.confirm('Wirklich den gesamten Fortschritt zurücksetzen?')) {
-            resetProgress()
-          }
-        }}
-        className="w-full py-3 rounded-2xl border-2 border-[var(--red)] text-[var(--red)] text-sm font-bold active:scale-[0.97] mb-2"
-      >
-        Fortschritt zurücksetzen
-      </button>
+        <h2 className="text-sm font-semibold mb-3">Dein Lernen insgesamt</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
+          <BigStat
+            label="Lernserie"
+            value={`${progress.currentStreak} ${progress.currentStreak === 1 ? 'Tag' : 'Tage'}`}
+          />
+          <BigStat label="Genauigkeit" value={progress.cardsReviewed > 0 ? `${accuracy}%` : '–'} />
+          <BigStat label="Gesamt richtig" value={String(progress.totalCorrect)} accent="green" />
+          <BigStat label="Gesamt falsch" value={String(progress.totalErrors)} accent="red" />
+          <BigStat label="Übungssitzungen" value={String(progress.studySessions ?? 0)} />
+          <BigStat label="Karten bewertet" value={String(progress.cardsReviewed ?? 0)} />
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-5" role="group" aria-label="Fortschritt nach Lernbereich">
+          {STATS_CAT_OPTIONS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setCatFilter(key)}
+              aria-pressed={catFilter === key}
+              className={`flex-none px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                catFilter === key ? 'chip chip--active' : 'chip'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="card-surface p-4 mb-4">
+          <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">
+            {catFilterLabel(catFilter)} — Fortschritt
+          </h2>
+          <div className="space-y-2.5">
+            <StatusRow label="Neu" count={byStatus.new} total={total} color="bg-[var(--border)]" />
+            <StatusRow label="Lernen" count={byStatus.learning} total={total} color="bg-[var(--blue)]" />
+            <StatusRow label="Unsicher" count={byStatus.uncertain} total={total} color="bg-[var(--orange)]" />
+            <StatusRow label="Beherrscht" count={byStatus.mastered} total={total} color="bg-[var(--green)]" />
+          </div>
+        </div>
+
+        {catFilter !== 'all' && (
+          <div className="card-surface p-4 mb-4">
+            <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">
+              Wiederholungsintervalle
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+              {[
+                { min: 0, max: 1, label: '10 Min.' },
+                { min: 1, max: 4, label: '1–3 Tage' },
+                { min: 4, max: 7, label: '4–6 Tage' },
+                { min: 7, max: 14, label: '7–13 Tage' },
+                { min: 14, max: Infinity, label: '14+ Tage' },
+              ].map(({ min, max, label }) => {
+                const count = all.filter(
+                  (i) => i.lastReviewDate !== null && i.interval >= min && i.interval < max
+                ).length
+                return (
+                  <div
+                    key={min}
+                    className="rounded-xl bg-[var(--bg-muted)] p-2 border border-[var(--border)]"
+                  >
+                    <div className="text-base font-bold text-[var(--blue)]">{count}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] font-semibold">{label}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {weakest.length > 0 && (
+          <div className="card-surface p-4 mb-4">
+            <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">
+              Meine Schwächen
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {weakest.map((i) => (
+                <Link
+                  key={i.id}
+                  to={`/learn/${i.id}`}
+                  className="flex flex-col items-center rounded-lg p-1"
+                  aria-label={`${i.character}: ${i.meaning} ansehen`}
+                >
+                  <span className="jp text-2xl text-[var(--text-primary)]">{i.character}</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">{i.romaji}</span>
+                  <span className="text-xs text-[var(--red)] font-bold">{i.errorCount}✗</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {champions.length > 0 && (
+          <div className="card-surface p-4 mb-5">
+            <h2 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-3">
+              Am besten gelernt
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {champions.map((i) => (
+                <Link
+                  key={i.id}
+                  to={`/learn/${i.id}`}
+                  className="flex flex-col items-center rounded-lg p-1"
+                  aria-label={`${i.character}: ${i.meaning} ansehen`}
+                >
+                  <span className="jp text-2xl text-[var(--text-primary)]">{i.character}</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">{i.romaji}</span>
+                  <span className="text-xs text-[var(--green)] font-bold">{i.interval}T</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Link to="/settings" className="text-link">
+          Ziele und Einstellungen anpassen →
+        </Link>
+      </div>
     </div>
   )
 }
 
 function JlptRow({
   label,
-  emoji,
+  symbol,
   mastered,
   total,
   color,
 }: {
   label: string
-  emoji: string
+  symbol: string
   mastered: number
   total: number
   color: string
@@ -207,7 +238,10 @@ function JlptRow({
     <div>
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="font-bold text-[var(--text-primary)]">
-          {emoji} {label}
+          <span className="jp inline-block w-6 text-[var(--blue)]" lang="ja" aria-hidden="true">
+            {symbol}
+          </span>{' '}
+          {label}
         </span>
         <span className="text-[var(--text-secondary)] font-semibold text-xs">
           {mastered}/{total} · {percent}%
@@ -220,15 +254,7 @@ function JlptRow({
   )
 }
 
-function BigStat({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: string
-  accent?: 'green' | 'red'
-}) {
+function BigStat({ label, value, accent }: { label: string; value: string; accent?: 'green' | 'red' }) {
   const valueColor =
     accent === 'green'
       ? 'text-[var(--green)]'
@@ -244,7 +270,17 @@ function BigStat({
   )
 }
 
-function StatusRow({ label, count, total, color }: { label: string; count: number; total: number; color: string }) {
+function StatusRow({
+  label,
+  count,
+  total,
+  color,
+}: {
+  label: string
+  count: number
+  total: number
+  color: string
+}) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-[var(--text-muted)] text-xs w-20 font-semibold">{label}</span>

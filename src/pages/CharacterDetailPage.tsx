@@ -1,211 +1,207 @@
-import { useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import StrokeCanvas from '@/components/StrokeCanvas'
-import ReadingBreakdown from '@/components/ReadingBreakdown'
+import RubyText from '@/components/RubyText'
 import { playJapanese, unlockAudio } from '@/utils/audio'
-import { AudioIcon } from '@/components/icons/UiIcons'
 import { SRS_RATINGS } from '@/constants/srs'
-import { CAT_LABELS, STATUS_LABELS, STATUS_TEXT_COLORS } from '@/constants/status'
-import { CAT_CHIP } from '@/constants/categories'
-import { useSquareSize } from '@/hooks/useElementSize'
-import type { SRSRating, LearningItem } from '@/types'
-
-type Tab = 'info' | 'stroke' | 'draw'
-
+import { CAT_LABELS, STATUS_LABELS } from '@/constants/status'
+import { strokeCharacters } from '@/data/strokeAssets'
+import { kanjiParts } from '@/data/kanjiParts'
+import { reviewIntervalLabel } from '@/utils/sm2'
 export default function CharacterDetailPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const { items, recordReview, rateReview } = useStore()
-  const item = id ? items[id] : undefined
-  const hasStrokes = item?.strokes && item.strokes.length > 0
-  const [tab, setTab] = useState<Tab>(hasStrokes ? 'stroke' : 'info')
-  const [score, setScore] = useState<number | null>(null)
-  const [reviewed, setReviewed] = useState(false)
-  const canvasAreaRef = useRef<HTMLDivElement>(null)
-  const canvasSize = useSquareSize(canvasAreaRef, 240, 8)
-
-  if (!item) {
-    return <div className="flex items-center justify-center h-full text-[var(--text-muted)]">Nicht gefunden</div>
-  }
-
-  const isKanji = item.category === 'kanji'
-  const multiChar = item.character.length > 1
-  const speak = () => {
-    unlockAudio()
-    playJapanese(item.id, item.character)
-  }
-
-  const handleEvaluate = (s: number) => {
-    setScore(s)
-    if (!reviewed) {
-      recordReview(item.id, s >= 50)
-      setReviewed(true)
-    }
-  }
-
-  const scoreColor =
-    score === null ? '' : score >= 70 ? 'text-[var(--green)]' : score >= 40 ? 'text-[var(--orange)]' : 'text-[var(--red)]'
-  const scoreLabel = score === null ? '' : score >= 70 ? 'Gut!' : score >= 40 ? 'Fast!' : 'Nochmal versuchen'
-
+  const { id } = useParams()
+  return <Detail key={id} id={id ?? ''} />
+}
+function Detail({ id }: { id: string }) {
+  const store = useStore(),
+    item = store.items[id],
+    hasStrokes = Boolean(item && strokeCharacters.has(item.character))
+  const [tab, setTab] = useState('info'),
+    [score, setScore] = useState<number | null>(null),
+    [saved, setSaved] = useState(false),
+    [forceAids, setForceAids] = useState(false)
+  if (!item)
+    return (
+      <div className="page-width">
+        <h1>Inhalt nicht gefunden</h1>
+        <Link to="/learn" className="text-link">
+          Zur Bibliothek →
+        </Link>
+      </div>
+    )
+  const part = kanjiParts[item.character],
+    pinned = store.pinnedReviewIds.includes(id)
   return (
     <div className="page-screen">
-      {/* Kompakter Header — alles auf einen Blick */}
-      <div className="shrink-0 px-3 pt-2 pb-2 border-b-2 border-[var(--border)] bg-[var(--bg-card)]">
-        <div className="flex items-center gap-2 mb-2">
-          <button type="button" onClick={() => navigate(-1)} className="text-[var(--text-muted)] text-2xl leading-none w-8" aria-label="Zurück">
-            ‹
-          </button>
-          <div className="flex gap-1.5 flex-1">
-            <span className={`text-[9px] px-2 py-0.5 rounded-full border font-medium ${CAT_CHIP[item.category]}`}>
-              {CAT_LABELS[item.category]}
-            </span>
-            <span className={`text-[9px] px-2 py-0.5 rounded-full border border-[var(--border)] ${STATUS_TEXT_COLORS[item.status]}`}>
-              {STATUS_LABELS[item.status]}
-            </span>
-          </div>
-          <button type="button" onClick={speak} className="audio-fab audio-fab--sm" aria-label="Anhören">
-            <AudioIcon className="w-5 h-5" />
-          </button>
+      <header className="detail-heading">
+        <Link to="/learn" className="icon-button" aria-label="Zur Lernbibliothek">
+          ‹
+        </Link>
+        <div className="flex-1 min-w-0">
+          <p className="eyebrow">
+            {CAT_LABELS[item.category]} · {STATUS_LABELS[item.status]}
+          </p>
+          <h1 className="text-xl font-semibold mt-1">{item.meaning}</h1>
         </div>
-
-        <div className="flex items-center gap-3 px-1">
-          <div className="flex-1 min-w-0">
-            <p className="text-[9px] uppercase tracking-widest text-[var(--text-muted)] mb-0.5 font-bold">Bedeutung</p>
-            <h1 className="text-2xl font-bold text-[var(--blue)] leading-tight truncate">{item.meaning}</h1>
-          </div>
-          <div className="text-center shrink-0">
-            {multiChar ? (
-              <ReadingBreakdown character={item.character} romaji={item.romaji} size="sm" compact />
-            ) : (
-              <>
-                <div className="jp text-4xl leading-none text-[var(--text-primary)]">{item.character}</div>
-                <p className="text-sm text-[var(--blue)] font-bold">{item.romaji}</p>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b-2 border-[var(--border)] mx-3 shrink-0 bg-[var(--bg-card)]">
-        <TabBtn id="info" active={tab} onClick={setTab} label="Info" />
-        {hasStrokes && <TabBtn id="stroke" active={tab} onClick={setTab} label="Strichfolge" />}
-        {hasStrokes && <TabBtn id="draw" active={tab} onClick={setTab} label="Schreiben" />}
-      </div>
-
-      {/* Tab-Inhalt füllt restlichen Platz */}
-      <div ref={tab === 'stroke' || tab === 'draw' ? canvasAreaRef : undefined} className="flex-1 min-h-0 overflow-hidden">
-        {tab === 'info' && (
-          <div className="scroll-area h-full px-3 py-3 space-y-2">
-            {isKanji && (
-              <div className="panel-muted p-3 grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <div className="text-[var(--text-muted)] text-xs mb-0.5 font-bold">音 (On)</div>
-                  <div className="text-[var(--text-primary)] text-sm jp">{item.onyomi?.join('、') || '—'}</div>
-                </div>
-                <div>
-                  <div className="text-[var(--text-muted)] text-xs mb-0.5 font-bold">訓 (Kun)</div>
-                  <div className="text-[var(--text-primary)] text-sm jp">{item.kunyomi?.join('、') || '—'}</div>
-                </div>
-              </div>
-            )}
-            {multiChar && (
-              <div className="panel-muted p-3">
-                <p className="text-[var(--text-muted)] text-xs mb-2 font-bold">Zeichen &amp; Aussprache</p>
-                <ReadingBreakdown character={item.character} romaji={item.romaji} size="md" />
-              </div>
-            )}
-            {item.exampleWord && (
-              <div className="panel-muted p-3">
-                <div className="text-[var(--text-muted)] text-xs mb-1 font-bold">Beispiel</div>
-                <button type="button" onClick={() => playJapanese(item.id + '-ex', item.exampleWord!)} className="text-left w-full">
-                  <ReadingBreakdown character={item.exampleWord} romaji={item.exampleReading ?? ''} size="sm" compact />
-                  <div className="text-[var(--text-secondary)] text-xs mt-1 font-semibold">{item.exampleMeaning}</div>
+        <button
+          type="button"
+          className="icon-button"
+          aria-label="Anhören"
+          onClick={() => {
+            unlockAudio()
+            playJapanese(id, item.character)
+          }}
+        >
+          ♪
+        </button>
+      </header>
+      <nav className="detail-tabs" aria-label="Inhalt ansehen">
+        {[
+          ['info', 'Verstehen'],
+          ...(hasStrokes
+            ? [
+                ['stroke', 'Strichfolge'],
+                ['draw', 'Schreiben'],
+              ]
+            : []),
+        ].map(([key, label]) => (
+          <button
+            type="button"
+            key={key}
+            className={`chip ${tab === key ? 'chip--active' : ''}`}
+            aria-pressed={tab === key}
+            onClick={() => setTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="scroll-area flex-1 min-h-0">
+        <div className="page-width detail-content">
+          {tab === 'info' ? (
+            <>
+              <div className="card-surface activity-card mb-5">
+                <RubyText
+                  text={item.character}
+                  romaji={item.romaji}
+                  size="display"
+                  showRomaji={forceAids ? true : undefined}
+                />
+                <button
+                  type="button"
+                  className="text-link mt-4"
+                  aria-pressed={forceAids}
+                  onClick={() => setForceAids(!forceAids)}
+                >
+                  {forceAids ? 'Lesehilfe ausblenden' : 'Aussprache zeigen'}
                 </button>
+                {item.readings && (
+                  <dl className="mt-5 text-left text-sm">
+                    <dt className="eyebrow mb-2">Mögliche Lesungen</dt>
+                    {item.readings.map((reading, index) => (
+                      <dd key={`${reading.kana}-${index}`} className="py-2 border-b border-[var(--border)]">
+                        <span className="text-[var(--text-muted)] mr-2">
+                          {reading.kind === 'on' ? 'On' : reading.kind === 'kun' ? 'Kun' : ''}
+                        </span>
+                        <span lang="ja" className="jp">
+                          {reading.kana}
+                        </span>{' '}
+                        · {reading.romaji}
+                      </dd>
+                    ))}
+                  </dl>
+                )}
               </div>
-            )}
-            <SRSCard item={item} onRate={(r) => { rateReview(item.id, r); setReviewed(true) }} done={reviewed} />
-          </div>
-        )}
-
-        {tab === 'stroke' && hasStrokes && (
-          <div className="h-full flex flex-col items-center justify-center px-2 py-1">
-            <StrokeCanvas
-              key={item.id + '-anim'}
-              strokes={item.strokes!}
-              mode="animate"
-              size={canvasSize}
-              character={item.character}
-            />
-          </div>
-        )}
-
-        {tab === 'draw' && hasStrokes && (
-          <div className="h-full flex flex-col items-center justify-center px-2 py-1 gap-2">
-            <StrokeCanvas
-              key={item.id + '-draw'}
-              strokes={item.strokes!}
-              mode="draw"
-              size={canvasSize}
-              character={item.character}
-              onEvaluate={handleEvaluate}
-            />
-            {score !== null && (
-              <div className="text-center shrink-0">
-                <div className={`text-xl font-bold ${scoreColor}`}>{score}%</div>
-                <div className={`text-xs ${scoreColor}`}>{scoreLabel}</div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function TabBtn({ id, active, onClick, label }: { id: Tab; active: Tab; onClick: (t: Tab) => void; label: string }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(id)}
-      className={`flex-1 py-2 text-xs font-bold border-b-3 transition-colors ${
-        active === id ? 'border-[var(--blue)] text-[var(--blue)]' : 'border-transparent text-[var(--text-muted)]'
-      }`}
-    >
-      {label}
-    </button>
-  )
-}
-
-function SRSCard({
-  item,
-  onRate,
-  done,
-}: {
-  item: LearningItem
-  onRate: (r: SRSRating) => void
-  done: boolean
-}) {
-  return (
-    <div className="panel-muted p-3">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-[var(--text-muted)] text-xs font-bold">Lernstatus</span>
-        <span className={`text-xs font-bold ${STATUS_TEXT_COLORS[item.status]}`}>{STATUS_LABELS[item.status]}</span>
-      </div>
-      {!done ? (
-        <div className="grid grid-cols-4 gap-1" role="group" aria-label="SRS-Bewertung">
-          {SRS_RATINGS.map(({ r, label, color }) => (
-            <button key={r} type="button" onClick={() => onRate(r)} className={`py-1.5 rounded-lg text-xs font-bold active:scale-95 ${color}`}>
-              {label}
-            </button>
-          ))}
+              {part && (
+                <section className="card-surface p-5 mb-5">
+                  <h2 className="font-semibold mb-3">Bausteine erkennen</h2>
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    {part.parts.map((piece, index) => (
+                      <span lang="ja" key={`${piece}-${index}`} className="kanji-part jp">
+                        {piece}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{part.hint}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-2">Eine Merkhilfe für die Form.</p>
+                </section>
+              )}
+              {item.exampleWord && (
+                <section className="card-surface p-5 mb-5">
+                  <h2 className="font-semibold mb-4">Im Zusammenhang</h2>
+                  <RubyText text={item.exampleWord} romaji={item.exampleReading} size="sentence" />
+                  <p className="text-sm mt-3">{item.exampleMeaning}</p>
+                  <button
+                    type="button"
+                    className="text-link mt-3"
+                    onClick={() => playJapanese(`${id}-ex`, item.exampleWord!)}
+                  >
+                    Beispiel anhören
+                  </button>
+                </section>
+              )}
+              <section className="card-surface p-5 mb-5">
+                <h2 className="font-semibold mb-3">Lernstand einschätzen</h2>
+                {saved ? (
+                  <p role="status">Bewertung gespeichert.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label="SRS-Bewertung">
+                    {SRS_RATINGS.map(({ r, label, color }) => (
+                      <button
+                        type="button"
+                        key={r}
+                        className={`rounded-xl border p-3 ${color}`}
+                        onClick={() => {
+                          store.rateReview(id, r)
+                          setSaved(true)
+                        }}
+                      >
+                        <strong>{label}</strong>
+                        <span className="block text-xs mt-1">{reviewIntervalLabel(item, r)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+              <button
+                type="button"
+                className="btn-duo btn-duo--outline"
+                aria-pressed={pinned}
+                onClick={() => (pinned ? store.unpinForReview(id) : store.pinForReview(id))}
+              >
+                {pinned ? 'Im Lernheft gemerkt ✓' : 'Im Lernheft merken'}
+              </button>
+              <Link to="/notebook" className="text-link mt-3">
+                Notiz oder Sammlung ergänzen →
+              </Link>
+            </>
+          ) : (
+            <>
+              <StrokeCanvas
+                mode={tab === 'stroke' ? 'animate' : 'draw'}
+                key={`${id}-${tab}`}
+                character={item.character}
+                onEvaluate={setScore}
+                onReset={() => setScore(null)}
+              />
+              {tab === 'draw' && score !== null && (
+                <button
+                  type="button"
+                  disabled={saved}
+                  className="btn-duo mt-5"
+                  onClick={() => {
+                    store.rateReview(id, score >= 70 ? 2 : 0)
+                    setSaved(true)
+                  }}
+                >
+                  {saved ? 'Bewertung gespeichert' : 'Diese Übung als Bewertung speichern'}
+                </button>
+              )}
+            </>
+          )}
         </div>
-      ) : (
-        <p className="text-[var(--text-muted)] text-xs text-center font-semibold">
-          Gespeichert ✓ · {item.interval} Tag{item.interval !== 1 ? 'en' : ''}
-        </p>
-      )}
+      </div>
     </div>
   )
 }

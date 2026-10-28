@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { lemmaCard, sentenceCard } from '@/types/review'
-import { buildReviewQueue, reviewCardMatchesAnswer } from './buildReviewQueue'
+import { buildReviewQueue, reviewCardMatchesAnswer, pickGrammarReviewCards } from './buildReviewQueue'
+import { grammarData } from '@/data/grammar'
+import type { GrammarSrsItem } from '@/types'
 import type { LearningItem } from '@/types'
 
 const base: LearningItem = {
@@ -41,5 +43,24 @@ describe('buildReviewQueue', () => {
     const card = lemmaCard(base)
     expect(reviewCardMatchesAnswer('ame', sentenceCard(base)!)).toBe(true)
     expect(reviewCardMatchesAnswer('a', card)).toBe(true)
+  })
+
+  it('does not treat a failed grammar card scheduled in the future as fresh content', () => {
+    const point = grammarData[0]
+    const id = `grammar:${point.id}:0`
+    const entry: GrammarSrsItem = {
+      ...base,
+      id,
+      grammarId: point.id,
+      exampleIndex: 0,
+      title: point.title,
+      repetitions: 0,
+      lastReviewDate: new Date().toISOString(),
+      nextReviewDate: '2099-01-01T00:00:00.000Z',
+    }
+    expect(pickGrammarReviewCards({ [id]: entry }, grammarData)).toEqual([])
+    expect(
+      pickGrammarReviewCards({ [id]: { ...entry, nextReviewDate: '2000-01-01T00:00:00.000Z' } }, grammarData)
+    ).toHaveLength(1)
   })
 })

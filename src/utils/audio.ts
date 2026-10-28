@@ -1,136 +1,127 @@
-/** Japanese audio: MP3 if available, else Web Speech (works without pre-generated files). */
-
-let unlocked = false
-let currentAudio: HTMLAudioElement | null = null
+let unlocked = false,
+  currentAudio: HTMLAudioElement | null = null,
+  generation = 0,
+  settle: (() => void) | null = null
 const mp3Known = new Map<string, boolean>()
-
-/** Call on first user interaction — required for iOS audio/TTS. */
-export function unlockAudio(): void {
+export type AudioResult = 'finished' | 'cancelled' | 'unavailable'
+export function unlockAudio() {
   if (unlocked) return
   unlocked = true
-
-  // Prime speech synthesis (iOS Safari)
-  if (typeof speechSynthesis !== 'undefined' && typeof SpeechSynthesisUtterance !== 'undefined') {
+  if (typeof speechSynthesis !== 'undefined') {
     speechSynthesis.getVoices()
-    const silent = new SpeechSynthesisUtterance('\u200b')
-    silent.volume = 0
-    speechSynthesis.speak(silent)
-    speechSynthesis.cancel()
-  }
-
-  // Prime HTMLAudio
-  if (typeof Audio !== 'undefined') {
-    const probe = new Audio()
-    probe.volume = 0.01
-    probe.src =
-      'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAA='
-    void probe.play().catch(() => {})
+    if (typeof SpeechSynthesisUtterance !== 'undefined') {
+      const silent = new SpeechSynthesisUtterance('\u200b')
+      silent.volume = 0
+      speechSynthesis.speak(silent)
+      speechSynthesis.cancel()
+    }
   }
 }
-
-export function isAudioUnlocked(): boolean {
+export function isAudioUnlocked() {
   return unlocked
 }
-
-function mp3Url(id: string): string {
-  return `${import.meta.env.BASE_URL}audio/${encodeURIComponent(id)}.mp3`
-}
-
-function getJapaneseVoice(): SpeechSynthesisVoice | undefined {
-  const voices = speechSynthesis.getVoices()
-  return (
-    voices.find((v) => v.lang === 'ja-JP') ??
-    voices.find((v) => v.lang.startsWith('ja')) ??
-    undefined
-  )
-}
-
-function speakWithTTS(text: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof speechSynthesis === 'undefined') {
-      resolve()
-      return
-    }
-
-    speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'ja-JP'
-    utterance.rate = 0.9
-    const voice = getJapaneseVoice()
-    if (voice) utterance.voice = voice
-
-    utterance.onend = () => resolve()
-    utterance.onerror = () => resolve()
-
-    // iOS needs a short delay after cancel
-    globalThis.setTimeout(() => speechSynthesis.speak(utterance), 50)
-  })
-}
-
-function stopCurrent(): void {
+export function stopAudio() {
+  generation++
   if (currentAudio) {
     currentAudio.pause()
     currentAudio.src = ''
     currentAudio = null
   }
-  speechSynthesis.cancel()
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
+  settle?.()
+  settle = null
 }
-
-async function tryMp3(src: string): Promise<boolean> {
+async function hasMp3(src: string) {
   if (typeof Audio === 'undefined') return false
   if (mp3Known.has(src)) return mp3Known.get(src)!
-
-  return new Promise((resolve) => {
+  return new Promise<boolean>((resolve) => {
     const audio = new Audio()
-    let settled = false
-
+    let done = false
     const finish = (ok: boolean) => {
-      if (settled) return
-      settled = true
+      if (done) return
+      done = true
+      clearTimeout(timer)
       mp3Known.set(src, ok)
       resolve(ok)
     }
-
     audio.addEventListener('canplaythrough', () => finish(true), { once: true })
     audio.addEventListener('error', () => finish(false), { once: true })
+    const timer = setTimeout(() => finish(false), 1000)
     audio.src = src
     audio.load()
-    globalThis.setTimeout(() => finish(false), 1200)
   })
 }
-
-async function playMp3(src: string): Promise<boolean> {
-  if (typeof Audio === 'undefined') return false
-  try {
-    const audio = new Audio(src)
-    currentAudio = audio
-    await audio.play()
-    return true
-  } catch {
-    return false
+async function playOne(id: string, text: string, rate: number, token: number): Promise<AudioResult> {
+  const src = `${import.meta.env.BASE_URL}audio/${encodeURIComponent(id)}.mp3`
+  const available = await hasMp3(src)
+  if (token !== generation) return 'cancelled'
+  if (available) {
+    const result = await new Promise<AudioResult>((resolve) => {
+      const audio = new Audio(src)
+      currentAudio = audio
+      audio.playbackRate = rate
+      const cancel = () => finish('cancelled')
+      const finish = (result: AudioResult) => {
+        if (currentAudio === audio) currentAudio = null
+        if (settle === cancel) settle = null
+        resolve(result)
+      }
+      settle = cancel
+      audio.addEventListener('ended', () => finish('finished'), { once: true })
+      audio.addEventListener('error', () => finish('unavailable'), { once: true })
+      void audio.play().catch(() => finish('unavailable'))
+    })
+    if (result !== 'unavailable') return result
   }
+  if (typeof speechSynthesis === 'undefined' || typeof SpeechSynthesisUtterance === 'undefined')
+    return 'unavailable'
+  return new Promise<AudioResult>((resolve) => {
+    const voice = new SpeechSynthesisUtterance(text)
+    voice.lang = 'ja-JP'
+    voice.rate = 0.9 * rate
+    voice.voice = speechSynthesis.getVoices().find((entry) => entry.lang.startsWith('ja')) ?? null
+    const cancel = () => finish('cancelled')
+    const finish = (result: AudioResult) => {
+      if (settle === cancel) settle = null
+      resolve(result)
+    }
+    settle = cancel
+    voice.onend = () => finish(token === generation ? 'finished' : 'cancelled')
+    voice.onerror = () => finish(token === generation ? 'unavailable' : 'cancelled')
+    setTimeout(() => {
+      if (token === generation) speechSynthesis.speak(voice)
+      else finish('cancelled')
+    }, 50)
+  })
 }
-
-async function playJapaneseAsync(id: string, text: string): Promise<void> {
-  const trimmed = text?.trim()
-  if (!trimmed) return
-
-  stopCurrent()
-
-  const src = mp3Url(id)
-  const hasMp3 = await tryMp3(src)
-  if (hasMp3 && (await playMp3(src))) return
-
-  await speakWithTTS(trimmed)
+export async function playJapaneseSequence(
+  id: string,
+  text: string,
+  options: { rate?: number; repetitions?: number } = {}
+): Promise<AudioResult> {
+  stopAudio()
+  unlockAudio()
+  const token = generation,
+    rate = Math.min(1.25, Math.max(0.6, options.rate ?? 1)),
+    repetitions = Math.min(5, Math.max(1, options.repetitions ?? 1))
+  if (!text.trim()) return 'unavailable'
+  for (let index = 0; index < repetitions; index++) {
+    if (token !== generation) return 'cancelled'
+    const result = await playOne(id, text.trim(), rate, token)
+    if (result !== 'finished') return result
+    if (index + 1 < repetitions)
+      await new Promise<void>((resolve) => {
+        const finish = () => {
+          clearTimeout(timer)
+          if (settle === finish) settle = null
+          resolve()
+        }
+        const timer = setTimeout(finish, 700)
+        settle = finish
+      })
+  }
+  return token === generation ? 'finished' : 'cancelled'
 }
-
-/** Play pronunciation for a learning item or example. */
-export function playJapanese(id: string, text: string): void {
-  void playJapaneseAsync(id, text)
-}
-
-// Preload voices when available (Chrome / Safari)
-if (typeof speechSynthesis !== 'undefined') {
-  speechSynthesis.onvoiceschanged = () => getJapaneseVoice()
-  speechSynthesis.getVoices()
+export function playJapanese(id: string, text: string, options: { rate?: number } = {}): void {
+  void playJapaneseSequence(id, text, options)
 }
