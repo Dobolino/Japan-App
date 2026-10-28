@@ -172,6 +172,7 @@ canvas {
 }
 
 .app-shell {
+  height: 100%;
   height: 100dvh;
   width: 100%;
   max-width: 1200px;
@@ -180,6 +181,14 @@ canvas {
   flex-direction: column;
   background: var(--bg-app);
   padding-top: var(--safe-top);
+}
+
+/* In installed iOS apps, dvh can retain a browser-toolbar inset. The root
+   already fills the standalone viewport; reserve its safe areas only once. */
+@media (display-mode: standalone) {
+  .app-shell {
+    height: 100%;
+  }
 }
 
 .app-main {
@@ -335,7 +344,7 @@ canvas {
   width: 100%;
   max-width: 640px;
   margin-inline: auto;
-  padding: 6px 8px max(6px, env(safe-area-inset-bottom, 0px));
+  padding: 6px 8px max(6px, var(--safe-bottom));
 }
 
 .bottom-nav-item {
@@ -1522,6 +1531,12 @@ summary {
 }
 .detail-content {
   max-width: 680px;
+}
+.character-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 .stroke-workspace {
   max-width: 320px;

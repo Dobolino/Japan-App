@@ -82,20 +82,22 @@ function Detail({ id }: { id: string }) {
           {tab === 'info' ? (
             <>
               <div className="card-surface activity-card mb-5">
-                <RubyText
-                  text={item.character}
-                  romaji={item.romaji}
-                  size="display"
-                  showRomaji={forceAids ? true : undefined}
-                />
-                <button
-                  type="button"
-                  className="text-link mt-4"
-                  aria-pressed={forceAids}
-                  onClick={() => setForceAids(!forceAids)}
-                >
-                  {forceAids ? 'Lesehilfe ausblenden' : 'Aussprache zeigen'}
-                </button>
+                <div className="character-prompt">
+                  <RubyText
+                    text={item.character}
+                    romaji={item.romaji}
+                    size="display"
+                    showRomaji={forceAids ? true : undefined}
+                  />
+                  <button
+                    type="button"
+                    className="text-link"
+                    aria-pressed={forceAids}
+                    onClick={() => setForceAids(!forceAids)}
+                  >
+                    {forceAids ? 'Lesehilfe ausblenden' : 'Aussprache zeigen'}
+                  </button>
+                </div>
                 {item.readings && (
                   <dl className="mt-5 text-left text-sm">
                     <dt className="eyebrow mb-2">Mögliche Lesungen</dt>
