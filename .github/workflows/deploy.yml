@@ -43,4 +43,17 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
           npm exec -- gh-pages -d dist --nojekyll -m "Deploy ${GITHUB_SHA}"
-          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status, url}'
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" \
+            -f 'source[branch]=gh-pages' -f 'source[path]=/' -f build_type=legacy --silent
+          pages_commit="$(git ls-remote origin refs/heads/gh-pages | cut -f1)"
+          if ! gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status, url}'; then
+            # Changing the Pages source can already have queued this exact build.
+            latest_commit="$(gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '.commit')"
+            latest_status="$(gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '.status')"
+            if [[ "$latest_commit" != "$pages_commit" || ! "$latest_status" =~ ^(queued|building|built)$ ]]; then
+              exit 1
+            fi
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/pages" \
+            --jq '"Pages source: \(.source.branch) \(.source.path) (\(.build_type))"' >> "$GITHUB_STEP_SUMMARY"
+          printf '\nPublished app version: %s\n' "$(node -p 'require("./package.json").version')" >> "$GITHUB_STEP_SUMMARY"
