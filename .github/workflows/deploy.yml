@@ -43,7 +43,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
           npm exec -- gh-pages -d dist --nojekyll -m "Deploy ${GITHUB_SHA}"
-      - name: Check and select the built Pages source
+      - name: Check the Pages source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: python
@@ -52,25 +52,19 @@ jobs:
           import os
           import subprocess
 
-          endpoint = f"repos/{os.environ['GITHUB_REPOSITORY']}/pages"
-          def api(method, payload=None):
-              command = ['gh', 'api', '--method', method, endpoint]
-              if payload is not None:
-                  command += ['--input', '-']
-              result = subprocess.run(command, input=json.dumps(payload) if payload is not None else None, text=True, capture_output=True)
-              if result.returncode:
-                  message = (result.stderr + result.stdout).strip()
-                  message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-                  print(f'::error title=GitHub Pages configuration::{message}')
-                  raise SystemExit(result.returncode)
-              return json.loads(result.stdout)
-
-          current = api('GET')
+          repository = os.environ['GITHUB_REPOSITORY']
+          result = subprocess.run(['gh', 'api', f'repos/{repository}/pages'], text=True, capture_output=True)
+          if result.returncode:
+              message = (result.stderr + result.stdout).strip()
+              message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print(f'::error title=GitHub Pages configuration::{message}')
+              raise SystemExit(result.returncode)
+          current = json.loads(result.stdout)
           print(f"::notice::Current Pages source: {current.get('source')}, build type: {current.get('build_type')}")
           if current.get('source') != {'branch': 'gh-pages', 'path': '/'} or current.get('build_type') != 'legacy':
-              api('PUT', {'source': {'branch': 'gh-pages', 'path': '/'}, 'build_type': 'legacy'})
-          selected = api('GET')
-          assert selected['source'] == {'branch': 'gh-pages', 'path': '/'}, selected['source']
+              message = f'Select Deploy from a branch, gh-pages, /(root) at https://github.com/{repository}/settings/pages. The workflow token cannot change this repository setting.'
+              print(f'::error title=Select the built app as Pages source::{message}')
+              raise SystemExit(1)
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
               summary.write('Pages source: gh-pages / (legacy)\n')
       - name: Request a Pages build

@@ -92,7 +92,7 @@ src/
 
 `base` in `vite.config.ts` ist auf `/Japan-App/` gesetzt (GitHub Pages). Anpassen, falls das Repo anders heißt.
 
-Der Workflow [Build and deploy app](.github/workflows/deploy.yml) läuft nach Pushes auf `main` oder `master` und lässt sich manuell starten. Er prüft Lint, Tests und Build, veröffentlicht `dist` im bestehenden Branch `gh-pages` und fordert anschließend einen Pages-Build an. Die GitHub-Pages-Quelle bleibt `gh-pages` im Stammverzeichnis. Bereits generierte optionale Audiodateien werden übernommen. Für normale App-Updates ist kein OpenAI-Schlüssel erforderlich.
+Der Workflow [Build and deploy app](.github/workflows/deploy.yml) läuft nach Pushes auf `main` oder `master` und lässt sich manuell starten. Er prüft Lint, Tests und Build, veröffentlicht `dist` im bestehenden Branch `gh-pages` und fordert anschließend einen Pages-Build an. Einmalig muss der Repository-Eigentümer unter **Settings → Pages → Build and deployment** die Quelle **Deploy from a branch → gh-pages → /(root)** speichern. Der Workflow prüft diese Einstellung; sein GitHub-Token darf sie nicht ändern. Bereits generierte optionale Audiodateien werden übernommen. Für normale App-Updates ist kein OpenAI-Schlüssel erforderlich.
 
 Für eine Veröffentlichung über die lokale Git-Anmeldung:
 
