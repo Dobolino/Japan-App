@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JAPP Redesign Varianten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1F2430; --muted:#5E584D; --line:#E8E1D6; --card:#FFFFFF;
+  --red:#C63D22; --red-dark:#8E2D17; --red-soft:#FFF1E6; --red-text:#A8361C;
+  --blue:#2E4A7D; --blue-dark:#1F3459; --blue-soft:#EEF2F8;
+  --green:#1F7A5C; --green-dark:#155C44; --green-soft:#DDEFE6;
+  --page:#ECE8E1;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Nunito,system-ui,sans-serif}
+a{color:var(--blue)}
+.jp{font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+header.top{max-width:1320px;margin:0 auto;padding:32px 16px 8px}
+header.top h1{margin:0 0 6px;font-size:32px;font-weight:900}
+header.top p{margin:0;color:var(--muted);font-weight:600;max-width:640px}
+.switch{display:flex;flex-wrap:wrap;gap:8px;max-width:1320px;margin:20px auto 0;padding:0 16px}
+.switch button{min-height:44px;padding:0 18px;border-radius:999px;border:2px solid #D6CFC3;background:#fff;font:inherit;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer}
+.switch button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+section.variant{max-width:1320px;margin:0 auto;padding:16px 16px 48px}
+section.variant[hidden]{display:none}
+.variant-intro{margin:8px 0 20px;max-width:640px;font-weight:600;color:var(--muted)}
+.variant-intro strong{color:var(--ink)}
+.screens{display:flex;flex-wrap:wrap;gap:32px}
+.screen-wrap{display:flex;flex-direction:column;gap:8px}
+.screen-label{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.phone{width:390px;max-width:calc(100vw - 32px);height:844px;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(31,36,48,.15);border:8px solid #1F2430}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 14px;font-weight:900;font-size:15px;background:var(--red-soft);color:var(--red-text)}
+.icon-btn{width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;text-decoration:none}
+.icon-btn.plain{border:none;background:transparent;color:var(--muted)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;height:60px;border-radius:18px;color:#fff;font:inherit;font-size:19px;font-weight:900;text-decoration:none;border:none;cursor:pointer;width:100%}
+.btn.red{background:var(--red);box-shadow:0 4px 0 var(--red-dark)}
+.btn.blue{background:var(--blue);box-shadow:0 4px 0 var(--blue-dark)}
+.btn.green{background:var(--green);box-shadow:0 4px 0 var(--green-dark)}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px}
+.nav{position:absolute;left:0;right:0;bottom:0;height:80px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding-bottom:8px}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);text-decoration:none;font-weight:700;font-size:13px}
+.nav a[aria-current="page"]{font-weight:900}
+.sp{flex-grow:1}
+.eyebrow{font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* Variante A */
+.a{background:#FBF8F3}
+.ring{position:relative;width:200px;height:200px;margin:0 auto}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 20px}
+.answer{height:72px;border-radius:18px;font:inherit;font-size:24px;font-weight:900;cursor:pointer;background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.answer.right{background:#E3F2EA;color:var(--green-dark);border-color:var(--green);box-shadow:0 4px 0 var(--green)}
+.answer.wrong{background:#FDECE7;color:var(--red-dark);border-color:var(--red);box-shadow:0 4px 0 var(--red)}
+.feedback{position:absolute;left:0;right:0;bottom:0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:14px}
+.feedback[hidden]{display:none}
+.feedback.ok{background:#E3F2EA;border-top:2px solid #B7DCC8;color:var(--green-dark)}
+.feedback.no{background:#FDECE7;border-top:2px solid #F3C3B6;color:var(--red-dark)}
+.stats3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 8px;display:flex;flex-direction:column;align-items:center}
+.stat b{font-size:26px;font-weight:900}
+.stat span{font-size:13px;font-weight:700;color:var(--muted)}
+.kana5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.kana5 span{height:52px;border-radius:14px;background:var(--red-soft);color:var(--red-text);display:flex;align-items:center;justify-content:center;font-size:28px}
+
+/* Variante B */
+.b{background:#F5F6FA}
+.b-head{background:var(--blue);color:#fff;padding:20px 20px 18px;border-radius:0 0 28px 28px;display:flex;flex-direction:column;gap:14px}
+.path{position:relative;flex-grow:1}
+.node{position:absolute;border-radius:999px;display:flex;align-items:center;justify-content:center;text-decoration:none;border:3px solid}
+.node-label{position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:15px;font-weight:800}
+.seg{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:4px}
+.seg span{height:12px;border-radius:4px;background:#D8DDE8}
+.word{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:14px;background:#F5F6FA}
+
+/* Variante C */
+.c{background:#F7F8F5}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:#E9ECE6;border-radius:14px;padding:4px}
+.tabs button{height:40px;border:none;border-radius:11px;background:transparent;font:inherit;font-size:15px;font-weight:700;color:#4F5A52;cursor:pointer}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--ink);font-weight:900}
+.grid5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:16px 20px 0}
+.cell{height:62px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;border:2px dashed #CBD2C7;color:#66706A}
+.cell .jp{font-size:26px;line-height:1}
+.cell small{font-size:11px;font-weight:800}
+.cell.m{background:var(--green);border:2px solid var(--green);color:#fff}
+.cell.l{background:var(--green-soft);border:2px solid #A9D3BE;color:var(--green-dark)}
+.cell.t{background:var(--red-soft);border:2px solid #E9A27E;color:var(--red-text)}
+.fade{position:absolute;left:0;right:0;bottom:80px;height:220px;background:linear-gradient(rgba(247,248,245,0),#F7F8F5 45%);pointer-events:none}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.steps span{padding:10px 6px;border-radius:12px;background:#E9ECE6;color:#4F5A52;font-size:14px;font-weight:800;text-align:center}
+.steps span.on{background:var(--green-soft);color:var(--green-dark);font-weight:900}
+
+@media (max-width:440px){
+  .phone{border-width:0;border-radius:24px}
+  .screens{gap:24px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>JAPP Redesign</h1>
+  <p>Drei Varianten, die zum Lernen motivieren sollen. Jede Variante hat pro Screen genau eine Hauptaktion. In Variante A kannst du die Übung anklicken.</p>
+</header>
+
+<div class="switch" role="tablist" aria-label="Variante wählen">
+  <button role="tab" aria-selected="true" aria-controls="var-a" data-target="var-a">A · Ein Knopf</button>
+  <button role="tab" aria-selected="false" aria-controls="var-b" data-target="var-b">B · Lernpfad</button>
+  <button role="tab" aria-selected="false" aria-controls="var-c" data-target="var-c">C · Zeichen sammeln</button>
+</div>
+
+<!-- ============ VARIANTE A ============ -->
+<section class="variant" id="var-a" role="tabpanel">
+  <p class="variant-intro"><strong>Fokus:</strong> Die Startseite zeigt nur Serie, Tagesring und einen Knopf. 3 Tabs statt 5. Kurs, Missionen, Werkstatt und Lernheft kommen unter «Entdecken».</p>
+  <div class="screens">
+    <div class="screen-wrap">
+      <span class="screen-label">Start</span>
+      <div class="phone a">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:24px 20px 0">
+          <span class="pill"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.7 1.2 2.6 2.5 3 0-3-1-5.5 0-8z"/></svg>4 Tage in Folge</span>
+          <button class="icon-btn" aria-label="Einstellungen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        </div>
+        <div style="padding:28px 24px 0">
+          <span class="jp" style="font-size:18px;color:var(--muted);font-weight:500">こんにちは</span>
+          <h2 style="margin:4px 0 0;font-size:30px;line-height:1.15;font-weight:900">Noch 8 Antworten bis zum Tagesziel.</h2>
+        </div>
+        <div style="padding:28px 0 8px">
+          <div class="ring">
+            <svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Tagesziel 12 von 20">
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#EFE7DA" stroke-width="18"/>
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#C63D22" stroke-width="18" stroke-linecap="round" stroke-dasharray="502.65" stroke-dashoffset="201" transform="rotate(-90 100 100)"/>
+            </svg>
+            <div class="ring-text"><span style="font-size:52px;font-weight:900;line-height:1">12</span><span style="font-size:15px;font-weight:700;color:var(--muted)">von 20 heute</span></div>
+          </div>
+        </div>
+        <div class="card" style="margin:16px 20px 0;display:flex;flex-direction:column;gap:16px;border-radius:24px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="jp" style="width:56px;height:56px;border-radius:16px;background:var(--red-soft);color:var(--red-text);display:flex;align-items:center;justify-content:center;font-size:30px">か</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:19px;font-weight:800">Heute: K-Reihe</span>
+              <span style="font-size:15px;font-weight:600;color:var(--muted)">5 neue Zeichen · 3 Wiederholungen · ca. 5 Min.</span>
+            </div>
+          </div>
+          <a href="#a-lektion" class="btn red" data-scroll>Los geht's <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <a href="#" style="margin:14px 20px 0;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:16px;background:var(--blue-soft);color:var(--blue);font-weight:800;font-size:15px;text-decoration:none">
+          <span>Danach: Geschichte «Im Café» lesen</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <nav class="nav" aria-label="Hauptnavigation">
+          <a href="#" aria-current="page" style="color:var(--red)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Heute</a>
+          <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Entdecken</a>
+          <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Ich</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="screen-wrap" id="a-lektion">
+      <span class="screen-label">Übung (klickbar)</span>
+      <div class="phone a">
+        <div style="display:flex;align-items:center;gap:14px;padding:24px 20px 0">
+          <a href="#" class="icon-btn plain" aria-label="Übung beenden"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+          <div role="progressbar" aria-label="Fortschritt der Übung" aria-valuenow="4" aria-valuemin="0" aria-valuemax="8" style="flex-grow:1;height:14px;border-radius:999px;background:#EFE7DA;overflow:hidden"><div style="width:50%;height:100%;border-radius:999px;background:var(--red)"></div></div>
+          <span style="font-weight:800;font-size:15px;color:var(--muted)">4/8</span>
+        </div>
+        <div style="padding:36px 24px 0">
+          <span class="eyebrow">Neues Zeichen</span>
+          <h2 style="margin:6px 0 0;font-size:26px;font-weight:900">Wie liest man das?</h2>
+        </div>
+        <div style="display:flex;justify-content:center;padding:28px 0">
+          <button aria-label="Aussprache anhören" id="speak" style="width:200px;height:200px;border-radius:40px;background:#fff;border:2px solid var(--line);box-shadow:0 6px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:var(--ink)">
+            <span class="jp" style="font-size:108px;line-height:1">か</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5E584D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>
+          </button>
+        </div>
+        <div class="answers" id="answers">
+          <button class="answer" data-a="ki">ki</button>
+          <button class="answer" data-a="ka">ka</button>
+          <button class="answer" data-a="ko">ko</button>
+          <button class="answer" data-a="ke">ke</button>
+        </div>
+        <div class="feedback ok" id="fb-ok" hidden>
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+            <div><div style="font-size:20px;font-weight:900">Richtig. か = ka</div><div style="font-size:15px;font-weight:700">Merkhilfe: sieht aus wie ein Messer, das «ka» schneidet.</div></div>
+          </div>
+          <a href="#a-fertig" class="btn green" data-scroll>Weiter</a>
+        </div>
+        <div class="feedback no" id="fb-no" hidden>
+          <div><div style="font-size:20px;font-weight:900">Fast. Das ist «ka».</div><div style="font-size:15px;font-weight:700">Kein Problem, das Zeichen kommt gleich nochmals.</div></div>
+          <button class="btn red" id="reset">Verstanden</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap" id="a-fertig">
+      <span class="screen-label">Geschafft</span>
+      <div class="phone a" style="align-items:center;padding:56px 24px 28px;gap:20px">
+        <div style="width:132px;height:132px;border-radius:999px;background:var(--red);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 0 var(--red-dark);flex-shrink:0">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.7 1.2 2.6 2.5 3 0-3-1-5.5 0-8z"/></svg>
+          <span style="font-size:30px;font-weight:900;line-height:1">5</span>
+        </div>
+        <div style="text-align:center">
+          <div class="jp" style="font-size:20px;color:var(--muted)">よくできました</div>
+          <h2 style="margin:6px 0;font-size:30px;font-weight:900">5 Tage in Folge!</h2>
+          <p style="margin:0;font-size:17px;font-weight:600;color:var(--muted)">Tagesziel erreicht. Morgen geht es mit der S-Reihe weiter.</p>
+        </div>
+        <div class="stats3">
+          <div class="stat"><b>20</b><span>Antworten</span></div>
+          <div class="stat"><b>90 %</b><span>richtig</span></div>
+          <div class="stat"><b>+5</b><span>Zeichen</span></div>
+        </div>
+        <div class="card" style="width:100%;display:flex;flex-direction:column;gap:10px;padding:16px">
+          <span style="font-size:14px;font-weight:800;color:var(--muted)">Neu in deiner Sammlung</span>
+          <div class="kana5 jp"><span>か</span><span>き</span><span>く</span><span>け</span><span>こ</span></div>
+        </div>
+        <div class="sp"></div>
+        <a href="#var-a" class="btn red" data-scroll>Fertig für heute</a>
+        <a href="#a-lektion" data-scroll style="font-size:16px;font-weight:800;text-decoration:none;padding:6px 10px">Noch 5 Minuten üben</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VARIANTE B ============ -->
+<section class="variant" id="var-b" role="tabpanel" hidden>
+  <p class="variant-intro"><strong>Lernpfad:</strong> Der Kurs wird zum sichtbaren Weg. Jede Station ist eine Lektion. Wiederholungen tauchen als eigene Station auf. Nach jeder Etappe zeigt die App Wörter, die du ab jetzt lesen kannst.</p>
+  <div class="screens">
+    <div class="screen-wrap">
+      <span class="screen-label">Pfad</span>
+      <div class="phone b">
+        <div class="b-head">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="display:flex;align-items:center;gap:8px;font-weight:900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD2A8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.7 1.2 2.6 2.5 3 0-3-1-5.5 0-8z"/></svg>4 Tage</span>
+            <span style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px">Heute 12/20 <span style="width:64px;height:10px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden;display:block"><span style="display:block;width:60%;height:100%;background:#fff;border-radius:999px"></span></span></span>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#D5DEEC">Etappe 1 von 5</div>
+            <div style="font-size:24px;font-weight:900">Hiragana lesen</div>
+          </div>
+        </div>
+        <div class="path" id="path"></div>
+        <nav class="nav" aria-label="Hauptnavigation" style="border-color:#E1E5EE">
+          <a href="#" aria-current="page" style="color:var(--blue)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></svg>Pfad</a>
+          <a href="#" style="color:#5A6274"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg>Lesen</a>
+          <a href="#" style="color:#5A6274"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Ich</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="screen-wrap" id="b-fertig">
+      <span class="screen-label">Etappe geschafft</span>
+      <div class="phone b" style="padding:52px 24px 28px;gap:22px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+          <div class="jp" style="width:112px;height:112px;border-radius:999px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 7px 0 var(--blue-dark);font-size:56px">さ</div>
+          <h2 style="margin:0;font-size:28px;font-weight:900">S-Reihe geschafft</h2>
+          <p style="margin:0;font-size:16px;font-weight:600;color:#5A6274">Lektion 4 von 15 auf deinem Weg zu Hiragana.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:#5A6274"><span>Hiragana lesen</span><span>4/15</span></div>
+          <div class="seg"><span style="background:var(--blue)"></span><span style="background:var(--blue)"></span><span style="background:var(--blue)"></span><span style="background:var(--red)"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="card" style="border-color:#E1E5EE;display:flex;flex-direction:column;gap:12px">
+          <span style="font-size:14px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--red-text)">Freigeschaltet</span>
+          <span style="font-size:18px;font-weight:900">Diese Wörter kannst du jetzt lesen</span>
+          <div class="word"><span class="jp" style="font-size:24px">すし</span><span style="font-weight:700;color:#5A6274">Sushi</span></div>
+          <div class="word"><span class="jp" style="font-size:24px">あさ</span><span style="font-weight:700;color:#5A6274">Morgen</span></div>
+          <div class="word"><span class="jp" style="font-size:24px">かさ</span><span style="font-weight:700;color:#5A6274">Regenschirm</span></div>
+        </div>
+        <div class="sp"></div>
+        <a href="#var-b" class="btn blue" data-scroll>Weiter zur T-Reihe <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VARIANTE C ============ -->
+<section class="variant" id="var-c" role="tabpanel" hidden>
+  <p class="variant-intro"><strong>Zeichen sammeln:</strong> Die Kana-Tabelle ist die Startseite. Jedes Zeichen färbt sich, wenn du es lernst und festigst. Fortschritt ist direkt sichtbar, ohne Prozentbalken.</p>
+  <div class="screens">
+    <div class="screen-wrap">
+      <span class="screen-label">Sammlung</span>
+      <div class="phone c">
+        <div style="padding:24px 20px 0;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="pill" style="padding:6px 12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.7 1.2 2.6 2.5 3 0-3-1-5.5 0-8z"/></svg>4 Tage</span>
+            <span style="font-size:15px;font-weight:800;color:#4F5A52">Heute 12/20</span>
+          </div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <h2 style="margin:0;font-size:28px;font-weight:900">Deine Sammlung</h2>
+            <span style="font-size:17px;font-weight:900;color:var(--green)">13/46</span>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Schrift">
+            <button role="tab" aria-selected="true">Hiragana</button>
+            <button role="tab" aria-selected="false">Katakana</button>
+            <button role="tab" aria-selected="false">Kanji</button>
+          </div>
+        </div>
+        <div class="grid5" id="grid"></div>
+        <div class="fade"></div>
+        <div class="card" style="position:absolute;left:16px;right:16px;bottom:96px;display:flex;align-items:center;gap:14px;padding:16px;border-color:#DDE3DA;box-shadow:0 8px 24px rgba(31,36,48,.08)">
+          <div style="flex-grow:1">
+            <div style="font-size:17px;font-weight:900">5 neue warten</div>
+            <div class="jp" style="font-size:20px;color:var(--red-text);letter-spacing:.1em">たちつてと</div>
+          </div>
+          <a href="#c-zeichen" data-scroll class="btn green" style="width:auto;height:52px;padding:0 22px;font-size:17px">Sammeln</a>
+        </div>
+        <nav class="nav" aria-label="Hauptnavigation" style="border-color:#DDE3DA">
+          <a href="#" aria-current="page" style="color:var(--green)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>Sammlung</a>
+          <a href="#" style="color:#4F5A52"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg>Lesen</a>
+          <a href="#" style="color:#4F5A52"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Ich</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="screen-wrap" id="c-zeichen">
+      <span class="screen-label">Neues Zeichen</span>
+      <div class="phone c" style="padding:24px 20px 28px;gap:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <a href="#var-c" data-scroll class="icon-btn plain" aria-label="Zurück zur Sammlung"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+          <div style="display:flex;gap:6px" role="img" aria-label="Zeichen 1 von 5">
+            <span style="width:28px;height:8px;border-radius:999px;background:var(--red)"></span><span style="width:8px;height:8px;border-radius:999px;background:#DDE3DA"></span><span style="width:8px;height:8px;border-radius:999px;background:#DDE3DA"></span><span style="width:8px;height:8px;border-radius:999px;background:#DDE3DA"></span><span style="width:8px;height:8px;border-radius:999px;background:#DDE3DA"></span>
+          </div>
+          <span style="width:44px"></span>
+        </div>
+        <div class="card" style="border-color:#DDE3DA;border-radius:28px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px">
+          <div style="position:relative;width:220px;height:220px;border:2px solid #E9ECE6;border-radius:20px;display:flex;align-items:center;justify-content:center">
+            <svg width="220" height="220" viewBox="0 0 220 220" style="position:absolute;inset:0" aria-hidden="true"><path d="M110 0V220M0 110H220" stroke="#E9ECE6" stroke-width="2" stroke-dasharray="6 6"/></svg>
+            <span class="jp" style="position:relative;font-size:150px;line-height:1">た</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:36px;font-weight:900">ta</span><span style="font-size:15px;font-weight:700;color:#4F5A52">wie in «Tag»</span></div>
+          <p style="margin:0;text-align:center;font-size:16px;font-weight:600;color:#4F5A52">Merkhilfe: ein «t» und ein «a» stehen nebeneinander.</p>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%">
+            <button class="icon-btn" style="width:auto;height:52px;border-radius:16px;border:2px solid #DDE3DA;font:inherit;font-size:16px;font-weight:800;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>Anhören</button>
+            <button class="icon-btn" style="width:auto;height:52px;border-radius:16px;border:2px solid #DDE3DA;font:inherit;font-size:16px;font-weight:800;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg>Schreiben</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:14px;font-weight:800;color:#4F5A52">So wird das Feld grün</span>
+          <div class="steps"><span class="on">1 Sehen</span><span>2 Erkennen</span><span>3 Wiederholen</span></div>
+        </div>
+        <div class="sp"></div>
+        <a href="#var-c" data-scroll class="btn green">Nächstes Zeichen</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Varianten umschalten
+const tabs = document.querySelectorAll('.switch button');
+tabs.forEach((t) => t.addEventListener('click', () => {
+  tabs.forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+  document.querySelectorAll('section.variant').forEach((s) => { s.hidden = s.id !== t.dataset.target; });
+}));
+
+// Sanftes Scrollen zu Screens
+document.querySelectorAll('[data-scroll]').forEach((a) => a.addEventListener('click', (e) => {
+  const el = document.querySelector(a.getAttribute('href'));
+  if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}));
+
+// Variante A: Quiz
+const answers = document.querySelectorAll('.answer');
+const ok = document.getElementById('fb-ok');
+const no = document.getElementById('fb-no');
+answers.forEach((b) => b.addEventListener('click', () => {
+  if (!ok.hidden || !no.hidden) return;
+  const pick = b.dataset.a;
+  answers.forEach((x) => {
+    if (x.dataset.a === 'ka') x.classList.add('right');
+    else if (x === b) x.classList.add('wrong');
+  });
+  (pick === 'ka' ? ok : no).hidden = false;
+}));
+document.getElementById('reset').addEventListener('click', () => {
+  answers.forEach((x) => x.classList.remove('right', 'wrong'));
+  no.hidden = true;
+});
+document.getElementById('speak').addEventListener('click', () => {
+  try { const u = new SpeechSynthesisUtterance('か'); u.lang = 'ja-JP'; speechSynthesis.speak(u); } catch (e) {}
+});
+
+// Variante B: Pfad
+const nodes = [
+  { x: 195, y: 60, g: 'あ', l: 'Vokale', s: 'done' },
+  { x: 120, y: 145, g: 'か', l: 'K-Reihe', s: 'done' },
+  { x: 195, y: 230, g: '↻', l: 'Wiederholen', s: 'review' },
+  { x: 270, y: 315, g: 'さ', l: 'S-Reihe', s: 'current' },
+  { x: 195, y: 400, g: 'た', l: 'T-Reihe', s: 'locked' },
+  { x: 120, y: 485, g: 'な', l: 'N-Reihe', s: 'locked' },
+  { x: 195, y: 570, g: '★', l: 'Check', s: 'locked' },
+];
+const path = document.getElementById('path');
+const pts = nodes.map((n) => n.x + ' ' + n.y);
+path.innerHTML =
+  '<svg width="390" height="640" viewBox="0 0 390 640" style="position:absolute;left:0;top:0" aria-hidden="true">' +
+  '<path d="M' + pts.join(' L') + '" fill="none" stroke="#D8DDE8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 18"/>' +
+  '<path d="M' + pts.slice(0, 4).join(' L') + '" fill="none" stroke="#2E4A7D" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 18"/></svg>';
+const colors = {
+  done: ['#2E4A7D', '#fff', '#2E4A7D', '#1F3459'],
+  review: ['#FFF1E6', '#A8361C', '#F0C9A8', '#F0C9A8'],
+  current: ['#C63D22', '#fff', '#fff', '#8E2D17'],
+  locked: ['#fff', '#5A6274', '#D8DDE8', '#D8DDE8'],
+};
+nodes.forEach((n) => {
+  const size = n.s === 'current' ? 84 : 64;
+  const [bg, fg, bd, sh] = colors[n.s];
+  const a = document.createElement('a');
+  a.className = 'node jp';
+  a.href = n.s === 'locked' ? '#' : '#b-fertig';
+  if (n.s !== 'locked') a.dataset.scroll = '';
+  a.setAttribute('aria-label', n.l + (n.s === 'locked' ? ', gesperrt' : n.s === 'done' ? ', erledigt' : ''));
+  a.style.cssText = `left:${n.x - size / 2}px;top:${n.y - size / 2}px;width:${size}px;height:${size}px;background:${bg};color:${fg};border-color:${bd};box-shadow:0 5px 0 ${sh};font-size:${n.s === 'current' ? 40 : 30}px;` + (n.s === 'current' ? 'outline:6px solid rgba(198,61,34,.18);' : '');
+  a.textContent = n.g;
+  path.appendChild(a);
+  const lab = document.createElement('span');
+  lab.className = 'node-label';
+  if (n.s === 'current') {
+    lab.textContent = 'Jetzt: 5 Min.';
+    lab.style.cssText = `top:${n.y}px;right:${390 - n.x + size / 2 + 10}px;background:#1F2430;color:#fff;border-radius:12px;padding:6px 12px;font-weight:900;font-size:14px`;
+  } else {
+    lab.textContent = n.l;
+    const left = n.x < 195;
+    lab.style.cssText = `top:${n.y}px;${left ? 'right:' + (390 - n.x + size / 2 + 12) : 'left:' + (n.x + size / 2 + 12)}px;color:${n.s === 'locked' ? '#5A6274' : '#1F2430'}`;
+  }
+  path.appendChild(lab);
+  a.addEventListener('click', (e) => {
+    if (n.s === 'locked') { e.preventDefault(); return; }
+    e.preventDefault();
+    document.getElementById('b-fertig').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Variante C: Sammlung
+const kana = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめも'.split('');
+const romaji = ['a','i','u','e','o','ka','ki','ku','ke','ko','sa','shi','su','se','so','ta','chi','tsu','te','to','na','ni','nu','ne','no','ha','hi','fu','he','ho','ma','mi','mu','me','mo'];
+const grid = document.getElementById('grid');
+kana.forEach((k, i) => {
+  let cls = '', state = 'neu';
+  if (i < 10) { cls = 'm'; state = 'gemeistert'; }
+  else if (i < 13) { cls = 'l'; state = 'gelernt'; }
+  else if (i >= 15 && i < 20) { cls = 't'; state = 'heute'; }
+  const a = document.createElement('a');
+  a.href = '#c-zeichen';
+  a.className = 'cell ' + cls;
+  a.setAttribute('aria-label', `${k} ${romaji[i]}, ${state}`);
+  a.innerHTML = `<span class="jp">${k}</span><small>${romaji[i]}</small>`;
+  a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('c-zeichen').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  grid.appendChild(a);
+});
+</script>
+</body>
+</html>
