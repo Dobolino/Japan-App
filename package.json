@@ -1,6 +1,6 @@
 {
   "name": "japp",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Japanisch Lern-App – PWA für iPhone",
   "type": "module",
   "scripts": {

@@ -10,6 +10,8 @@ PWA zum Lernen von Hiragana, Katakana, Kanji, Wortschatz und Grammatik. Ruhige O
 
 Warme Farben, lokale Nunito-Schrift und heller/dunkler Modus. [Redesign A + C mit Screenshots](docs/REDESIGN.md).
 
+Auf dem Smartphone bleiben die Tabs am unteren Rand und die Lernserie auf „Heute“ am oberen Rand sichtbar. Bei großer Schrift oder wenig Platz lässt sich der Inhalt dazwischen scrollen. Das Home-Bildschirm-Symbol zeigt ein helles あ auf Zinnoberrot. [App-Symbol ansehen](public/icons/japp-touch-v2.png)
+
 ## Lernfunktionen
 
 - Geführter Kurs mit Einführung, Erkennen und aktiver Eingabe; Lektionen und Übungen später fortsetzen.

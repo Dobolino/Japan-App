@@ -32,9 +32,9 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
     }))
     .filter((group) => group.ids.length)
   return (
-    <div className="page-screen">
+    <>
       <div className="flex flex-wrap items-center gap-2 p-4">
-        <div role="group" aria-label="Zeichen filtern" className="flex gap-2">
+        <div role="group" aria-label="Zeichen filtern" className="flex flex-wrap gap-2">
           {(['all', 'new', 'due'] as const).map((key) => (
             <button
               key={key}
@@ -51,7 +51,7 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
           {modern.filter((item) => item.status === 'mastered').length}/{modern.length} gefestigt
         </span>
       </div>
-      <div className="scroll-area flex-1 min-h-0 px-4 pb-4">
+      <div className="px-4 pb-4">
         <details className="mb-4 text-sm text-[var(--text-secondary)]">
           <summary className="cursor-pointer py-2 font-semibold">Welche Formen lerne ich hier?</summary>
           <p>
@@ -75,7 +75,7 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
         {visible.map((group) => (
           <section key={group.title} className="mb-5">
             <h2 className="eyebrow mb-3">{group.title}</h2>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="library-kana-grid">
               {group.ids.map((id) => {
                 const item = items[id],
                   reading =
@@ -111,6 +111,6 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
             : `Historische ${isHiragana ? 'ゐ・ゑ' : 'ヰ・ヱ'} anzeigen`}
         </button>
       </div>
-    </div>
+    </>
   )
 }

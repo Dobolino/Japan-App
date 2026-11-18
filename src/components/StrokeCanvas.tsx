@@ -113,11 +113,6 @@ export default function StrokeCanvas({ mode, character = '', size = 280, onEvalu
           ? `${reference.length} Striche: Zeichne die Vorlage nach und prüfe erst das fertige Zeichen.`
           : 'Strichvorlage wird geladen …'}
       </p>
-      {error && (
-        <p role="alert" className="form-error">
-          {error}
-        </p>
-      )}
       <canvas
         ref={canvas}
         width={size}
@@ -149,31 +144,38 @@ export default function StrokeCanvas({ mode, character = '', size = 280, onEvalu
           setCount(drawn.current.length)
         }}
       />
-      <div className="flex gap-3 mt-4">
-        <button type="button" className="btn-duo btn-duo--outline" onClick={clear}>
-          Löschen
-        </button>
-        <button
-          type="button"
-          className="btn-duo"
-          disabled={!count || !reference.length}
-          onClick={() => {
-            const evaluation = evaluateDrawing(drawn.current, reference, size)
-            setResult(evaluation)
-            onEvaluate?.(evaluation.score)
-          }}
-        >
-          Zeichnung prüfen
-        </button>
-      </div>
-      {result && (
-        <p role="status" className="text-sm mt-4 leading-relaxed">
-          {result.score}% · {result.message}
+      <div className="stroke-controls">
+        {error && (
+          <p role="alert" className="form-error">
+            {error}
+          </p>
+        )}
+        <div className="flex gap-3 mt-4">
+          <button type="button" className="btn-duo btn-duo--outline" onClick={clear}>
+            Löschen
+          </button>
+          <button
+            type="button"
+            className="btn-duo"
+            disabled={!count || !reference.length}
+            onClick={() => {
+              const evaluation = evaluateDrawing(drawn.current, reference, size)
+              setResult(evaluation)
+              onEvaluate?.(evaluation.score)
+            }}
+          >
+            Zeichnung prüfen
+          </button>
+        </div>
+        {result && (
+          <p role="status" className="text-sm mt-4 leading-relaxed">
+            {result.score}% · {result.message}
+          </p>
+        )}
+        <p className="text-xs text-[var(--text-muted)] mt-4">
+          Die Formhilfe vergleicht Strichzahl, Verlauf, Richtung und Reihenfolge mit der Animationsvorlage.
         </p>
-      )}
-      <p className="text-xs text-[var(--text-muted)] mt-4">
-        Die Formhilfe vergleicht Strichzahl, Verlauf, Richtung und Reihenfolge mit der Animationsvorlage.
-      </p>
+      </div>
     </div>
   )
 }

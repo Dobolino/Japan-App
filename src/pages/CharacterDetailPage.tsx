@@ -36,10 +36,10 @@ function Detail({ id }: { id: string }) {
   const part = kanjiParts[item.character],
     pinned = store.pinnedReviewIds.includes(id)
   return (
-    <div className="page-screen">
+    <div className={`page-screen ${tab === 'info' ? '' : 'character-detail--strokes'}`}>
       <header className="detail-heading">
         <Link
-          to={fromCollection ? `/me?category=${item.category}` : '/learn'}
+          to={`${fromCollection ? '/me' : '/learn'}?category=${item.category}`}
           className="icon-button"
           aria-label={fromCollection ? 'Zur Sammlung' : 'Zur Lernbibliothek'}
         >
@@ -84,7 +84,7 @@ function Detail({ id }: { id: string }) {
           </button>
         ))}
       </nav>
-      <div className="scroll-area flex-1 min-h-0">
+      <div className="detail-scroll scroll-area flex-1 min-h-0">
         <div className="page-width detail-content">
           {tab === 'info' ? (
             <>

@@ -30,8 +30,8 @@ export default function VocabPage() {
   const total = Object.values(items).filter((i) => i.category === 'vocabulary').length
 
   return (
-    <div className="page-screen">
-      <div className="px-4 pt-3 pb-2 shrink-0">
+    <>
+      <div className="px-4 pt-3 pb-2">
         <h2 className="text-xl font-bold text-[var(--text-primary)]">Vokabeln</h2>
         <p className="text-[var(--text-muted)] text-xs font-semibold">
           {mastered}/{total} beherrscht
@@ -47,7 +47,7 @@ export default function VocabPage() {
       </div>
 
       <div
-        className="overflow-x-auto flex gap-2 px-4 pb-2 shrink-0 scrollbar-none"
+        className="overflow-x-auto flex gap-2 px-4 pb-2 scrollbar-none"
         role="group"
         aria-label="Vokabelthema"
       >
@@ -67,7 +67,7 @@ export default function VocabPage() {
         ))}
       </div>
 
-      <div className="scroll-area flex-1 min-h-0 px-4 pb-2 space-y-2">
+      <div className="px-4 pb-2 space-y-2">
         {vocabItems.length === 0 && (
           <p role="status" className="text-center text-[var(--text-muted)] text-sm mt-12 font-semibold">
             Keine Vokabeln gefunden. Versuche einen anderen Suchbegriff oder Lernbereich.
@@ -100,6 +100,6 @@ export default function VocabPage() {
           </div>
         ))}
       </div>
-    </div>
+    </>
   )
 }

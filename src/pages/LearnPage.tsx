@@ -29,7 +29,7 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="page-screen learning-page">
+    <div className="learning-page scroll-area h-full">
       <PageHeader
         eyebrow="ZEICHEN · WÖRTER · GRAMMATIK"
         title="Deine Lernbibliothek."
@@ -62,13 +62,11 @@ export default function LearnPage() {
           </button>
         ))}
       </nav>
-      <div className="flex-1 min-h-0 overflow-hidden" key={tab}>
-        {tab === 'hiragana' && <HiraganaGrid />}
-        {tab === 'katakana' && <KatakanaGrid />}
-        {tab === 'kanji' && <KanjiPage />}
-        {tab === 'vocabulary' && <VocabPage />}
-        {tab === 'grammar' && <GrammarPage />}
-      </div>
+      {tab === 'hiragana' && <HiraganaGrid />}
+      {tab === 'katakana' && <KatakanaGrid />}
+      {tab === 'kanji' && <KanjiPage />}
+      {tab === 'vocabulary' && <VocabPage />}
+      {tab === 'grammar' && <GrammarPage />}
     </div>
   )
 }

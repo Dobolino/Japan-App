@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { useStoreHydration } from '@/hooks/useStoreHydration'
 import { useTheme } from '@/hooks/useTheme'
+import { useKeyboardViewport } from '@/hooks/useKeyboardViewport'
 import { unlockAudio } from '@/utils/audio'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
@@ -26,6 +27,7 @@ import ListeningGuidePage from '@/pages/ListeningGuidePage'
 function AppRoutes() {
   const hydrated = useStoreHydration()
   useTheme()
+  useKeyboardViewport()
 
   useEffect(() => {
     const onInteract = () => {

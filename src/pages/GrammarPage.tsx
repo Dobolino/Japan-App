@@ -18,7 +18,7 @@ export default function GrammarPage() {
   const filtered = grammarData.filter((g) => filter === 'Alle' || g.category === filter)
 
   return (
-    <div className="flex flex-col h-full">
+    <>
       <div className="px-4 pt-4 pb-2">
         <h2 className="text-xl font-bold text-[var(--text-primary)]">Grammatik N5</h2>
         <p className="text-[var(--text-muted)] text-xs font-semibold">{grammarData.length} Grammatikpunkte</p>
@@ -44,7 +44,7 @@ export default function GrammarPage() {
         ))}
       </div>
 
-      <div className="scroll-area flex-1 px-4 pb-4 space-y-2">
+      <div className="px-4 pb-4 space-y-2">
         {filtered.map((g) => (
           <GrammarCard
             key={g.id}
@@ -55,7 +55,7 @@ export default function GrammarPage() {
           />
         ))}
       </div>
-    </div>
+    </>
   )
 }
 

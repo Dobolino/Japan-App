@@ -24,7 +24,7 @@ export default function KanjiPage() {
   const total = Object.values(items).filter((i) => i.category === 'kanji').length
 
   return (
-    <div className="flex flex-col h-full">
+    <>
       <div className="px-4 pt-4 pb-2 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-primary)]">Kanji-Grundlagen</h2>
@@ -34,7 +34,7 @@ export default function KanjiPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 px-4 pb-3">
+      <div className="flex flex-wrap gap-2 px-4 pb-3">
         {(['all', 'new', 'due'] as const).map((f) => (
           <button
             key={f}
@@ -48,13 +48,13 @@ export default function KanjiPage() {
         ))}
       </div>
 
-      <div className="scroll-area flex-1 px-4 pb-4">
+      <div className="px-4 pb-4">
         {kanjiItems.length === 0 && (
           <p role="status" className="text-sm text-[var(--text-secondary)] py-8 text-center">
             Hier gibt es gerade keine passenden Kanji.
           </p>
         )}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="library-kanji-grid">
           {kanjiItems.map((item) => (
             <div key={item.id} className="card-surface p-2 flex flex-col items-center gap-1">
               <div className="flex justify-between w-full items-start">
@@ -92,6 +92,6 @@ export default function KanjiPage() {
           ))}
         </div>
       </div>
-    </div>
+    </>
   )
 }
