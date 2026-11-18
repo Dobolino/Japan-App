@@ -8,6 +8,8 @@ import { reviewCardMatchesAnswer } from '@/utils/buildReviewQueue'
 import { playJapanese, unlockAudio } from '@/utils/audio'
 import PageHeader from '@/components/PageHeader'
 import { shuffle } from '@/utils/shuffle'
+import SessionSummary from '@/components/SessionSummary'
+import { kanjiParts } from '@/data/kanjiParts'
 export default function LessonPage() {
   const { lessonId } = useParams()
   return <Lesson key={lessonId} id={lessonId ?? ''} />
@@ -97,34 +99,26 @@ function Lesson({ id }: { id: string }) {
   }
   if (done)
     return (
-      <div className="scroll-area h-full">
-        <div className="page-width session-summary">
-          <h1>Lektion abgeschlossen</h1>
-          <p>
-            {result.correct} von {result.total} Antworten richtig.
-          </p>
-          <p className="my-5">
-            {result.correct === result.total
-              ? 'Dein Lernziel sitzt.'
-              : 'Die schwierigen Inhalte kannst du in der Fehlerrunde vertiefen.'}
-          </p>
-          <Link to="/practice" className="btn-duo">
-            Wissen festigen
-          </Link>
-          <Link to="/course" className="text-link mt-4">
-            Nächste Lektion →
-          </Link>
-          <button type="button" className="btn-duo btn-duo--outline mt-4" onClick={begin}>
-            Einheit wiederholen
-          </button>
-        </div>
-      </div>
+      <SessionSummary
+        correct={result.correct}
+        total={result.total}
+        characters={cards.map((entry) => entry.answerCharacter)}
+        onRestart={begin}
+      />
     )
   if (!started)
     return (
       <div className="scroll-area h-full">
         <div className="page-width lesson-page">
-          <PageHeader eyebrow="DEIN LERNZIEL" title={lesson.title} description={lesson.goal} />
+          <Link to="/explore" className="text-link mb-4">
+            ← Entdecken
+          </Link>
+          <PageHeader
+            eyebrow="DEIN LERNZIEL"
+            title={lesson.title}
+            description={lesson.goal}
+            showSettings={false}
+          />
           <section className="card-surface p-6">
             <h2 className="font-semibold text-lg">So läuft die Einheit ab</h2>
             <ol className="lesson-steps">
@@ -148,29 +142,60 @@ function Lesson({ id }: { id: string }) {
   return (
     <div className="scroll-area h-full">
       <div className="page-width lesson-page">
-        <Link to="/course" className="text-link mb-4">
-          ← Pause und zum Kurs
-        </Link>
-        <PageHeader eyebrow={`${stageName} · ${draft.index + 1}/${cards.length}`} title={lesson.title} />
-        <div
-          className="progress-track mb-6"
-          role="progressbar"
-          aria-label="Lektion"
-          aria-valuemin={0}
-          aria-valuemax={cards.length * 3}
-          aria-valuenow={
-            ['intro', 'recognition', 'production'].indexOf(draft.stage) * cards.length + draft.index
-          }
-        >
+        <div className="exercise-topbar">
+          <Link to="/" className="exercise-pause" aria-label="Lektion pausieren">
+            ×
+          </Link>
           <div
-            className="progress-fill"
-            style={{
-              width: `${((['intro', 'recognition', 'production'].indexOf(draft.stage) * cards.length + draft.index) / (cards.length * 3)) * 100}%`,
-            }}
-          />
+            className="progress-track"
+            role="progressbar"
+            aria-label="Lektion"
+            aria-valuemin={0}
+            aria-valuemax={cards.length * 3}
+            aria-valuenow={
+              ['intro', 'recognition', 'production'].indexOf(draft.stage) * cards.length + draft.index
+            }
+          >
+            <div
+              className="progress-fill"
+              style={{
+                width: `${((['intro', 'recognition', 'production'].indexOf(draft.stage) * cards.length + draft.index) / (cards.length * 3)) * 100}%`,
+              }}
+            />
+          </div>
+          <span>
+            {draft.index + 1}/{cards.length}
+          </span>
         </div>
+        <PageHeader
+          eyebrow={lesson.title}
+          title={
+            draft.stage === 'intro'
+              ? lesson.category === 'grammar'
+                ? 'Ein Satz für deinen Alltag.'
+                : lesson.category === 'vocabulary'
+                  ? 'Lerne dein Wort kennen.'
+                  : 'Lerne dein Zeichen kennen.'
+              : draft.stage === 'recognition'
+                ? 'Was passt dazu?'
+                : 'Jetzt bist du dran.'
+          }
+          showSettings={false}
+        />
+        <ol className="lesson-stage-strip" aria-label="Lernschritte">
+          {['Entdecken', 'Erkennen', 'Abrufen'].map((label, index) => (
+            <li
+              key={label}
+              aria-current={
+                index === ['intro', 'recognition', 'production'].indexOf(draft.stage) ? 'step' : undefined
+              }
+            >
+              {index + 1} {label}
+            </li>
+          ))}
+        </ol>
         <section className="card-surface activity-card">
-          <p className="eyebrow mb-5">{draft.stage === 'intro' ? 'Neu entdecken' : card.promptMeaning}</p>
+          <p className="eyebrow mb-5">{draft.stage === 'intro' ? stageName : card.promptMeaning}</p>
           {draft.stage === 'intro' ? (
             <>
               <p lang="ja" className="jp jp-display">
@@ -200,7 +225,7 @@ function Lesson({ id }: { id: string }) {
                     <button
                       key={option}
                       type="button"
-                      className="choice-button jp"
+                      className={`choice-button jp ${option.length > 5 ? 'choice-button--sentence' : ''} ${feedback !== null ? (option === card.answerCharacter ? 'is-correct' : option === draft.typed ? 'is-wrong' : '') : ''}`}
                       disabled={feedback !== null}
                       onClick={() => check(option)}
                     >
@@ -232,18 +257,34 @@ function Lesson({ id }: { id: string }) {
                     disabled={feedback !== null}
                     className="search-input mb-4"
                   />
-                  <button type="submit" disabled={!typed.trim() || feedback !== null} className="btn-duo">
-                    Antwort prüfen
-                  </button>
+                  {feedback === null && (
+                    <button type="submit" disabled={!typed.trim()} className="btn-duo">
+                      Antwort prüfen
+                    </button>
+                  )}
                 </form>
               )}
               {feedback !== null && (
                 <div role="status" className={`feedback-panel ${feedback ? 'is-correct' : 'is-wrong'}`}>
-                  <strong>{feedback ? 'Richtig!' : 'Noch einmal ansehen'}</strong>
+                  <strong>{feedback ? '✓ Richtig!' : 'Das merken wir uns.'}</strong>
                   <p lang="ja" className="jp text-xl my-2">
                     {card.answerCharacter}
                   </p>
                   <p>{card.answerRomaji}</p>
+                  {kanjiParts[card.answerCharacter] ? (
+                    <p className="mt-3">Merkhilfe: {kanjiParts[card.answerCharacter].hint}</p>
+                  ) : (
+                    card.parent.exampleWord && (
+                      <p className="mt-3">
+                        Im Wort{' '}
+                        <span lang="ja" className="jp">
+                          {card.parent.exampleWord}
+                        </span>{' '}
+                        · {card.parent.exampleMeaning}
+                      </p>
+                    )
+                  )}
+                  {!feedback && <p className="mt-2">Für die Wiederholung vorgemerkt.</p>}
                   {lesson.category === 'grammar' && (
                     <p className="mt-3 text-sm">
                       {grammarData.find((point) => lesson.grammarIds?.includes(point.id))?.explanation}

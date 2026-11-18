@@ -19,6 +19,8 @@ import LessonPage from '@/pages/LessonPage'
 import MissionsPage from '@/pages/MissionsPage'
 import TrainingPage from '@/pages/TrainingPage'
 import NotebookPage from '@/pages/NotebookPage'
+import ExplorePage from '@/pages/ExplorePage'
+import CollectionPage from '@/pages/CollectionPage'
 
 function AppRoutes() {
   const hydrated = useStoreHydration()
@@ -56,6 +58,8 @@ function AppRoutes() {
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/me" element={<CollectionPage />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/learn/:id" element={<CharacterDetailPage />} />
             <Route path="/practice" element={<PracticePage />} />

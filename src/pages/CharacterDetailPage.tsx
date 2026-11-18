@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import StrokeCanvas from '@/components/StrokeCanvas'
 import RubyText from '@/components/RubyText'
@@ -9,11 +9,14 @@ import { CAT_LABELS, STATUS_LABELS } from '@/constants/status'
 import { strokeCharacters } from '@/data/strokeAssets'
 import { kanjiParts } from '@/data/kanjiParts'
 import { reviewIntervalLabel } from '@/utils/sm2'
+import CollectionSteps from '@/components/CollectionSteps'
 export default function CharacterDetailPage() {
   const { id } = useParams()
   return <Detail key={id} id={id ?? ''} />
 }
 function Detail({ id }: { id: string }) {
+  const [params] = useSearchParams()
+  const fromCollection = params.get('from') === 'collection'
   const store = useStore(),
     item = store.items[id],
     hasStrokes = Boolean(item && strokeCharacters.has(item.character))
@@ -35,7 +38,11 @@ function Detail({ id }: { id: string }) {
   return (
     <div className="page-screen">
       <header className="detail-heading">
-        <Link to="/learn" className="icon-button" aria-label="Zur Lernbibliothek">
+        <Link
+          to={fromCollection ? `/me?category=${item.category}` : '/learn'}
+          className="icon-button"
+          aria-label={fromCollection ? 'Zur Sammlung' : 'Zur Lernbibliothek'}
+        >
           ‹
         </Link>
         <div className="flex-1 min-w-0">
@@ -81,6 +88,9 @@ function Detail({ id }: { id: string }) {
         <div className="page-width detail-content">
           {tab === 'info' ? (
             <>
+              {item.category !== 'vocabulary' && (
+                <CollectionSteps item={item} introducedIds={store.introducedIds} />
+              )}
               <div className="card-surface activity-card mb-5">
                 <div className="character-prompt">
                   <RubyText

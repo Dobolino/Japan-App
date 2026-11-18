@@ -8,6 +8,8 @@ import type { SRSRating } from '@/types'
 import type { ReviewCard } from '@/types/review'
 import { grammarData } from '@/data/grammar'
 import type { Phase, Direction, PracticeMode } from '@/hooks/usePracticeSession'
+import { Link } from 'react-router-dom'
+import { kanjiParts } from '@/data/kanjiParts'
 
 interface Props {
   current: ReviewCard
@@ -57,40 +59,46 @@ export default function PracticeCard({
       state.items[current.srsId] ??
       current.parent
   )
-  const progressPct = queueLength > 0 ? ((index + 1) / queueLength) * 100 : 0
+  const progressPct = queueLength > 0 ? (index / queueLength) * 100 : 0
   const typedCorrect = typed ? reviewCardMatchesAnswer(typed, current) : false
+  const willRetry = useStore((state) => !state.activeSession?.retries.includes(current.srsId))
   const grammarExplanation = grammarData.find((point) =>
     current.srsId.startsWith(`grammar:${point.id}:`)
   )?.explanation
   const kindLabel =
-    current.kind === 'grammar-sentence' ? 'Grammatik' : current.kind === 'sentence' ? 'Satz' : 'Wort'
+    current.kind === 'grammar-sentence'
+      ? 'Grammatik'
+      : current.kind === 'sentence'
+        ? 'Satz'
+        : current.parent.category === 'vocabulary'
+          ? 'Wort'
+          : 'Zeichen'
 
   useCardAudio(current, phase, autoPlayAudio, direction)
 
   return (
     <div className="page-screen px-4 practice-active">
-      <p className="text-xs text-[var(--text-muted)] pt-2">
-        Beim Verlassen bleibt diese Lektion gespeichert.
-      </p>
-      <div className="pt-3 pb-2 shrink-0">
-        <div className="flex justify-between text-xs text-[var(--text-muted)] font-semibold mb-1.5">
-          <span>
-            {index + 1} / {queueLength}
-          </span>
-          <span>
-            {practiceMode === 'srs' ? 'SRS' : 'Karten'} · {kindLabel} · {productionMode ? '🇩🇪→🇯🇵' : '🇯🇵→🇩🇪'}
-          </span>
-        </div>
+      <div className="exercise-topbar pt-4 shrink-0">
+        <Link to="/" className="exercise-pause" aria-label="Übung pausieren">
+          ×
+        </Link>
         <div
           className="progress-track h-3"
           role="progressbar"
-          aria-valuenow={index + 1}
-          aria-valuemin={1}
+          aria-label="Fortschritt der Übung"
+          aria-valuenow={index}
+          aria-valuemin={0}
           aria-valuemax={queueLength}
         >
           <div className="progress-fill h-full" style={{ width: `${progressPct}%` }} />
         </div>
+        <span>
+          {index + 1}/{queueLength}
+        </span>
       </div>
+      <p className="eyebrow mb-3">
+        {kindLabel} · {productionMode ? 'Selbst abrufen' : 'Erkennen'}
+      </p>
 
       <div key={current.cardId} className="flex-1 min-h-0 flex flex-col pb-2 flashcard-enter">
         <FlashcardFace
@@ -146,15 +154,40 @@ export default function PracticeCard({
           <>
             {typed && (
               <div
-                className={`w-full card-surface p-3 text-sm text-center font-bold ${typedCorrect || lastCheckedCorrect ? 'border-[var(--green)] text-[var(--green)]' : 'border-[var(--red)] text-[var(--red)]'}`}
+                role="status"
+                className={`feedback-panel ${typedCorrect || lastCheckedCorrect ? 'is-correct' : 'is-wrong'}`}
               >
                 {typedCorrect || lastCheckedCorrect
                   ? '✓ Richtig!'
                   : `Deine Antwort: ${typed} — Richtig: ${current.answerCharacter} (${current.answerRomaji})`}
+                {kanjiParts[current.answerCharacter] ? (
+                  <p className="mt-2 font-normal">Merkhilfe: {kanjiParts[current.answerCharacter].hint}</p>
+                ) : (
+                  current.parent.exampleWord && (
+                    <p className="mt-2 font-normal">
+                      Im Wort{' '}
+                      <span lang="ja" className="jp">
+                        {current.parent.exampleWord}
+                      </span>{' '}
+                      · {current.parent.exampleMeaning}
+                    </p>
+                  )
+                )}
+                {!lastCheckedCorrect && !typedCorrect && (
+                  <p className="mt-2 font-normal">
+                    {willRetry
+                      ? 'Das üben wir in dieser Runde noch einmal.'
+                      : 'Für die nächste Wiederholung vorgemerkt.'}
+                  </p>
+                )}
               </div>
             )}
             {!typed && (
-              <p className="text-center text-sm text-[var(--text-muted)] font-semibold">Antwort angeschaut</p>
+              <p role="status" className="text-center text-sm text-[var(--text-muted)] font-semibold">
+                {willRetry
+                  ? 'Antwort angeschaut · wir wiederholen das gleich.'
+                  : 'Antwort angeschaut · für die nächste Wiederholung vorgemerkt.'}
+              </p>
             )}
             {grammarExplanation && (
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed" role="note">

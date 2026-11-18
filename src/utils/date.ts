@@ -5,6 +5,15 @@ export function localDateKey(d = new Date()): string {
   return d.toLocaleDateString('sv-SE')
 }
 
+/** Show expired streaks as zero without overwriting the learner's history. */
+export function activeStreak(progress: UserProgress, now = new Date()): number {
+  if (!progress.lastStudyDate) return 0
+  const last = localDateKey(new Date(progress.lastStudyDate))
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  return last === localDateKey(now) || last === localDateKey(yesterday) ? progress.currentStreak : 0
+}
+
 export function updateStreak(
   progress: UserProgress,
   now = new Date()

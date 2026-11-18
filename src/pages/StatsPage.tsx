@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import PageHeader from '@/components/PageHeader'
 import WeeklyProgress from '@/components/WeeklyProgress'
 import { useStore } from '@/store/useStore'
-import { STATS_CAT_OPTIONS } from '@/constants/srs'
+import { STATS_CAT_OPTIONS, xpToLevel } from '@/constants/srs'
 import { catFilterLabel } from '@/constants/status'
 import type { ItemCategory } from '@/types'
+import { activeStreak } from '@/utils/date'
+import { useLocalNow } from '@/hooks/useLocalNow'
 
 type CatFilter = ItemCategory | 'all'
 
@@ -16,6 +18,7 @@ function pct(mastered: number, total: number): number {
 export default function StatsPage() {
   const { items, progress, grammarSrs } = useStore()
   const [catFilter, setCatFilter] = useState<CatFilter>('all')
+  const now = useLocalNow()
 
   const all = Object.values(items).filter((i) => catFilter === 'all' || i.category === catFilter)
 
@@ -72,6 +75,12 @@ export default function StatsPage() {
   return (
     <div className="scroll-area h-full">
       <div className="page-width">
+        <nav className="personal-tabs" aria-label="Dein Bereich">
+          <Link to="/me">Sammlung</Link>
+          <Link to="/stats" aria-current="page">
+            Fortschritt
+          </Link>
+        </nav>
         <PageHeader
           eyebrow="DEIN LERNWEG"
           title="Sieh, was du schon kannst."
@@ -99,9 +108,11 @@ export default function StatsPage() {
 
         <h2 className="text-sm font-semibold mb-3">Dein Lernen insgesamt</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
+          <BigStat label="App-Level" value={String(xpToLevel(progress.xp ?? 0))} />
+          <BigStat label="Lernpunkte (XP)" value={String(progress.xp ?? 0)} />
           <BigStat
             label="Lernserie"
-            value={`${progress.currentStreak} ${progress.currentStreak === 1 ? 'Tag' : 'Tage'}`}
+            value={`${activeStreak(progress, now)} ${activeStreak(progress, now) === 1 ? 'Tag' : 'Tage'}`}
           />
           <BigStat label="Genauigkeit" value={progress.cardsReviewed > 0 ? `${accuracy}%` : '–'} />
           <BigStat label="Gesamt richtig" value={String(progress.totalCorrect)} accent="green" />

@@ -18,6 +18,9 @@ export function useTheme() {
       const resolved = resolveTheme(theme)
       document.documentElement.dataset.theme = resolved
       document.documentElement.style.colorScheme = resolved
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', resolved === 'dark' ? '#1d2228' : '#fbf8f3')
     }
 
     apply()

@@ -29,7 +29,7 @@ export default function PracticePage() {
         sessionRatings={session.sessionRatings}
         direction={session.direction}
         onBack={session.resetToIdle}
-        onRestart={session.restart}
+        onRestart={session.resetToIdle}
       />
     )
   }

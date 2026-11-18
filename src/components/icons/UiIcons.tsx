@@ -1,5 +1,29 @@
 import type { ReactNode } from 'react'
 
+export function CompassIcon() {
+  return (
+    <LineIcon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m16 8-2.5 5.5L8 16l2.5-5.5Z" />
+    </LineIcon>
+  )
+}
+export function PersonIcon() {
+  return (
+    <LineIcon>
+      <circle cx="12" cy="7" r="4" />
+      <path d="M4 21c0-5 3-7 8-7s8 2 8 7" />
+    </LineIcon>
+  )
+}
+export function FlameIcon() {
+  return (
+    <LineIcon>
+      <path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.7 1.2 2.6 2.5 3 0-3-1-5.5 0-8Z" />
+    </LineIcon>
+  )
+}
+
 function LineIcon({ children, className = 'w-5 h-5' }: { children: ReactNode; className?: string }) {
   return (
     <svg

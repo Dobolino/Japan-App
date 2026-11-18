@@ -2,6 +2,14 @@
 
 PWA zum Lernen von Hiragana, Katakana, Kanji, Wortschatz und Grammatik. Ruhige Oberfläche, geführte Lektionen und SRS-Wiederholung (SM-2-Variante).
 
+## Aufbau
+
+- **Heute:** Lernserie, Tagesring und ein Knopf zum direkten Starten oder Fortsetzen.
+- **Entdecken:** Kurs, Übungen, Bibliothek, Geschichten, Missionen, Lernwerkstatt und Lernheft.
+- **Ich:** Hiragana-/Katakana-/Kanji-Sammlung mit tatsächlichen Lernstufen sowie Fortschrittsauswertung.
+
+Warme Farben, lokale Nunito-Schrift und heller/dunkler Modus. [Redesign A + C mit Screenshots](docs/REDESIGN.md).
+
 ## Lernfunktionen
 
 - Geführter Kurs mit Einführung, Erkennen und aktiver Eingabe; Lektionen und Übungen später fortsetzen.
@@ -104,4 +112,4 @@ Bei einer auf dem Home-Bildschirm installierten App: vollständig schließen und
 
 ## Lizenz
 
-Anwendungscode: ISC. Die AnimCJK-Strichdaten haben die oben verlinkten eigenen Lizenzen.
+Anwendungscode: ISC. Die AnimCJK-Strichdaten haben die oben verlinkten eigenen Lizenzen. Die lokal ausgelieferte Nunito-Schrift verwendet die [SIL Open Font License](public/fonts/Nunito-LICENSE.txt).

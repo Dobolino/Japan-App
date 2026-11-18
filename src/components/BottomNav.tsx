@@ -1,30 +1,38 @@
-import { NavLink } from 'react-router-dom'
-import { HomeIcon, BookIcon, PracticeIcon, ReadingIcon, ChartIcon } from '@/components/icons/UiIcons'
+import { Link, useLocation } from 'react-router-dom'
+import { useStore } from '@/store/useStore'
+import { HomeIcon, CompassIcon, PersonIcon } from '@/components/icons/UiIcons'
 
 const tabs = [
   { to: '/', label: 'Heute', Icon: HomeIcon },
-  { to: '/learn', label: 'Lernen', Icon: BookIcon },
-  { to: '/practice', label: 'Üben', Icon: PracticeIcon },
-  { to: '/immerse', label: 'Lesen', Icon: ReadingIcon },
-  { to: '/stats', label: 'Fortschritt', Icon: ChartIcon },
+  { to: '/explore', label: 'Entdecken', Icon: CompassIcon },
+  { to: '/me', label: 'Ich', Icon: PersonIcon },
 ]
-
 export default function BottomNav() {
+  const { pathname, search } = useLocation()
+  const session = useStore((state) => state.activeSession)
+  const active =
+    pathname === '/'
+      ? '/'
+      : ['/me', '/stats', '/settings'].includes(pathname) ||
+          new URLSearchParams(search).get('from') === 'collection'
+        ? '/me'
+        : '/explore'
+  if (pathname.startsWith('/lesson/') || (pathname === '/practice' && session)) return null
   return (
     <nav className="bottom-nav" aria-label="Hauptnavigation">
       <div className="bottom-nav-inner">
         {tabs.map(({ to, label, Icon }) => (
-          <NavLink
+          <Link
             key={to}
             to={to}
-            end={to === '/'}
-            className={({ isActive }) => `bottom-nav-item ${isActive ? 'bottom-nav-item--active' : ''}`}
+            aria-current={active === to ? 'page' : undefined}
+            className={`bottom-nav-item ${active === to ? 'bottom-nav-item--active' : ''}`}
           >
             <span className="bottom-nav-icon">
               <Icon />
             </span>
             <span className="bottom-nav-label">{label}</span>
-          </NavLink>
+          </Link>
         ))}
       </div>
     </nav>
