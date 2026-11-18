@@ -4,7 +4,7 @@ import { catalogById } from '@/data/catalog'
 import { lessonById } from '@/data/curriculum'
 import { grammarData } from '@/data/grammar'
 import { stories } from '@/data/stories'
-import { lemmaCard, sentenceCard, grammarSentenceCard } from '@/types/review'
+import { rebuildSessionCard } from '@/store/rebuildSessionCard'
 export const BACKUP_LIMIT = 5 * 1024 * 1024
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -65,19 +65,9 @@ function restoreSession(raw: unknown, state: PersistentState): SessionSnapshot |
     const card = record(rawCard, 'Karte')
     text(card.srsId, 'Karten-ID', 150)
     text(card.cardId, 'Kartenkennung', 200)
-    const id = String(card.srsId)
-    let rebuilt
-    if (id.startsWith('grammar:')) {
-      const entry = state.grammarSrs[id],
-        point = grammarData.find((g) => g.id === entry?.grammarId)
-      if (point && entry)
-        rebuilt = grammarSentenceCard(point, entry.exampleIndex, point.examples[entry.exampleIndex])
-    } else if (id.endsWith(':ex')) {
-      const item = state.items[id.slice(0, -3)]
-      if (item) rebuilt = sentenceCard(item)
-    } else if (state.items[id]) rebuilt = lemmaCard(state.items[id])
+    const rebuilt = rebuildSessionCard(state, String(card.srsId), String(card.cardId))
     if (!rebuilt) throw new Error('Unbekannte Karte in der Sitzung.')
-    return { ...rebuilt, cardId: String(card.cardId) }
+    return rebuilt
   })
   number(session.index, 'Kartenposition', queue.length)
   if (!Number.isInteger(session.index)) throw new Error('Ungültige Kartenposition.')
@@ -136,7 +126,7 @@ export function parseBackup(contents: string): {
     if (!catalogById[id]) throw new Error(`Unbekannter Inhalt: ${id}`)
     schedule(item)
   }
-  const state = restoreState(source)
+  const state = restoreState({ ...source, activeSession: null })
   for (const [id, entry] of Object.entries(grammar)) {
     if (!state.grammarSrs[id] || !/^grammar:g-[\w-]+:\d+$/.test(id))
       throw new Error('Unbekannte Grammatikkarte.')

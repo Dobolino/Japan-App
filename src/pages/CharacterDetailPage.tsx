@@ -110,14 +110,16 @@ function Detail({ id }: { id: string }) {
                 </div>
                 {item.readings && (
                   <dl className="mt-5 text-left text-sm">
-                    <dt className="eyebrow mb-2">Mögliche Lesungen</dt>
+                    <dt className="eyebrow mb-2">Ausgewählte Lesungen</dt>
                     {item.readings.map((reading, index) => (
                       <dd key={`${reading.kana}-${index}`} className="py-2 border-b border-[var(--border)]">
                         <span className="text-[var(--text-muted)] mr-2">
                           {reading.kind === 'on' ? 'On' : reading.kind === 'kun' ? 'Kun' : ''}
                         </span>
                         <span lang="ja" className="jp">
+                          {reading.writtenForm && `${reading.writtenForm}（`}
                           {reading.kana}
+                          {reading.writtenForm && '）'}
                         </span>{' '}
                         · {reading.romaji}
                       </dd>

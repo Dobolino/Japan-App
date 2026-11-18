@@ -37,3 +37,40 @@ describe('Japanese answer recognition', () => {
     expect(lemmaCard(item).srsId).toBe(item.id)
   })
 })
+
+describe('Japanese spelling and kana reading prompts', () => {
+  it.each([
+    ['じ', 'ぢ', 'ji'],
+    ['ぢ', 'じ', 'ji'],
+    ['ず', 'づ', 'zu'],
+    ['ヅ', 'ズ', 'zu'],
+  ])('keeps written %s distinct from %s while accepting its reading %s', (expected, other, romaji) => {
+    const item = catalog.find((entry) => entry.character === expected)!
+    expect(matchesJapaneseAnswer(other, item)).toBe(false)
+    expect(matchesJapaneseAnswer(expected, item)).toBe(true)
+    const card = lemmaCard(item)
+    expect(reviewCardMatchesAnswer(romaji, card)).toBe(true)
+    expect(reviewCardMatchesAnswer(other, card)).toBe(false)
+    expect(reviewCardMatchesAnswer(expected, card)).toBe(false)
+  })
+  it('checks the written particle and greeting when a spelling is known', () => {
+    const greeting = catalog.find((item) => item.character === 'こんにちは')!
+    expect(reviewCardMatchesAnswer('こんにちわ', lemmaCard(greeting))).toBe(false)
+    expect(reviewCardMatchesAnswer('こんにちは', lemmaCard(greeting))).toBe(true)
+    expect(reviewCardMatchesAnswer('konnichiwa', lemmaCard(greeting))).toBe(true)
+    expect(matchesAlternatives('みずおください', ['水をください', 'みずをください', 'mizu o kudasai'])).toBe(
+      false
+    )
+  })
+  it('does not turn みづ or みずっ into みず on romaji-only vocabulary cards', () => {
+    const water = catalog.find((item) => item.character === '水' && item.category === 'vocabulary')!
+    expect(reviewCardMatchesAnswer('ﾐｽﾞ', lemmaCard(water))).toBe(true)
+    expect(reviewCardMatchesAnswer('みづ', lemmaCard(water))).toBe(false)
+    expect(reviewCardMatchesAnswer('みずっ', lemmaCard(water))).toBe(false)
+  })
+  it('accepts the full written form of a listed Kun reading including okurigana', () => {
+    const item = catalog.find((entry) => entry.character === '入' && entry.category === 'kanji')!
+    expect(reviewCardMatchesAnswer('入る', lemmaCard(item))).toBe(true)
+    expect(reviewCardMatchesAnswer('入た', lemmaCard(item))).toBe(false)
+  })
+})

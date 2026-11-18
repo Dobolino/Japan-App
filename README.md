@@ -17,9 +17,12 @@ Warme Farben, lokale Nunito-Schrift und heller/dunkler Modus. [Redesign A + C mi
 - Verwechslungstrainer, Hörverständnis, Kompetenzchecks und drei Alltagsmissionen.
 - Sieben zusammenhängende Geschichten mit Worterklärungen, Satzbau und Verständnisfragen.
 - Nachsprechen mit regelbarem Tempo und Wiederholungen.
+- Hörtraining mit Irodori, Einstiegskursen auf Deutsch und drei Anime-Empfehlungen mit Höraufgaben.
 - Strichfolge und bewusst gespeicherte Schreibübungen für alle 79 Kanji, mit Form-Merkhilfen.
 - Adaptiv reduzierte Lesehilfen, Lernheft mit eigenen Notizen und Sammlungen, echter Wochenverlauf.
 - Versionierter JSON-Export/-Import mit Vorschau und Wiederherstellungskopie unter Einstellungen.
+
+[Prüfung der Zeichen und Lesungen mit Wörterbüchern und Quellen](docs/JAPANESE_CONTENT_AUDIT.md)
 
 Lernstände bleiben auf dem Gerät. Anmeldung und automatische Gerätesynchronisierung sind für später vorbereitet; aktuell erfolgt ein Gerätewechsel über die Sicherungsdatei. [Umsetzungsstand und Prüfungen](docs/IMPLEMENTATION_STATUS.md) · [Ursprüngliches App-Review](docs/APP_REVIEW.md)
 

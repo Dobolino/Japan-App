@@ -46,6 +46,13 @@ const activities = [
     tone: 'green',
   },
   {
+    to: '/explore/listening',
+    title: 'Japanisch mit Anime und Audio',
+    description: 'Finde eine Szene und übe einen Satz für deinen Alltag.',
+    symbol: '耳',
+    tone: 'green',
+  },
+  {
     to: '/notebook',
     title: 'Dein Lernheft',
     description: 'Gemerkte Inhalte und eigene Notizen.',

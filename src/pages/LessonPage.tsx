@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { lessonById } from '@/data/curriculum'
 import { grammarData } from '@/data/grammar'
-import { lemmaCard, grammarSentenceCard } from '@/types/review'
+import { lemmaCard, grammarSentenceCard, isKanaLetterCard } from '@/types/review'
 import { reviewCardMatchesAnswer } from '@/utils/buildReviewQueue'
 import { playJapanese, unlockAudio } from '@/utils/audio'
 import PageHeader from '@/components/PageHeader'
@@ -48,7 +48,6 @@ function Lesson({ id }: { id: string }) {
   const begin = () => {
     const runId = crypto.randomUUID()
     setSessionId(runId)
-    store.introduceItems(lesson.itemIds, lesson.grammarIds)
     store.saveLessonDraft(id, { index: 0, stage: 'intro', correct: 0, attempted: 0, runId })
     setStarted(true)
     setDone(false)
@@ -88,7 +87,8 @@ function Lesson({ id }: { id: string }) {
   }
   const check = (answer: string) => {
     if (feedback !== null) return
-    const correct = reviewCardMatchesAnswer(answer, card)
+    const correct =
+      draft.stage === 'recognition' ? answer === card.answerCharacter : reviewCardMatchesAnswer(answer, card)
     setFeedback(correct)
     store.saveLessonDraft(id, { ...draft, feedback: correct, typed: answer, runId: sessionId })
     store.rateReview(
@@ -124,7 +124,11 @@ function Lesson({ id }: { id: string }) {
             <ol className="lesson-steps">
               <li>Entdecke {cards.length} Inhalte mit Bedeutung und Aussprache.</li>
               <li>Erkenne die passende japanische Antwort.</li>
-              <li>Gib die Antwort selbst ein – Japanisch oder Romaji.</li>
+              <li>
+                {isKanaLetterCard(cards[0])
+                  ? 'Lies jedes Zeichen und tippe seine Lesung in Rōmaji.'
+                  : 'Gib die Antwort selbst ein – Japanisch oder Romaji.'}
+              </li>
             </ol>
             <button type="button" className="btn-duo" onClick={begin}>
               Lektion beginnen
@@ -195,7 +199,16 @@ function Lesson({ id }: { id: string }) {
           ))}
         </ol>
         <section className="card-surface activity-card">
-          <p className="eyebrow mb-5">{draft.stage === 'intro' ? stageName : card.promptMeaning}</p>
+          {draft.stage === 'production' && isKanaLetterCard(card) ? (
+            <>
+              <p className="eyebrow mb-3">Wie liest du dieses Zeichen?</p>
+              <p lang="ja" className="jp jp-display mb-5">
+                {card.answerCharacter}
+              </p>
+            </>
+          ) : (
+            <p className="eyebrow mb-5">{draft.stage === 'intro' ? stageName : card.promptMeaning}</p>
+          )}
           {draft.stage === 'intro' ? (
             <>
               <p lang="ja" className="jp jp-display">
@@ -245,6 +258,7 @@ function Lesson({ id }: { id: string }) {
                   </label>
                   <input
                     id="lesson-answer"
+                    placeholder={isKanaLetterCard(card) ? 'Lesung in Rōmaji' : 'Japanisch oder Rōmaji'}
                     autoFocus
                     autoComplete="off"
                     autoCapitalize="none"

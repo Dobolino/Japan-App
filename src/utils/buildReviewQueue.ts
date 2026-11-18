@@ -5,6 +5,7 @@ import {
   cardVariantForItem,
   grammarSentenceCard,
   isGrammarSrsId,
+  isKanaLetterCard,
   lemmaCard,
   type ReviewCard,
 } from '@/types/review'
@@ -67,6 +68,12 @@ export function pickGrammarReviewCards(
 
 /** Match typed answer against a review card (lemma or full sentence). */
 export function reviewCardMatchesAnswer(typed: string, card: ReviewCard): boolean {
+  if (isKanaLetterCard(card)) {
+    if (!/^[a-zāīūēō]+$/iu.test(typed.normalize('NFKC').trim())) return false
+    const readings = card.answerRomaji.split(' / ')
+    if (card.answerCharacter === 'を' || card.answerCharacter === 'ヲ') readings.push('o')
+    return matchesAlternatives(typed, readings)
+  }
   return matchesAlternatives(typed, [
     card.answerCharacter,
     ...card.answerRomaji.split(' / '),

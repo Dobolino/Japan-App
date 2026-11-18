@@ -1,6 +1,20 @@
 import type { DrawingStroke, StrokeSegment } from '@/types'
 type Point = { x: number; y: number }
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
+function pathError(user: Point[], reference: Point[], reversed = false) {
+  return (
+    user.reduce(
+      (sum, point, i) => sum + distance(point, reference[reversed ? reference.length - 1 - i : i]),
+      0
+    ) / user.length
+  )
+}
+
+// Only flag a direction/order mismatch when the alternative path is close and
+// clearly better. Nearby parallel strokes and slightly imprecise traces can be ambiguous.
+function clearlyCloser(alternative: number, original: number) {
+  return alternative < 0.08 && alternative + 0.025 < original && alternative < original * 0.5
+}
 export function resample(points: Point[], count = 32): Point[] {
   if (points.length < 2) return Array.from({ length: count }, () => points[0] ?? { x: 0, y: 0 })
   const lengths = [0]
@@ -33,24 +47,36 @@ export function evaluateDrawing(strokes: DrawingStroke[], reference: StrokeSegme
     ),
     ref = reference.map((stroke) => resample(stroke.points.map(([x, y]) => ({ x, y }))))
   const paired = Math.min(user.length, ref.length)
+  let strokeHint = ''
   let error = 0,
     ends = 0
   for (let i = 0; i < paired; i++) {
-    error += user[i].reduce((sum, point, index) => sum + distance(point, ref[i][index]), 0) / 32
+    const forward = pathError(user[i], ref[i])
+    error += forward
     ends += distance(user[i][0], ref[i][0]) + distance(user[i][31], ref[i][31])
+    if (strokeHint || user.length !== ref.length) continue
+    if (clearlyCloser(pathError(user[i], ref[i], true), forward)) {
+      strokeHint = `Vergleiche die Richtung von Strich ${i + 1} mit der Animation.`
+    } else if (
+      ref.some((expected, index) => index !== i && clearlyCloser(pathError(user[i], expected), forward))
+    ) {
+      strokeHint = `Vergleiche die Reihenfolge ab Strich ${i + 1} mit der Animation.`
+    }
   }
   let score = Math.round(
     Math.max(0, 100 - (error / paired) * 190 - (ends / paired) * 35 - Math.abs(user.length - ref.length) * 25)
   )
   if (user.length !== ref.length) score = Math.min(40, score)
+  if (strokeHint) score = Math.min(69, score)
   return {
     score,
     message:
       user.length !== ref.length
         ? `Vergleiche die Strichzahl: ${user.length} statt ${ref.length}.`
-        : score >= 70
-          ? 'Form, Reihenfolge und Strichrichtung passen gut zur Vorlage.'
-          : 'Vergleiche Ansatzpunkte, Strichrichtung und Reihenfolge mit der Animation.',
+        : strokeHint ||
+          (score >= 70
+            ? 'Form, Reihenfolge und Strichrichtung passen gut zur Vorlage.'
+            : 'Vergleiche Ansatzpunkte, Strichrichtung und Reihenfolge mit der Animation.'),
     expected: ref.length,
     actual: user.length,
   }

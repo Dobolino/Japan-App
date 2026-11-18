@@ -1,3 +1,5 @@
+import { toHiragana } from '@/utils/transliteration'
+import { knownSentenceWords } from '@/data/sentenceIndex'
 import { classifyChar, codePoints } from '@/utils/scriptAnalyzer'
 
 export interface RubySegment {
@@ -23,43 +25,45 @@ export function isKanaReading(reading: string): boolean {
  * Works for grammar example sentences (e.g. 私は… + わたしは…).
  */
 export function alignFurigana(text: string, reading: string): RubySegment[] {
+  const known = knownSentenceWords(text, reading)
+  if (known) return known.flatMap((word) => word.segments)
   if (!isKanaReading(reading)) {
     return [{ text }]
   }
 
-  const chars = codePoints(text)
-  const readChars = codePoints(reading.replace(/\s/g, ''))
+  // Without authored boundaries only assign ruby when the surrounding kana
+  // identify the reading of the kanji run unambiguously.
+  const runs = text.match(/[\p{Script=Han}々]+|[^\p{Script=Han}々]+/gu) ?? []
+  const phonetic = toHiragana(reading).replace(/\s/g, '')
+  if (!runs.some((run) => /[\p{Script=Han}々]/u.test(run)))
+    return codePoints(text).map((ch) => ({ text: ch }))
   const segments: RubySegment[] = []
-  let ri = 0
-  let i = 0
-
-  while (i < chars.length) {
-    const ch = chars[i]
-    const type = classifyChar(ch)
-
-    if (type !== 'kanji') {
-      if (ri < readChars.length && readChars[ri] === ch) ri++
-      segments.push({ text: ch })
-      i++
+  let offset = 0
+  for (const [index, run] of runs.entries()) {
+    if (!/[\p{Script=Han}々]/u.test(run)) {
+      const anchor = toHiragana(run).replace(/\s/g, '')
+      if (!phonetic.startsWith(anchor, offset)) return [{ text }]
+      offset += anchor.length
+      segments.push(...codePoints(run).map((ch) => ({ text: ch })))
       continue
     }
-
-    let kanjiRun = ''
-    while (i < chars.length && classifyChar(chars[i]) === 'kanji') {
-      kanjiRun += chars[i]
-      i++
+    const next = runs[index + 1]
+    let end = phonetic.length
+    if (next) {
+      const anchor = toHiragana(next).replace(/\s/g, '')
+      if (index + 2 === runs.length) {
+        if (!phonetic.endsWith(anchor)) return [{ text }]
+        end -= anchor.length
+      } else {
+        end = phonetic.indexOf(anchor, offset + 1)
+        if (phonetic.indexOf(anchor, end + 1) !== -1) return [{ text }]
+      }
     }
-
-    let ruby = ''
-    const nextChar = i < chars.length ? chars[i] : null
-    while (ri < readChars.length) {
-      if (nextChar && readChars[ri] === nextChar) break
-      ruby += readChars[ri]
-      ri++
-    }
-
-    segments.push({ text: kanjiRun, reading: ruby || undefined })
+    if (end <= offset) return [{ text }]
+    const ruby = phonetic.slice(offset, end)
+    if (!/^[\p{Script=Hiragana}ー]+$/u.test(ruby)) return [{ text }]
+    segments.push({ text: run, reading: ruby })
+    offset = end
   }
-
-  return segments
+  return offset === phonetic.length ? segments : [{ text }]
 }

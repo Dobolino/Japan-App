@@ -1,6 +1,8 @@
+import { knownSentenceWords } from '@/data/sentenceIndex'
 import { alignFurigana, isKanaReading } from '@/utils/furigana'
 import { classifyChar, codePoints } from '@/utils/scriptAnalyzer'
 import { isKnownParticle, lookupToken, particleMeaning } from '@/utils/lexicon'
+import { kanaToRomaji } from '@/utils/transliteration'
 import type { Token, TokenPos } from '@/types/token'
 
 const MULTI_PARTICLES = ['から', 'まで', 'より']
@@ -22,7 +24,7 @@ function enrichToken(surface: string, reading: string, pos: TokenPos): Token {
     pos,
     lemmaId: hit?.id,
     meaning: hit?.meaning,
-    romaji: hit?.romaji,
+    romaji: hit && kanaToRomaji(reading),
   }
 }
 
@@ -115,6 +117,12 @@ function splitKanaOnParticles(kana: string): string[] {
  * Falls back to particle splitting on kana-only input.
  */
 export function tokenizeJapanese(text: string, reading?: string): Token[] {
+  const words = knownSentenceWords(text, reading)
+  if (words)
+    return words.map(({ surface, reading, segments }) => {
+      if (/^[。、！？]$/.test(surface)) return { surface, reading, pos: 'punctuation' }
+      return { ...enrichToken(surface, reading, isKnownParticle(surface) ? 'particle' : 'word'), segments }
+    })
   const stripped = text.replace(/[。、！？]/g, '').trim()
   if (!stripped) return []
 
@@ -124,11 +132,7 @@ export function tokenizeJapanese(text: string, reading?: string): Token[] {
 
   if (/^[\u3040-\u30FF\uFF65-\uFF9F]+$/.test(stripped)) {
     return splitKanaOnParticles(stripped).map((part) =>
-      enrichToken(
-        part,
-        part,
-        isKnownParticle(part) ? 'particle' : 'word'
-      )
+      enrichToken(part, part, isKnownParticle(part) ? 'particle' : 'word')
     )
   }
 

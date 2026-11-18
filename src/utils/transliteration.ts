@@ -57,12 +57,18 @@ export function normalizeAnswer(text: string): string {
     .replace(/oo|ou/g, 'ō')
 }
 export function matchesAlternatives(typed: string, targets: string[]): boolean {
-  if (!typed.trim()) return false
   const answer = normalizeAnswer(typed)
-  const kanaOnly = /^[\u3040-\u30ffー\s。、！？]+$/.test(typed.trim())
-  return targets.some(
-    (target) =>
-      normalizeAnswer(target) === answer ||
-      (kanaOnly && /[a-z]/i.test(target) && normalizeAnswer(kanaToRomaji(typed)) === normalizeAnswer(target))
-  )
+  if (!answer) return false
+  if (targets.some((target) => normalizeAnswer(target) === answer)) return true
+
+  // If the card gives a kana spelling, the learner's kana must match it. For
+  // example, こんにちわ sounds like こんにちは but is a different spelling.
+  const kanaOnly = /^[ぁ-ゖー]+$/u
+  if (!kanaOnly.test(answer) || targets.some((target) => kanaOnly.test(normalizeAnswer(target)))) return false
+
+  // Some legacy kanji/word cards only have romaji. Retain their kana input path
+  // without turning homophones (水: みず vs みづ) into interchangeable spellings.
+  if (answer.endsWith('っ')) return false
+  const spelling = kanaToRomaji(answer.replace(/づ/g, 'du').replace(/ぢ/g, 'di'))
+  return targets.some((target) => target.toLowerCase().replace(/[\s'’]/g, '') === spelling)
 }

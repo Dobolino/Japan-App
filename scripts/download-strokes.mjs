@@ -5,8 +5,9 @@
  * Run: node scripts/download-strokes.mjs
  */
 
-import { writeFileSync, readFileSync, readdirSync, mkdirSync } from 'node:fs'
+import { writeFileSync, readdirSync, mkdirSync } from 'node:fs'
 import { join } from 'path'
+import { kanjiN5Data } from '../src/data/kanji-n5.ts'
 
 // Hiragana + Katakana → svgsJaKana (decimal codepoint filenames)
 const BASE_KANA = 'https://raw.githubusercontent.com/parsimonhi/animCJK/master/svgsJaKana/'
@@ -25,9 +26,7 @@ const KATAKANA =
   'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ'
 
 // All N5 kanji
-const KANJI_N5 = [...readFileSync('src/data/kanji-n5.ts', 'utf8').matchAll(/character:\s*'([^']+)'/g)]
-  .map((match) => match[1])
-  .join('')
+const KANJI_N5 = kanjiN5Data.map((item) => item.character)
 
 async function download(char, baseUrl) {
   const cp = char.codePointAt(0).toString(10) // decimal filename

@@ -3,6 +3,7 @@ import { useReadingAids } from '@/hooks/useReadingAids'
 import { Link, useNavigate } from 'react-router-dom'
 import { playJapanese, unlockAudio } from '@/utils/audio'
 import { AudioIcon } from '@/components/icons/UiIcons'
+import RubyText from '@/components/RubyText'
 import { tokenizeJapanese } from '@/utils/tokenize'
 import { romajiFromReading } from '@/utils/kanaRomaji'
 import { useStore } from '@/store/useStore'
@@ -40,25 +41,31 @@ export default function TappableSentence({
   return (
     <div className={`tappable-sentence ${className}`.trim()}>
       <div className="flex flex-wrap items-baseline justify-center gap-x-0.5 gap-y-2 leading-relaxed">
-        {tokens.map((token, i) => (
-          <TokenChip
-            key={`${i}-${token.surface}`}
-            token={token}
-            open={active === i}
-            onToggle={() => setActive(active === i ? null : i)}
-            size={size}
-            isPinned={token.lemmaId ? pinnedReviewIds.includes(token.lemmaId) : false}
-            onPin={() => {
-              if (!token.lemmaId) return
-              if (pinnedReviewIds.includes(token.lemmaId)) {
-                unpinForReview(token.lemmaId)
-              } else {
-                pinForReview(token.lemmaId)
-              }
-            }}
-            onPractice={() => navigate('/practice')}
-          />
-        ))}
+        {tokens.map((token, i) =>
+          token.pos === 'punctuation' ? (
+            <span key={i} className="jp">
+              {token.surface}
+            </span>
+          ) : (
+            <TokenChip
+              key={`${i}-${token.surface}`}
+              token={token}
+              open={active === i}
+              onToggle={() => setActive(active === i ? null : i)}
+              size={size}
+              isPinned={token.lemmaId ? pinnedReviewIds.includes(token.lemmaId) : false}
+              onPin={() => {
+                if (!token.lemmaId) return
+                if (pinnedReviewIds.includes(token.lemmaId)) {
+                  unpinForReview(token.lemmaId)
+                } else {
+                  pinForReview(token.lemmaId)
+                }
+              }}
+              onPractice={() => navigate('/practice')}
+            />
+          )
+        )}
       </div>
 
       {showRomaji && romaji && (
@@ -98,7 +105,6 @@ function TokenChip({
   onPin: () => void
   onPractice: () => void
 }) {
-  const aids = useReadingAids(token.surface)
   const [position, setPosition] = useState({ left: 12, top: 12 })
   const container = useRef<HTMLSpanElement>(null),
     trigger = useRef<HTMLButtonElement>(null),
@@ -145,14 +151,13 @@ function TokenChip({
         className={`${chipClass} jp ${fontSize} font-medium px-1 py-0.5 rounded-lg transition-transform active:scale-95 ${isPinned ? 'ring-2 ring-[var(--green)]' : ''}`}
         aria-expanded={open}
       >
-        {aids.showFurigana && token.reading && /[一-龯]/.test(token.surface) ? (
-          <ruby lang="ja">
-            {token.surface}
-            <rt className="ruby-reading">{token.reading}</rt>
-          </ruby>
-        ) : (
-          token.surface
-        )}
+        <RubyText
+          text={token.surface}
+          reading={token.reading}
+          segments={token.segments}
+          size="inherit"
+          showRomaji={false}
+        />
       </button>
 
       {open && (

@@ -36,22 +36,22 @@ function kj(
   }
 }
 
-// JLPT N5 Kanji – 79 Zeichen
+// App selection of beginner kanji for N5 preparation (not an official JLPT list).
 export const kanjiN5Data: LearningItem[] = [
   // ── Zahlen ──────────────────────────────────────────────────────────────
   kj('一', '一', ['イチ'], ['ひと・つ'], 'Eins', 1, '一つ', 'hitotsu', 'eines'),
   kj('二', '二', ['ニ'], ['ふた・つ'], 'Zwei', 2, '二人', 'futari', 'zwei Personen'),
   kj('三', '三', ['サン'], ['みっ・つ'], 'Drei', 3, '三月', 'sangatsu', 'März'),
-  kj('四', '四', ['シ'], ['よっ・つ'], 'Vier', 5, '四月', 'shigatsu', 'April'),
+  kj('四', '四', ['シ'], ['よん', 'よっ・つ'], 'Vier', 5, '四月', 'shigatsu', 'April'),
   kj('五', '五', ['ゴ'], ['いつ・つ'], 'Fünf', 4, '五時', 'goji', '5 Uhr'),
   kj('六', '六', ['ロク'], ['むっ・つ'], 'Sechs', 4, '六月', 'rokugatsu', 'Juni'),
-  kj('七', '七', ['シチ'], ['なな・つ'], 'Sieben', 2, '七月', 'shichigatsu', 'Juli'),
+  kj('七', '七', ['シチ'], ['なな', 'なな・つ'], 'Sieben', 2, '七月', 'shichigatsu', 'Juli'),
   kj('八', '八', ['ハチ'], ['やっ・つ'], 'Acht', 2, '八月', 'hachigatsu', 'August'),
   kj('九', '九', ['ク', 'キュウ'], ['ここの・つ'], 'Neun', 2, '九時', 'kuji', '9 Uhr'),
   kj('十', '十', ['ジュウ'], ['とお'], 'Zehn', 2, '十月', 'juugatsu', 'Oktober'),
   kj('百', '百', ['ヒャク'], [], 'Hundert', 6, '三百', 'sanbyaku', '300'),
-  kj('千', '千', ['セン'], ['ち'], 'Tausend', 3, '千円', 'senen', '1000 Yen'),
-  kj('万', '万', ['マン', 'バン'], [], 'Zehntausend', 3, '一万円', 'ichimanen', '10.000 Yen'),
+  kj('千', '千', ['セン'], ['ち'], 'Tausend', 3, '千円', "sen'en", '1000 Yen'),
+  kj('万', '万', ['マン', 'バン'], [], 'Zehntausend', 3, '一万円', "ichiman'en", '10.000 Yen'),
 
   // ── Zeit & Kalender ─────────────────────────────────────────────────────
   kj('年', '年', ['ネン'], ['とし'], 'Jahr', 6, '今年', 'kotoshi', 'dieses Jahr'),
@@ -60,7 +60,7 @@ export const kanjiN5Data: LearningItem[] = [
   kj('時', '時', ['ジ'], ['とき'], 'Zeit / Uhr', 10, '何時', 'nanji', 'wie viel Uhr'),
   kj('分', '分', ['フン', 'ブン'], ['わ・ける'], 'Minute / teilen', 4, '五分', 'gofun', '5 Minuten'),
   kj('週', '週', ['シュウ'], [], 'Woche', 11, '来週', 'raishuu', 'nächste Woche'),
-  kj('午', '午', ['ゴ'], [], 'Mittag / Stunde', 4, '午前', 'gozen', 'Vormittag'),
+  kj('午', '午', ['ゴ'], [], 'Mittag', 4, '午前', 'gozen', 'Vormittag'),
   kj('前', '前', ['ゼン'], ['まえ'], 'Vorne / Vor', 9, '名前', 'namae', 'Name'),
   kj('後', '後', ['ゴ', 'コウ'], ['あと', 'うし・ろ'], 'Hinten / Nach', 9, '午後', 'gogo', 'Nachmittag'),
 
@@ -74,8 +74,8 @@ export const kanjiN5Data: LearningItem[] = [
   kj('土', '土', ['ド', 'ト'], ['つち'], 'Erde / Boden', 3, '土曜日', 'doyoubi', 'Samstag'),
   kj('空', '空', ['クウ'], ['そら', 'あ・く'], 'Himmel / leer', 8, '青空', 'aozora', 'blauer Himmel'),
   kj('雨', '雨', ['ウ'], ['あめ'], 'Regen', 8, '大雨', 'ooame', 'Starkregen'),
-  kj('花', '花', ['カ'], ['はな'], 'Blume', 7, '花見', 'hanami', 'Kirschblüten-fest'),
-  kj('草', '草', ['ソウ'], ['くさ'], 'Gras', 9, '草原', 'sougen', 'Wiese'),
+  kj('花', '花', ['カ'], ['はな'], 'Blume', 7, '花見', 'hanami', 'Kirschblütenschau'),
+  kj('草', '草', ['ソウ'], ['くさ'], 'Gras', 9, '草原', 'sougen', 'Grasland'),
 
   // ── Menschen & Familie ──────────────────────────────────────────────────
   kj('人', '人', ['ジン', 'ニン'], ['ひと'], 'Person / Mensch', 2, '日本人', 'nihonjin', 'Japaner'),
@@ -96,8 +96,8 @@ export const kanjiN5Data: LearningItem[] = [
   kj('外', '外', ['ガイ', 'ゲ'], ['そと'], 'Außen', 5, '外国', 'gaikoku', 'Ausland'),
 
   // ── Orte & Institutionen ────────────────────────────────────────────────
-  kj('国', '国', ['コク', 'コッ'], ['くに'], 'Land', 8, '外国', 'gaikoku', 'Ausland'),
-  kj('学', '学', ['ガク', 'ガッ'], ['まな・ぶ'], 'Lernen', 8, '学校', 'gakkou', 'Schule'),
+  kj('国', '国', ['コク'], ['くに'], 'Land', 8, '外国', 'gaikoku', 'Ausland'),
+  kj('学', '学', ['ガク'], ['まな・ぶ'], 'Lernen', 8, '学校', 'gakkou', 'Schule'),
   kj('校', '校', ['コウ'], [], 'Schule', 10, '学校', 'gakkou', 'Schule'),
   kj('先', '先', ['セン'], ['さき'], 'Zuerst / Vorne', 6, '先生', 'sensei', 'Lehrer'),
   kj(
@@ -105,7 +105,7 @@ export const kanjiN5Data: LearningItem[] = [
     '生',
     ['セイ', 'ショウ'],
     ['い・きる', 'う・まれる'],
-    'Leben / gebären',
+    'leben / geboren werden',
     5,
     '先生',
     'sensei',
@@ -113,7 +113,7 @@ export const kanjiN5Data: LearningItem[] = [
   ),
   kj('電', '電', ['デン'], [], 'Elektrizität', 13, '電車', 'densha', 'Zug'),
   kj('車', '車', ['シャ'], ['くるま'], 'Auto / Fahrzeug', 7, '電車', 'densha', 'Zug'),
-  kj('駅', '駅', ['エキ'], [], 'Bahnhof', 14, '東京駅', 'toukyoueki', 'Tokio Bahnhof'),
+  kj('駅', '駅', ['エキ'], [], 'Bahnhof', 14, '東京駅', 'toukyoueki', 'Bahnhof Tokio'),
 
   // ── Sprache & Schrift ───────────────────────────────────────────────────
   kj('語', '語', ['ゴ'], ['かた・る'], 'Sprache', 14, '日本語', 'nihongo', 'Japanisch'),
@@ -128,17 +128,17 @@ export const kanjiN5Data: LearningItem[] = [
   kj('飲', '飲', ['イン'], ['の・む'], 'Trinken', 12, '飲み物', 'nomimono', 'Getränk'),
 
   // ── Bewegung ────────────────────────────────────────────────────────────
-  kj('来', '来', ['ライ'], ['く・る', 'き・た'], 'Kommen', 7, '来年', 'rainen', 'nächstes Jahr'),
+  kj('来', '来', ['ライ'], ['く・る'], 'Kommen', 7, '来年', 'rainen', 'nächstes Jahr'),
   kj('行', '行', ['コウ', 'ギョウ'], ['い・く', 'おこな・う'], 'Gehen', 6, '旅行', 'ryokou', 'Reise'),
   kj('見', '見', ['ケン'], ['み・る', 'み・せる'], 'Sehen', 7, '見物', 'kenbutsu', 'Sightseeing'),
   kj('聞', '聞', ['ブン', 'モン'], ['き・く'], 'Hören / Fragen', 14, '新聞', 'shinbun', 'Zeitung'),
 
   // ── Sonstiges N5 ────────────────────────────────────────────────────────
-  kj('今', '今', ['コン', 'キン'], ['いま'], 'Jetzt / Heute', 4, '今日', 'kyou', 'heute'),
+  kj('今', '今', ['コン', 'キン'], ['いま'], 'jetzt / die Gegenwart', 4, '今日', 'kyou', 'heute'),
   kj('何', '何', ['カ'], ['なに', 'なん'], 'Was / Wie viele', 7, '何時', 'nanji', 'wie viel Uhr'),
-  kj('円', '円', ['エン'], [], 'Kreis / Yen', 4, '千円', 'senen', '1000 Yen'),
-  kj('本', '本', ['ホン', 'ボン'], ['もと'], 'Buch / Ursprung', 5, '日本', 'nihon', 'Japan'),
-  kj('白', '白', ['ハク', 'ビャク'], ['しろ', 'しら'], 'Weiß', 5, '白い', 'shiroi', 'weiß (Adj.)'),
+  kj('円', '円', ['エン'], [], 'Kreis / Yen', 4, '千円', "sen'en", '1000 Yen'),
+  kj('本', '本', ['ホン'], ['もと'], 'Buch / Ursprung', 5, '日本', 'nihon', 'Japan'),
+  kj('白', '白', ['ハク', 'ビャク'], ['しろ', 'しろ・い'], 'Weiß', 5, '白い', 'shiroi', 'weiß (Adj.)'),
   kj('私', '私', ['シ'], ['わたし', 'わたくし'], 'Ich / privat', 7, '私の', 'watashi no', 'mein/e'),
   kj(
     '出',
@@ -151,7 +151,7 @@ export const kanjiN5Data: LearningItem[] = [
     'deguchi',
     'Ausgang'
   ),
-  kj('入', '入', ['ニュウ'], ['い・る', 'い・れる'], 'Eintreten', 2, '入口', 'iriguchi', 'Eingang'),
+  kj('入', '入', ['ニュウ'], ['はい・る', 'い・れる', 'い・る'], 'Eintreten', 2, '入口', 'iriguchi', 'Eingang'),
   kj('口', '口', ['コウ', 'ク'], ['くち'], 'Mund / Öffnung', 3, '出口', 'deguchi', 'Ausgang'),
   kj('目', '目', ['モク', 'ボク'], ['め'], 'Auge', 5, '目的', 'mokuteki', 'Ziel / Zweck'),
   kj('手', '手', ['シュ'], ['て'], 'Hand', 4, '手紙', 'tegami', 'Brief'),

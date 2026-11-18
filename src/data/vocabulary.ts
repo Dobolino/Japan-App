@@ -8,8 +8,7 @@ function v(
   romaji: string,
   meaning: string,
   vocabCategory: VocabCategory,
-  exampleWord?: string,
-  exampleMeaning?: string,
+  example?: { word: string; romaji: string; meaning: string },
 ): LearningItem {
   return {
     id: `v-${id}`,
@@ -18,9 +17,9 @@ function v(
     meaning,
     category: 'vocabulary',
     vocabCategory,
-    exampleWord,
-    exampleReading: exampleWord,
-    exampleMeaning,
+    exampleWord: example?.word,
+    exampleReading: example?.romaji,
+    exampleMeaning: example?.meaning,
     status: 'new',
     easeFactor: 2.5,
     interval: 1,
@@ -47,7 +46,7 @@ export const vocabularyData: LearningItem[] = [
   v('z-11', '百',     'hyaku',  'Hundert',        'zahlen'),
   v('z-12', '千',     'sen',    'Tausend',        'zahlen'),
   v('z-13', '万',     'man',    'Zehntausend',    'zahlen'),
-  v('z-14', '円',     'en',     'Yen',            'zahlen', '五百円', '500 Yen'),
+  v('z-14', '円',     'en',     'Yen',            'zahlen', { word: '五百円', romaji: 'gohyakuen', meaning: '500 Yen' }),
 
   // ── Zeit ──────────────────────────────────────────────────────────────────
   v('t-01', '今',     'ima',       'Jetzt',           'zeit'),
@@ -65,7 +64,7 @@ export const vocabularyData: LearningItem[] = [
   v('t-13', '午前',   'gozen',     'Vormittag / AM',  'zeit'),
   v('t-14', '午後',   'gogo',      'Nachmittag / PM', 'zeit'),
   v('t-15', '時間',   'jikan',     'Zeit / Stunde',   'zeit'),
-  v('t-16', '分',     'fun / pun', 'Minute',          'zeit'),
+  v('t-16', '分',     'fun',       'Minute (Zähleinheit)', 'zeit', { word: '一分', romaji: 'ippun', meaning: 'eine Minute' }),
 
   // ── Familie ───────────────────────────────────────────────────────────────
   v('f-01', '家族',   'kazoku',    'Familie',         'familie'),
@@ -179,8 +178,8 @@ export const vocabularyData: LearningItem[] = [
   v('vb-18','待つ',   'matsu',     'warten',          'verben'),
   v('vb-19','会う',   'au',        'treffen',         'verben'),
   v('vb-20','分かる', 'wakaru',    'verstehen',       'verben'),
-  v('vb-21','ある',   'aru',       'existieren (Sachen)', 'verben'),
-  v('vb-22','いる',   'iru',       'existieren (Lebewesen)', 'verben'),
+  v('vb-21','ある',   'aru',       'vorhanden sein (Dinge, Pflanzen)', 'verben'),
+  v('vb-22','いる',   'iru',       'da sein (Menschen, Tiere)', 'verben'),
   v('vb-23','する',   'suru',      'machen / tun',    'verben'),
   v('vb-24','思う',   'omou',      'denken / glauben','verben'),
 
@@ -198,11 +197,11 @@ export const vocabularyData: LearningItem[] = [
   v('a-11', '寒い',   'samui',     'kalt (Wetter)',   'adjektive'),
   v('a-12', '面白い', 'omoshiroi', 'interessant / lustig','adjektive'),
   v('a-13', 'きれい', 'kirei',     'schön / sauber',  'adjektive'),
-  v('a-14', '好き',   'suki',      'mögen / Liebling','adjektive'),
+  v('a-14', '好き',   'suki',      'gern haben / mögen','adjektive'),
   v('a-15', '嫌い',   'kirai',     'nicht mögen',     'adjektive'),
   v('a-16', '難しい', 'muzukashii','schwierig',       'adjektive'),
   v('a-17', '簡単',   'kantan',    'einfach / leicht','adjektive'),
-  v('a-18', '楽しい', 'tanoshii',  'Spaß / lustig',   'adjektive'),
+  v('a-18', '楽しい', 'tanoshii',  'angenehm / unterhaltsam',   'adjektive'),
 
   // ── Grüße & Alltag ────────────────────────────────────────────────────────
   v('g-01', 'こんにちは','konnichiwa','Hallo (Guten Tag)', 'grüße'),
@@ -214,10 +213,10 @@ export const vocabularyData: LearningItem[] = [
   v('g-07', 'はい',     'hai',      'Ja',              'grüße'),
   v('g-08', 'いいえ',   'iie',      'Nein',            'grüße'),
   v('g-09', 'どうぞ',   'douzo',    'Bitte (anbieten)','grüße'),
-  v('g-10', 'わかりました','wakarimashita','Ich verstehe','grüße'),
+  v('g-10', 'わかりました','wakarimashita','Verstanden / Ich habe verstanden','grüße'),
   v('g-11', 'わかりません','wakarimasen',  'Ich verstehe nicht','grüße'),
   v('g-12', 'もう一度', 'mou ichido','Noch einmal',    'grüße'),
-  v('g-13', 'いただきます','itadakimasu','Guten Appetit','grüße'),
+  v('g-13', 'いただきます','itadakimasu','Dank vor dem eigenen Essen','grüße'),
 ]
 
 export const VOCAB_CATEGORIES: { key: string; label: string; icon: string }[] = [

@@ -36,7 +36,6 @@ export default function HomePage() {
   const start = () => {
     if (plan.kind === 'lesson' && plan.lesson) {
       if (!plan.resume) {
-        store.introduceItems(plan.lesson.itemIds, plan.lesson.grammarIds)
         store.saveLessonDraft(plan.lesson.id, {
           index: 0,
           stage: 'intro',

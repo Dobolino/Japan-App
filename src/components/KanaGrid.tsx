@@ -12,6 +12,8 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
   const groups = lessons
     .filter((lesson) => lesson.category === category)
     .map((lesson) => ({ title: lesson.title.split(' · ')[1], ids: lesson.itemIds }))
+  const modern = all.filter((item) => !item.historical)
+  const isHiragana = category === 'hiragana'
   if (historical)
     groups.push({
       title: 'Historische Zeichen',
@@ -46,11 +48,25 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
           ))}
         </div>
         <span className="ml-auto text-xs text-[var(--text-muted)]">
-          {all.filter((item) => !item.historical && item.status === 'mastered').length}/
-          {all.filter((item) => !item.historical).length} modern
+          {modern.filter((item) => item.status === 'mastered').length}/{modern.length} gefestigt
         </span>
       </div>
       <div className="scroll-area flex-1 min-h-0 px-4 pb-4">
+        <details className="mb-4 text-sm text-[var(--text-secondary)]">
+          <summary className="cursor-pointer py-2 font-semibold">Welche Formen lerne ich hier?</summary>
+          <p>
+            Du lernst 46 Grundzeichen, 25 Formen mit ゛ oder ゜ und 33 Kombinationen wie{' '}
+            <span lang="ja">{isHiragana ? 'きゃ' : 'キャ'}</span> (kya). Bei dieser Kombination bilden zwei
+            Zeichen zusammen eine Lauteinheit.
+          </p>
+          {!isHiragana && (
+            <p className="mt-2">
+              Im Alltag begegnet dir Katakana häufig in Lehnwörtern wie <span lang="ja">ケーキ</span>{' '}
+              (Kuchen). Einige Karten schreiben auch japanische Wörter in Katakana, damit du das Lesen üben
+              kannst.
+            </p>
+          )}
+        </details>
         {!visible.length && (
           <p role="status" className="empty-state">
             Keine passenden Zeichen. Für heute ist hier nichts fällig.
@@ -90,7 +106,9 @@ export default function KanaGrid({ category }: { category: 'hiragana' | 'katakan
           aria-pressed={historical}
           onClick={() => setHistorical(!historical)}
         >
-          {historical ? 'Historische Zeichen ausblenden' : 'Historische ゐ・ゑ anzeigen'}
+          {historical
+            ? 'Historische Zeichen ausblenden'
+            : `Historische ${isHiragana ? 'ゐ・ゑ' : 'ヰ・ヱ'} anzeigen`}
         </button>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import type { RubySegment } from '@/utils/furigana'
+
 /** Part-of-speech hint for a segmented token. */
 export type TokenPos = 'word' | 'particle' | 'punctuation' | 'other'
 
@@ -5,6 +7,7 @@ export type TokenPos = 'word' | 'particle' | 'punctuation' | 'other'
 export interface Token {
   surface: string
   reading: string
+  segments?: RubySegment[]
   pos: TokenPos
   /** Linked SRS item id when known */
   lemmaId?: string
@@ -15,7 +18,7 @@ export interface Token {
 }
 
 export interface LexiconEntry {
-  id: string
+  id?: string
   surface: string
   reading?: string
   romaji: string

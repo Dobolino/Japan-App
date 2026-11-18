@@ -286,7 +286,7 @@ export const hiraganaData: LearningItem[] = [
   }),
   base({
     id: 'h-he', character: 'へ', romaji: 'he', meaning: 'he / e (Partikel)',
-    exampleWord: 'うえへ', exampleReading: 'ue he', exampleMeaning: 'nach oben',
+    exampleWord: 'うえへ', exampleReading: 'ue e', exampleMeaning: 'nach oben',
     strokes: [
       s([0.15,0.62],[0.5,0.25],[0.85,0.62]),            // 1: single peak stroke
     ],
@@ -426,24 +426,24 @@ export const hiraganaData: LearningItem[] = [
     ],
   }),
   base({
-    id: 'h-wi', character: 'ゐ', romaji: 'wi', meaning: 'wi (veraltet)',
-    exampleWord: 'ゐ', exampleReading: 'wi', exampleMeaning: 'veraltet / historisch',
+    id: 'h-wi', character: 'ゐ', romaji: 'wi', meaning: 'wi (historische Schreibung, heute meist i)',
+    exampleWord: 'ゐ', exampleReading: 'wi', exampleMeaning: 'Historisches WI',
     strokes: [
       s([0.22,0.32],[0.78,0.32]),
       s([0.5,0.15],[0.5,0.88]),
     ],
   }),
   base({
-    id: 'h-we', character: 'ゑ', romaji: 'we', meaning: 'we (veraltet)',
-    exampleWord: 'ゑ', exampleReading: 'we', exampleMeaning: 'veraltet / historisch',
+    id: 'h-we', character: 'ゑ', romaji: 'we', meaning: 'we (historische Schreibung, heute meist e)',
+    exampleWord: 'ゑ', exampleReading: 'we', exampleMeaning: 'Historisches WE',
     strokes: [
       s([0.2,0.3],[0.8,0.3]),
       s([0.5,0.15],[0.5,0.88]),
     ],
   }),
   base({
-    id: 'h-wo', character: 'を', romaji: 'wo / o', meaning: 'wo (Partikel)',
-    exampleWord: 'ほんをよむ', exampleReading: 'hon wo yomu', exampleMeaning: 'ein Buch lesen',
+    id: 'h-wo', character: 'を', romaji: 'wo / o', meaning: 'wo (als Objektpartikel: o)',
+    exampleWord: 'ほんをよむ', exampleReading: 'hon o yomu', exampleMeaning: 'ein Buch lesen',
     strokes: [
       s([0.22,0.25],[0.78,0.25]),                       // 1: top horizontal
       s([0.22,0.42],[0.78,0.42]),                       // 2: middle horizontal

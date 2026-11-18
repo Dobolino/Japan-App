@@ -1,3 +1,4 @@
+import { studySentence, type StudyWord } from './studySentence'
 export interface ChoiceQuestion {
   id: string
   prompt: string
@@ -6,6 +7,7 @@ export interface ChoiceQuestion {
   explanation: string
   jp?: string
   reading?: string
+  words?: StudyWord[]
 }
 export interface Mission {
   id: string
@@ -27,8 +29,7 @@ export const missions: Mission[] = [
         choices: ['水をください。', '水ですか。', '水に行きます。'],
         answer: 0,
         explanation: '水をください bedeutet „Wasser, bitte“. を markiert hier das Gewünschte.',
-        jp: '水をください。',
-        reading: 'みずをください。',
+        ...studySentence('水[みず] を ください 。'),
       },
       {
         id: 'cafe-2',
@@ -36,8 +37,7 @@ export const missions: Mission[] = [
         choices: ['はい、コーヒーです。', 'いいえ、お茶をください。', 'お茶にいます。'],
         answer: 1,
         explanation: 'いいえ verneint höflich. Mit お茶をください bittest du anschließend um Tee.',
-        jp: 'いいえ、お茶をください。',
-        reading: 'いいえ、おちゃをください。',
+        ...studySentence('いいえ 、 お茶[ちゃ] を ください 。'),
       },
       {
         id: 'cafe-3',
@@ -45,8 +45,7 @@ export const missions: Mission[] = [
         choices: ['どこですか。', '何時ですか。', 'いくらですか。'],
         answer: 2,
         explanation: 'いくら fragt nach dem Preis. どこ fragt nach einem Ort, 何時 nach der Uhrzeit.',
-        jp: 'いくらですか。',
-        reading: 'いくらですか。',
+        ...studySentence('いくら です か 。'),
       },
     ],
   },
@@ -62,8 +61,7 @@ export const missions: Mission[] = [
         choices: ['駅はどこですか。', '駅を食べます。', '駅はだれですか。'],
         answer: 0,
         explanation: 'どこ fragt „wo“. は benennt das Thema: den Bahnhof.',
-        jp: '駅はどこですか。',
-        reading: 'えきはどこですか。',
+        ...studySentence('駅[えき] は どこ です か 。'),
       },
       {
         id: 'station-2',
@@ -72,8 +70,7 @@ export const missions: Mission[] = [
         answer: 2,
         explanation:
           'に markiert das Ziel einer Bewegung. で bezeichnet hier nicht das Ziel, sondern beispielsweise den Ort einer Handlung.',
-        jp: '学校に行きます。',
-        reading: 'がっこうにいきます。',
+        ...studySentence('学校[がっこう] に 行[い]きます 。'),
       },
       {
         id: 'station-3',
@@ -82,8 +79,7 @@ export const missions: Mission[] = [
         answer: 1,
         explanation:
           'で markiert den Ort, an dem das Warten stattfindet. に würde bei 行きます das Ziel angeben.',
-        jp: '駅で友達を待ちます。',
-        reading: 'えきでともだちをまちます。',
+        ...studySentence('駅[えき] で 友達[ともだち] を 待[ま]ちます 。'),
       },
     ],
   },
@@ -99,8 +95,7 @@ export const missions: Mission[] = [
         choices: ['おやすみなさい。', 'はじめまして。', 'いただきます。'],
         answer: 1,
         explanation: 'はじめまして ist die Begrüßung beim ersten Kennenlernen.',
-        jp: 'はじめまして。',
-        reading: 'はじめまして。',
+        ...studySentence('はじめまして 。'),
       },
       {
         id: 'intro-2',
@@ -109,8 +104,7 @@ export const missions: Mission[] = [
         answer: 0,
         explanation:
           'は markiert das Thema des Satzes: 私. を markiert ein Objekt und passt vor 学生です nicht.',
-        jp: '私は学生です。',
-        reading: 'わたしはがくせいです。',
+        ...studySentence('私[わたし] は 学生[がくせい] です 。'),
       },
       {
         id: 'intro-3',
@@ -118,8 +112,7 @@ export const missions: Mission[] = [
         choices: ['日本語を勉強します。', '日本語が駅です。', '日本語に飲みます。'],
         answer: 0,
         explanation: '日本語を勉強します: 日本語 ist hier das direkte Objekt zu 勉強します.',
-        jp: '日本語を勉強します。',
-        reading: 'にほんごをべんきょうします。',
+        ...studySentence('日本語[にほんご] を 勉強[べんきょう] します 。'),
       },
     ],
   },

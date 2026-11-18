@@ -5,7 +5,7 @@ import { playJapanese, unlockAudio, isAudioUnlocked, stopAudio } from '@/utils/a
 import { AudioIcon } from '@/components/icons/UiIcons'
 import { useReadingAids } from '@/hooks/useReadingAids'
 import { CAT_LABELS } from '@/constants/status'
-import type { ReviewCard } from '@/types/review'
+import { isKanaLetterCard, type ReviewCard } from '@/types/review'
 import type { Direction, Phase } from '@/hooks/usePracticeSession'
 interface Props {
   card: ReviewCard
@@ -18,7 +18,8 @@ export default function FlashcardFace({ card, direction, phase, showRomajiHint, 
   const aids = useReadingAids(card.answerCharacter, showRomajiHint),
     revealed = phase === 'answer',
     japaneseFront = direction === 'jp-de'
-  const showJapanese = japaneseFront || revealed
+  const kanaLetter = isKanaLetterCard(card)
+  const showJapanese = japaneseFront || revealed || kanaLetter
   return (
     <div className="flashcard flex flex-col flex-1 min-h-0 rounded-3xl overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
@@ -40,7 +41,13 @@ export default function FlashcardFace({ card, direction, phase, showRomajiHint, 
       </div>
       <div className="flashcard-body scroll-area">
         <p className="eyebrow mb-5">
-          {revealed ? 'Antwort' : japaneseFront ? 'Was bedeutet das?' : 'Wie sagst du das auf Japanisch?'}
+          {revealed
+            ? 'Antwort'
+            : kanaLetter
+              ? 'Wie liest du dieses Zeichen?'
+              : japaneseFront
+                ? 'Was bedeutet das?'
+                : 'Wie sagst du das auf Japanisch?'}
         </p>
         {showJapanese ? (
           <>
@@ -49,10 +56,10 @@ export default function FlashcardFace({ card, direction, phase, showRomajiHint, 
               reading={card.answerReading}
               romaji={card.answerRomaji}
               size={card.answerCharacter.length > 3 ? 'sentence' : 'display'}
-              showRomaji={aids.showRomaji}
+              showRomaji={kanaLetter && !revealed ? showRomajiHint : aids.showRomaji}
               showFurigana={aids.showFurigana}
             />
-            {!revealed && (
+            {!revealed && japaneseFront && (
               <button
                 type="button"
                 className="action-chip mt-5"

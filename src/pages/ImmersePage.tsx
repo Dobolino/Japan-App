@@ -96,12 +96,7 @@ function StoryReader({ story }: { story: (typeof stories)[0] }) {
 
   const line = story.lines[Math.min(lineIndex, story.lines.length - 1)]
   const isLast = lineIndex >= story.lines.length - 1
-  const chunkExercise = buildChunkExercise(
-    `${story.id}-${lineIndex}`,
-    line.jp.replace(/[。、！？]/g, ''),
-    line.reading.replace(/[。、！？]/g, ''),
-    line.de
-  )
+  const chunkExercise = buildChunkExercise(`${story.id}-${lineIndex}`, line.jp, line.reading, line.de)
 
   const next = () => {
     if (isLast) {

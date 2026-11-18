@@ -1,4 +1,5 @@
 import { catalog } from '@/data/catalog'
+import { rebuildSessionCard } from './rebuildSessionCard'
 import { grammarData } from '@/data/grammar'
 import type { PersistentState, ScheduleState } from './types'
 import type { LearningItem, UserProgress, DisplayPrefs, GrammarSrsItem } from '@/types'
@@ -111,7 +112,7 @@ export function restoreState(value: unknown): PersistentState {
       .filter((key) => saved[key] !== undefined)
       .map((key) => [key, saved[key]])
   )
-  return {
+  const restored = {
     ...defaults,
     ...retained,
     items: defaults.items,
@@ -129,6 +130,20 @@ export function restoreState(value: unknown): PersistentState {
           .filter((item) => item.lastReviewDate !== null)
           .map((item) => item.grammarId),
   } as PersistentState
+  const session = restored.activeSession
+  if (session) {
+    const cards = Array.isArray(session.queue)
+      ? session.queue.map((card) =>
+          typeof card?.srsId === 'string' && typeof card.cardId === 'string'
+            ? rebuildSessionCard(restored, card.srsId, card.cardId)
+            : null
+        )
+      : []
+    // If a card can no longer be resolved, the remaining learner data is still usable.
+    restored.activeSession =
+      cards.length && cards.every((card) => card !== null) ? { ...session, queue: cards } : null
+  }
+  return restored
 }
 export function persistentSnapshot(value: PersistentState): PersistentState {
   const keys = Object.keys(initialState()) as (keyof PersistentState)[]

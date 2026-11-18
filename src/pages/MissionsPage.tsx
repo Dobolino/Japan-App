@@ -15,6 +15,7 @@ export default function MissionsPage() {
         title={mission.title}
         description={mission.goal}
         questions={mission.questions}
+        backTo="/missions"
         onComplete={() => store.introduceItems([], mission.grammar)}
       />
     )

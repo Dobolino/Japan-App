@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { lemmaCard, sentenceCard } from '@/types/review'
+import { grammarSentenceCard, lemmaCard, sentenceCard } from '@/types/review'
 import { buildReviewQueue, reviewCardMatchesAnswer, pickGrammarReviewCards } from './buildReviewQueue'
 import { grammarData } from '@/data/grammar'
 import type { GrammarSrsItem } from '@/types'
@@ -45,6 +45,15 @@ describe('buildReviewQueue', () => {
     expect(reviewCardMatchesAnswer('a', card)).toBe(true)
   })
 
+  it('grades sentence pronunciation in context while accepting the written kana', () => {
+    const point = grammarData.find((g) => g.id === 'g-sov')!
+    const card = grammarSentenceCard(point, 0, point.examples[0])
+    expect(reviewCardMatchesAnswer('watashi wa ringo o tabemasu', card)).toBe(true)
+    expect(reviewCardMatchesAnswer('watashi wa ringo wo tabemasu', card)).toBe(true)
+    expect(reviewCardMatchesAnswer('わたしはりんごをたべます', card)).toBe(true)
+    expect(reviewCardMatchesAnswer('watashi ha ringo wo tabemasu', card)).toBe(false)
+    expect(reviewCardMatchesAnswer('わたしわりんごおたべます', card)).toBe(false)
+  })
   it('does not treat a failed grammar card scheduled in the future as fresh content', () => {
     const point = grammarData[0]
     const id = `grammar:${point.id}:0`

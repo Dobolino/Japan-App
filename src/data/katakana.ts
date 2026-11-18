@@ -285,7 +285,7 @@ export const katakanaData: LearningItem[] = [
   }),
   base({
     id: 'k-he', character: 'ヘ', romaji: 'he', meaning: 'he / e (Partikel)',
-    exampleWord: 'ウエヘ', exampleReading: 'ue he', exampleMeaning: 'nach oben',
+    exampleWord: 'ウエヘ', exampleReading: 'ue e', exampleMeaning: 'nach oben',
     strokes: [
       s([0.18,0.62],[0.5,0.22],[0.82,0.62]),               // 1: single peak
     ],
@@ -427,16 +427,16 @@ export const katakanaData: LearningItem[] = [
     ],
   }),
   base({
-    id: 'k-wi', character: 'ヰ', romaji: 'wi', meaning: 'wi (veraltet)',
-    exampleWord: 'ヰ', exampleReading: 'wi', exampleMeaning: 'veraltet',
+    id: 'k-wi', character: 'ヰ', romaji: 'wi', meaning: 'wi (historische Schreibung, heute meist i)',
+    exampleWord: 'ヰ', exampleReading: 'wi', exampleMeaning: 'Historisches WI',
     strokes: [
       s([0.22,0.38],[0.78,0.38]),
       s([0.5,0.15],[0.5,0.85]),
     ],
   }),
   base({
-    id: 'k-we', character: 'ヱ', romaji: 'we', meaning: 'we (veraltet)',
-    exampleWord: 'ヱ', exampleReading: 'we', exampleMeaning: 'veraltet',
+    id: 'k-we', character: 'ヱ', romaji: 'we', meaning: 'we (historische Schreibung, heute meist e)',
+    exampleWord: 'ヱ', exampleReading: 'we', exampleMeaning: 'Historisches WE',
     strokes: [
       s([0.22,0.28],[0.78,0.28]),
       s([0.5,0.15],[0.5,0.85]),
@@ -444,8 +444,8 @@ export const katakanaData: LearningItem[] = [
     ],
   }),
   base({
-    id: 'k-wo', character: 'ヲ', romaji: 'wo / o', meaning: 'wo (Partikel)',
-    exampleWord: 'ホンヲヨム', exampleReading: 'hon wo yomu', exampleMeaning: 'ein Buch lesen',
+    id: 'k-wo', character: 'ヲ', romaji: 'wo / o', meaning: 'wo (als Objektpartikel: o)',
+    exampleWord: 'ホンヲヨム', exampleReading: 'hon o yomu', exampleMeaning: 'ein Buch lesen',
     strokes: [
       s([0.22,0.22],[0.78,0.22]),                          // 1: top horizontal
       s([0.22,0.42],[0.78,0.42]),                          // 2: middle horizontal

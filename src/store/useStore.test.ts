@@ -58,3 +58,17 @@ describe('persisted study sessions', () => {
     expect(useStore.getState().progress.xp).toBe(10)
   })
 })
+
+describe('Zeichen aus der Einführung', () => {
+  it('merkt beim Pausieren nur schon gezeigte Karten, ohne XP zu vergeben', () => {
+    useStore.setState(initialState())
+    const draft = { index: 0, stage: 'intro' as const, correct: 0, attempted: 0 }
+    const save = useStore.getState().saveLessonDraft
+    save('hiragana-0', draft)
+    expect(useStore.getState().introducedIds).toEqual(['h-a'])
+    save('hiragana-0', { ...draft, index: 1 })
+    save('hiragana-0', { ...draft, index: 1 })
+    expect(useStore.getState().introducedIds).toEqual(['h-a', 'h-i'])
+    expect(useStore.getState().progress.xp).toBe(0)
+  })
+})

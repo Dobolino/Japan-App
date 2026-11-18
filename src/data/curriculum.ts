@@ -78,7 +78,7 @@ for (const category of ['kanji', 'vocabulary'] as const) {
         .slice(i, i + 5)
         .map((item) => item.meaning.split(' / ')[0])
         .join(', ')}`,
-      goal: 'Du verstehst diese fünf Inhalte und kannst sie aktiv abrufen.',
+      goal: 'Du verstehst diese Inhalte und kannst sie aktiv abrufen.',
       category,
       itemIds: items.slice(i, i + 5).map((item) => item.id),
       prerequisite: i > 0 ? `${category}-${i / 5 - 1}` : 'hiragana-0',

@@ -18,3 +18,9 @@ describe('furigana', () => {
     expect(segs).toEqual([{ text: 'あ' }, { text: 'め' }])
   })
 })
+it('uses both ends of an unlisted word to separate okurigana and Katakana from the kanji reading', () => {
+  expect(alignFurigana('聞き', 'きき')).toEqual([{ text: '聞', reading: 'き' }, { text: 'き' }])
+  const mixed = alignFurigana('バスで帰る', 'ばすでかえる')
+  expect(mixed.filter((part) => part.reading)).toEqual([{ text: '帰', reading: 'かえ' }])
+  expect(alignFurigana('バスで帰る', 'かえる')).toEqual([{ text: 'バスで帰る' }])
+})

@@ -1,6 +1,6 @@
 import type { LearningItem } from '@/types'
-import { kanaToRomaji } from '@/utils/transliteration'
 import { romajiFromReading } from '@/utils/kanaRomaji'
+import { acceptedReadings } from '@/utils/answerMatch'
 import type { GrammarExample, GrammarPoint } from '@/data/grammar'
 
 export type ReviewKind = 'lemma' | 'sentence' | 'grammar-sentence'
@@ -24,6 +24,10 @@ export interface ReviewCard {
   grammarTitle?: string
 }
 
+export function isKanaLetterCard(card: ReviewCard): boolean {
+  return card.kind === 'lemma' && (card.parent.category === 'hiragana' || card.parent.category === 'katakana')
+}
+
 export function lemmaCard(item: LearningItem): ReviewCard {
   return {
     cardId: item.id,
@@ -31,12 +35,7 @@ export function lemmaCard(item: LearningItem): ReviewCard {
     kind: 'lemma',
     answerCharacter: item.character,
     answerRomaji: item.romaji,
-    acceptedAnswers:
-      item.readings?.flatMap((reading) => [reading.kana, reading.romaji]) ??
-      [...(item.onyomi ?? []), ...(item.kunyomi ?? [])].flatMap((reading) => [
-        reading.replace(/・/g, ''),
-        kanaToRomaji(reading),
-      ]),
+    acceptedAnswers: acceptedReadings(item),
     promptMeaning: item.meaning,
     promptCharacter: item.character,
     promptRomaji: item.romaji,
@@ -66,18 +65,23 @@ export function sentenceCard(item: LearningItem): ReviewCard | null {
 export function grammarSentenceCard(g: GrammarPoint, exIndex: number, ex: GrammarExample): ReviewCard {
   const id = `grammar:${g.id}:${exIndex}`
   const placeholder = placeholderParent(g.id)
+  const spoken = romajiFromReading(ex.reading, ex.jp)
+  const acceptedAnswers = [ex.reading]
+  // Both o and wo conventionally romanize the object particle を. Keep the
+  // pronunciation of は (wa) and へ (e) from the contextual reading in both.
+  if (ex.jp.includes('を')) acceptedAnswers.push(spoken.replace(/\bo\b/gi, 'wo'))
 
   return {
     cardId: id,
     srsId: id,
     kind: 'grammar-sentence',
     answerCharacter: ex.jp,
-    answerRomaji: romajiFromReading(ex.reading, ex.jp),
-    acceptedAnswers: [ex.reading, kanaToRomaji(ex.reading), romajiFromReading(ex.reading, ex.jp)],
+    answerRomaji: spoken,
+    acceptedAnswers,
     answerReading: ex.reading,
     promptMeaning: ex.de,
     promptCharacter: ex.jp,
-    promptRomaji: romajiFromReading(ex.reading, ex.jp),
+    promptRomaji: spoken,
     promptReading: ex.reading,
     parent: placeholder,
     contextLabel: g.category,

@@ -1,12 +1,13 @@
-import { alignFurigana, isKanaReading } from '@/utils/furigana'
+import { alignFurigana, isKanaReading, type RubySegment } from '@/utils/furigana'
 import { useReadingAids } from '@/hooks/useReadingAids'
 
 interface Props {
   text: string
   /** Hiragana/katakana reading or romaji fallback */
   reading?: string
+  segments?: RubySegment[]
   romaji?: string
-  size?: 'sentence' | 'display' | 'compact'
+  size?: 'sentence' | 'display' | 'compact' | 'inherit'
   showFurigana?: boolean
   showRomaji?: boolean
   className?: string
@@ -16,11 +17,13 @@ const SIZE_CLASS = {
   sentence: 'jp-sentence',
   display: 'jp-display',
   compact: 'jp-compact',
+  inherit: '',
 }
 
 export default function RubyText({
   text,
   reading,
+  segments: authoredSegments,
   romaji,
   size = 'sentence',
   showFurigana: furiganaProp,
@@ -33,7 +36,7 @@ export default function RubyText({
 
   const sizeClass = SIZE_CLASS[size]
   const canRuby = reading && isKanaReading(reading) && showFurigana
-  const segments = canRuby ? alignFurigana(text, reading) : [{ text }]
+  const segments = canRuby ? (authoredSegments ?? alignFurigana(text, reading)) : [{ text }]
 
   return (
     <span lang="ja" className={`jp inline-block ${sizeClass} ${className}`.trim()}>

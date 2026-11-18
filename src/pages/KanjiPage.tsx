@@ -27,9 +27,9 @@ export default function KanjiPage() {
     <div className="flex flex-col h-full">
       <div className="px-4 pt-4 pb-2 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">Kanji N5</h2>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Kanji-Grundlagen</h2>
           <p className="text-[var(--text-muted)] text-xs font-semibold">
-            {mastered}/{total} beherrscht · {total} JLPT N5 Kanji
+            {mastered}/{total} beherrscht · Auswahl zur N5-Vorbereitung
           </p>
         </div>
       </div>

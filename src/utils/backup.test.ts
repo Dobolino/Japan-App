@@ -109,6 +109,43 @@ describe('versioned backups', () => {
     expect(restored.typed).toBe('a')
     expect(restored.phase).toBe('answer')
   })
+  it('refreshes card content when reopening a pre-audit local session without regrading its feedback', () => {
+    const original = initialState()
+    const oldReading = { kana: 'ガッ', romaji: 'ga', kind: 'on' as const }
+    const oldItem = { ...original.items['kj-学'], readings: [oldReading], romaji: 'ga' }
+    const stale = lemmaCard(oldItem)
+    const exampleId = `${stale.srsId}:ex`
+    const grammarId = Object.keys(original.grammarSrs)[0]
+    const session = {
+      id: 'legacy-session',
+      index: 1,
+      ratings: [0],
+      retries: [stale.srsId],
+      phase: 'answer',
+      direction: 'de-jp',
+      mode: 'srs',
+      typed: 'ガッ',
+      correct: true,
+      startedAt: '2026-10-26T10:00:00.000Z',
+      queue: [
+        stale,
+        { ...stale, cardId: `${stale.cardId}:retry` },
+        { ...stale, srsId: exampleId, cardId: exampleId },
+        { ...stale, srsId: grammarId, cardId: grammarId },
+      ],
+    }
+    const restored = restoreState(JSON.parse(JSON.stringify({ ...original, activeSession: session })))
+    const active = restored.activeSession!
+    expect({ ...active, queue: undefined }).toEqual({ ...session, queue: undefined })
+    expect(active.queue.map((card) => [card.cardId, card.srsId])).toEqual(
+      session.queue.map((card) => [card.cardId, card.srsId])
+    )
+    expect(active.queue[1].acceptedAnswers).toContain('ガク')
+    expect(active.queue[1].acceptedAnswers).not.toContain('ガッ')
+    expect(active.queue[2].answerCharacter).toBe('学校')
+    expect(active.queue[3].kind).toBe('grammar-sentence')
+    expect(restored.progress).toEqual(original.progress)
+  })
   it('rejects out-of-range lesson and training positions before applying them', () => {
     const input = envelope()
     input.state.lessonDrafts['hiragana-0'] = { index: 5, stage: 'production', correct: 0, attempted: 0 }

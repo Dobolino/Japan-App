@@ -1,11 +1,10 @@
 import { RATING_BUTTONS } from '@/constants/srs'
-import { reviewCardMatchesAnswer } from '@/utils/buildReviewQueue'
 import { reviewIntervalLabel } from '@/utils/sm2'
 import { useStore } from '@/store/useStore'
 import FlashcardFace, { useCardAudio } from '@/components/practice/FlashcardFace'
 import { CheckIcon, CrossIcon } from '@/components/icons/UiIcons'
 import type { SRSRating } from '@/types'
-import type { ReviewCard } from '@/types/review'
+import { isKanaLetterCard, type ReviewCard } from '@/types/review'
 import { grammarData } from '@/data/grammar'
 import type { Phase, Direction, PracticeMode } from '@/hooks/usePracticeSession'
 import { Link } from 'react-router-dom'
@@ -60,7 +59,6 @@ export default function PracticeCard({
       current.parent
   )
   const progressPct = queueLength > 0 ? (index / queueLength) * 100 : 0
-  const typedCorrect = typed ? reviewCardMatchesAnswer(typed, current) : false
   const willRetry = useStore((state) => !state.activeSession?.retries.includes(current.srsId))
   const grammarExplanation = grammarData.find((point) =>
     current.srsId.startsWith(`grammar:${point.id}:`)
@@ -124,7 +122,11 @@ export default function PracticeCard({
                 }
               }}
               placeholder={
-                current.kind === 'sentence' ? 'Ganzen Satz auf Japanisch…' : 'Japanisch oder Romaji…'
+                isKanaLetterCard(current)
+                  ? 'Lesung in Rōmaji'
+                  : current.kind === 'sentence'
+                    ? 'Ganzen Satz auf Japanisch…'
+                    : 'Japanisch oder Romaji…'
               }
               aria-label="Antwort eingeben"
               autoFocus
@@ -155,9 +157,9 @@ export default function PracticeCard({
             {typed && (
               <div
                 role="status"
-                className={`feedback-panel ${typedCorrect || lastCheckedCorrect ? 'is-correct' : 'is-wrong'}`}
+                className={`feedback-panel ${lastCheckedCorrect ? 'is-correct' : 'is-wrong'}`}
               >
-                {typedCorrect || lastCheckedCorrect
+                {lastCheckedCorrect
                   ? '✓ Richtig!'
                   : `Deine Antwort: ${typed} — Richtig: ${current.answerCharacter} (${current.answerRomaji})`}
                 {kanjiParts[current.answerCharacter] ? (
@@ -173,7 +175,7 @@ export default function PracticeCard({
                     </p>
                   )
                 )}
-                {!lastCheckedCorrect && !typedCorrect && (
+                {!lastCheckedCorrect && (
                   <p className="mt-2 font-normal">
                     {willRetry
                       ? 'Das üben wir in dieser Runde noch einmal.'

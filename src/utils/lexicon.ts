@@ -1,82 +1,99 @@
-import { hiraganaData } from '@/data/hiragana'
-import { katakanaData } from '@/data/katakana'
-import { vocabularyData } from '@/data/vocabulary'
-import { kanjiN5Data } from '@/data/kanji-n5'
+import { catalog } from '@/data/catalog'
+import { readingGlosses } from '@/data/readingGlosses'
+import { studySentence } from '@/data/studySentence'
+import { kanaToRomaji, toHiragana } from './transliteration'
 import type { LexiconEntry } from '@/types/token'
 
-const ALL_ITEMS = [...hiraganaData, ...katakanaData, ...vocabularyData, ...kanjiN5Data]
-
-/** N5 particle glosses (German). */
 export const PARTICLE_MEANINGS: Record<string, string> = {
   は: 'Thema-Partikel (wa)',
   が: 'Subjekt-Partikel',
-  を: 'Objekt-Partikel (wo)',
-  に: 'Richtung / Ort / Zeit',
-  で: 'Ort der Handlung / Mittel',
+  を: 'Markiert ein Objekt, einen zurückgelegten Weg oder den Ort, den man verlässt (o)',
+  に: 'Markiert unter anderem Ziel, Zeitpunkt oder die Person, der man begegnet',
+  で: 'Markiert unter anderem Ort, Mittel oder Umstände einer Handlung',
   と: 'und / zusammen mit',
   も: 'auch',
   か: 'Fragepartikel',
   ね: 'Bestätigung (ne)',
   よ: 'Betonung (yo)',
   の: 'Besitz / Nomen-Zusatz',
-  へ: 'Richtung (he)',
+  へ: 'Richtung (e)',
   や: 'und (unvollständige Liste)',
   から: 'von / ab',
   まで: 'bis',
   より: 'als / von (Vergleich)',
 }
 
-function normalizeKey(s: string): string {
-  return s.replace(/[\s.、。！？]/g, '').toLowerCase()
+const dictionary = new Map<string, LexiconEntry[]>()
+const pronunciations = new Map<string, LexiconEntry[]>()
+
+function add(map: Map<string, LexiconEntry[]>, key: string, entry: LexiconEntry) {
+  const entries = map.get(key) ?? []
+  entries.push(entry)
+  map.set(key, entries)
 }
 
-function buildLexicon(): Map<string, LexiconEntry[]> {
-  const map = new Map<string, LexiconEntry[]>()
-
-  const add = (key: string, entry: LexiconEntry) => {
-    const k = normalizeKey(key)
-    if (!k) return
-    const list = map.get(k) ?? []
-    if (!list.some((e) => e.id === entry.id)) list.push(entry)
-    map.set(k, list)
-  }
-
-  for (const item of ALL_ITEMS) {
-    const entry: LexiconEntry = {
+// A word card has priority over the same spelling used as a kanji or as an example.
+for (const category of ['vocabulary', 'kanji']) {
+  for (const item of catalog.filter((item) => item.category === category)) {
+    const entry = {
       id: item.id,
       surface: item.character,
-      reading: item.exampleReading ?? undefined,
       romaji: item.romaji,
       meaning: item.meaning,
-      category: item.category,
+      category,
     }
-    add(item.character, entry)
-    add(item.romaji, entry)
-    if (item.exampleWord) add(item.exampleWord, entry)
-    if (item.exampleReading) add(item.exampleReading, entry)
+    add(dictionary, item.character, entry)
+    if (category === 'vocabulary') {
+      for (const romaji of item.romaji.split(' / ')) add(pronunciations, romaji.replace(/\s/g, ''), entry)
+    }
   }
-
-  return map
+}
+for (const item of catalog) {
+  if (item.exampleWord && item.exampleReading && item.exampleMeaning) {
+    add(dictionary, item.exampleWord, {
+      surface: item.exampleWord,
+      romaji: item.exampleReading,
+      meaning: item.exampleMeaning,
+      category: 'example',
+    })
+  }
 }
 
-const LEXICON = buildLexicon()
-
-export function lookupSurface(surface: string): LexiconEntry | undefined {
-  const entries = LEXICON.get(normalizeKey(surface))
-  return entries?.[0]
-}
-
-export function lookupReading(reading: string): LexiconEntry | undefined {
-  const entries = LEXICON.get(normalizeKey(reading))
-  return entries?.[0]
+for (const [annotated, meaning, headword] of readingGlosses) {
+  const { jp: surface, reading } = studySentence(annotated)
+  const entry = {
+    id: headword ? dictionary.get(headword)?.find((word) => word.id)?.id : undefined,
+    surface,
+    romaji: kanaToRomaji(reading),
+    meaning,
+    category: 'gloss',
+  }
+  dictionary.set(surface, [entry, ...(dictionary.get(surface) ?? [])])
 }
 
 export function lookupToken(surface: string, reading: string): LexiconEntry | undefined {
-  return lookupSurface(surface) ?? lookupReading(reading)
+  const pronunciation = kanaToRomaji(reading)
+  const entries = dictionary.get(surface) ?? []
+  const match = entries.find((entry) =>
+    entry.romaji.split(' / ').some((romaji) => romaji.replace(/\s/g, '') === pronunciation)
+  )
+  // A kana-only example can share its spelling with other catalogued words (はな).
+  if (
+    match?.category === 'example' &&
+    /^[ぁ-ゖー]+$/.test(surface) &&
+    (pronunciations.get(pronunciation)?.length ?? 0) > 1
+  )
+    return undefined
+  if (match) return match
+  if (entries.length && !pronunciation) return entries[0]
+  if (toHiragana(surface) !== toHiragana(reading) || !pronunciation) return undefined
+  // A kana-only spelling has no kanji to disambiguate homophones such as はな (花 / 鼻).
+  const candidates = pronunciations.get(pronunciation)
+  return candidates?.length === 1 ? candidates[0] : undefined
 }
 
 export function isKnownParticle(surface: string): boolean {
-  return surface in PARTICLE_MEANINGS
+  return Object.prototype.hasOwnProperty.call(PARTICLE_MEANINGS, surface)
 }
 
 export function particleMeaning(surface: string): string | undefined {

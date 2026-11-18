@@ -10,6 +10,7 @@ import type {
   ActivityDraft,
 } from './types'
 import { initialState, persistentSnapshot, restoreState, STORE_VERSION } from './persistence'
+import { lessonById } from '@/data/curriculum'
 import { applyReview } from './reviewModel'
 import { selectReviewItems } from '@/utils/reviewCounts'
 import { createBackup } from '@/utils/backup'
@@ -158,11 +159,25 @@ export const useStore = create<AppState>()(
           lessonDrafts: Object.fromEntries(Object.entries(state.lessonDrafts).filter(([key]) => key !== id)),
         })),
       saveLessonDraft: (id, draft) =>
-        set((state) => ({
-          lessonDrafts: draft
-            ? { ...state.lessonDrafts, [id]: draft }
-            : Object.fromEntries(Object.entries(state.lessonDrafts).filter(([key]) => key !== id)),
-        })),
+        set((state) => {
+          if (!draft)
+            return {
+              lessonDrafts: Object.fromEntries(
+                Object.entries(state.lessonDrafts).filter(([key]) => key !== id)
+              ),
+            }
+          const lesson = lessonById[id]
+          const itemId = draft.stage === 'intro' ? lesson?.itemIds[draft.index] : undefined
+          return {
+            lessonDrafts: { ...state.lessonDrafts, [id]: draft },
+            ...(itemId &&
+              !state.introducedIds.includes(itemId) && { introducedIds: [...state.introducedIds, itemId] }),
+            ...(draft.stage === 'intro' &&
+              lesson?.grammarIds && {
+                introducedGrammarIds: [...new Set([...state.introducedGrammarIds, ...lesson.grammarIds])],
+              }),
+          }
+        }),
       updateNotebook: (id, entry) =>
         set((state) =>
           state.items[id]

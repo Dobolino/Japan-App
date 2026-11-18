@@ -1,6 +1,8 @@
+import { studySentence, type StudyWord } from './studySentence'
 import type { ChoiceQuestion } from './activities'
 export interface StoryLine {
   speaker?: string
+  words: StudyWord[]
   jp: string
   reading: string
   de: string
@@ -14,9 +16,8 @@ export interface Story {
   lines: StoryLine[]
   questions: ChoiceQuestion[]
 }
-const line = (jp: string, reading: string, de: string, speaker?: string): StoryLine => ({
-  jp,
-  reading,
+const line = (annotated: string, de: string, speaker?: string): StoryLine => ({
+  ...studySentence(annotated),
   de,
   speaker,
 })
@@ -35,21 +36,11 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['を', 'です', 'か'],
     lines: [
-      line(
-        'すみません。コーヒーをください。',
-        'すみません。こーひーをください。',
-        'Entschuldigung. Einen Kaffee, bitte.',
-        'Gast'
-      ),
-      line(
-        'はい。温かいコーヒーですか。',
-        'はい。あたたかいこーひーですか。',
-        'Gerne. Einen warmen Kaffee?',
-        'Bedienung'
-      ),
-      line('はい、お願いします。', 'はい、おねがいします。', 'Ja, bitte.', 'Gast'),
-      line('三百円です。', 'さんびゃくえんです。', 'Das macht 300 Yen.', 'Bedienung'),
-      line('ありがとうございます。', 'ありがとうございます。', 'Vielen Dank.', 'Gast'),
+      line('すみません 。 コーヒー を ください 。', 'Entschuldigung. Einen Kaffee, bitte.', 'Gast'),
+      line('はい 。 温[あたた]かい コーヒー です か 。', 'Gerne. Einen warmen Kaffee?', 'Bedienung'),
+      line('はい 、 お願[ねが]いします 。', 'Ja, bitte.', 'Gast'),
+      line('三百円[さんびゃくえん] です 。', 'Das macht 300 Yen.', 'Bedienung'),
+      line('ありがとうございます 。', 'Vielen Dank.', 'Gast'),
     ],
     questions: [
       question(
@@ -75,10 +66,10 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['は', 'を', 'で'],
     lines: [
-      line('今日は雨です。', 'きょうはあめです。', 'Heute regnet es.'),
-      line('私は傘を持っています。', 'わたしはかさをもっています。', 'Ich habe einen Regenschirm dabei.'),
-      line('駅まで歩きます。', 'えきまであるきます。', 'Ich gehe zu Fuß bis zum Bahnhof.'),
-      line('駅で友達に会います。', 'えきでともだちにあいます。', 'Am Bahnhof treffe ich einen Freund.'),
+      line('今日[きょう] は 雨[あめ] です 。', 'Heute regnet es.'),
+      line('私[わたし] は 傘[かさ] を 持[も]っています 。', 'Ich habe einen Regenschirm dabei.'),
+      line('駅[えき] まで 歩[ある]きます 。', 'Ich gehe zu Fuß bis zum Bahnhof.'),
+      line('駅[えき] で 友達[ともだち] に 会[あ]います 。', 'Am Bahnhof treffe ich einen Freund.'),
     ],
     questions: [
       question(
@@ -104,14 +95,10 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['と', 'を', 'も'],
     lines: [
-      line(
-        '友達と昼ごはんを食べます。',
-        'ともだちとひるごはんをたべます。',
-        'Ich esse mit einem Freund zu Mittag.'
-      ),
-      line('私はごはんと魚を食べます。', 'わたしはごはんとさかなをたべます。', 'Ich esse Reis und Fisch.'),
-      line('友達も魚を食べます。', 'ともだちもさかなをたべます。', 'Mein Freund isst auch Fisch.'),
-      line('二人でお茶を飲みます。', 'ふたりでおちゃをのみます。', 'Wir trinken zu zweit Tee.'),
+      line('友達[ともだち] と 昼[ひる]ごはん を 食[た]べます 。', 'Ich esse mit einem Freund zu Mittag.'),
+      line('私[わたし] は ごはん と 魚[さかな] を 食[た]べます 。', 'Ich esse Reis und Fisch.'),
+      line('友達[ともだち] も 魚[さかな] を 食[た]べます 。', 'Mein Freund isst auch Fisch.'),
+      line('二人[ふたり] で お茶[ちゃ] を 飲[の]みます 。', 'Wir trinken zu zweit Tee.'),
     ],
     questions: [
       question(
@@ -131,21 +118,18 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['に', 'で', 'を'],
     lines: [
-      line('朝、学校に行きます。', 'あさ、がっこうにいきます。', 'Morgens gehe ich zur Schule.'),
+      line('朝[あさ] 、 学校[がっこう] に 行[い]きます 。', 'Morgens gehe ich zur Schule.'),
       line(
-        '教室で日本語を勉強します。',
-        'きょうしつでにほんごをべんきょうします。',
+        '教室[きょうしつ] で 日本語[にほんご] を 勉強[べんきょう] します 。',
         'Im Klassenzimmer lerne ich Japanisch.'
       ),
       line(
-        '午後、友達と図書館に行きます。',
-        'ごご、ともだちととしょかんにいきます。',
+        '午後[ごご] 、 友達[ともだち] と 図書館[としょかん] に 行[い]きます 。',
         'Nachmittags gehe ich mit einem Freund in die Bibliothek.'
       ),
       line(
-        '図書館で日本語の本を読みます。',
-        'としょかんでにほんごのほんをよみます。',
-        'In der Bibliothek lese ich ein japanisches Buch.'
+        '図書館[としょかん] で 日本語[にほんご] の 本[ほん] を 読[よ]みます 。',
+        'In der Bibliothek lese ich ein Buch auf Japanisch.'
       ),
     ],
     questions: [
@@ -172,10 +156,10 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['で', 'を', 'と'],
     lines: [
-      line('スーパーでりんごを買います。', 'すーぱーでりんごをかいます。', 'Ich kaufe im Supermarkt Äpfel.'),
-      line('りんごを三つ買います。', 'りんごをみっつかいます。', 'Ich kaufe drei Äpfel.'),
-      line('全部で六百円です。', 'ぜんぶでろっぴゃくえんです。', 'Zusammen kosten sie 600 Yen.'),
-      line('家で家族と食べます。', 'いえでかぞくとたべます。', 'Zu Hause esse ich sie mit meiner Familie.'),
+      line('スーパー で りんご を 買[か]います 。', 'Ich kaufe im Supermarkt Äpfel.'),
+      line('りんご を 三[みっ]つ 買[か]います 。', 'Ich kaufe drei Äpfel.'),
+      line('全部[ぜんぶ] で 六百円[ろっぴゃくえん] です 。', 'Zusammen kosten sie 600 Yen.'),
+      line('家[いえ] で 家族[かぞく] と 食[た]べます 。', 'Zu Hause esse ich sie mit meiner Familie.'),
     ],
     questions: [
       question(
@@ -201,10 +185,10 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['に', 'を', 'で'],
     lines: [
-      line('毎朝七時に起きます。', 'まいあさしちじにおきます。', 'Ich stehe jeden Morgen um sieben Uhr auf.'),
-      line('朝ごはんを食べます。', 'あさごはんをたべます。', 'Ich frühstücke.'),
-      line('八時に家を出ます。', 'はちじにいえをでます。', 'Um acht Uhr verlasse ich das Haus.'),
-      line('バスで学校に行きます。', 'ばすでがっこうにいきます。', 'Ich fahre mit dem Bus zur Schule.'),
+      line('毎朝[まいあさ] 七時[しちじ] に 起[お]きます 。', 'Ich stehe jeden Morgen um sieben Uhr auf.'),
+      line('朝[あさ]ごはん を 食[た]べます 。', 'Ich frühstücke.'),
+      line('八時[はちじ] に 家[いえ] を 出[で]ます 。', 'Um acht Uhr verlasse ich das Haus.'),
+      line('バス で 学校[がっこう] に 行[い]きます 。', 'Ich fahre mit dem Bus zur Schule.'),
     ],
     questions: [
       question(
@@ -230,15 +214,14 @@ export const stories: Story[] = [
     level: 'N5',
     grammarTags: ['と', 'に', 'で'],
     lines: [
-      line('今日は日曜日です。', 'きょうはにちようびです。', 'Heute ist Sonntag.'),
-      line('友達と公園に行きます。', 'ともだちとこうえんにいきます。', 'Ich gehe mit Freunden in den Park.'),
-      line('公園でサッカーをします。', 'こうえんでさっかーをします。', 'Wir spielen im Park Fußball.'),
+      line('今日[きょう] は 日曜日[にちようび] です 。', 'Heute ist Sonntag.'),
+      line('友達[ともだち] と 公園[こうえん] に 行[い]きます 。', 'Ich gehe mit Freunden in den Park.'),
+      line('公園[こうえん] で サッカー を します 。', 'Wir spielen im Park Fußball.'),
       line(
-        'そのあと、レストランで昼ごはんを食べます。',
-        'そのあと、れすとらんでひるごはんをたべます。',
+        'そのあと 、 レストラン で 昼[ひる]ごはん を 食[た]べます 。',
         'Danach essen wir im Restaurant zu Mittag.'
       ),
-      line('楽しい一日です。', 'たのしいいちにちです。', 'Es ist ein schöner Tag.'),
+      line('楽[たの]しい 一日[いちにち] です 。', 'Es ist ein schöner Tag.'),
     ],
     questions: [
       question(

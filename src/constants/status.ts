@@ -38,7 +38,7 @@ export const STATUS_DOT: Record<SRSStatus, string> = {
 export const CAT_LABELS: Record<ItemCategory, string> = {
   hiragana: 'Hiragana',
   katakana: 'Katakana',
-  kanji: 'Kanji N5',
+  kanji: 'Kanji',
   vocabulary: 'Vokabeln',
 }
 

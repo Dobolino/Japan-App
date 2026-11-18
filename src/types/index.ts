@@ -24,7 +24,7 @@ export interface LearningItem {
   id: string
   character: string // the Japanese word / character
   romaji: string // reading in romaji
-  readings?: { kana: string; romaji: string; kind?: 'on' | 'kun' }[]
+  readings?: { kana: string; romaji: string; kind?: 'on' | 'kun'; writtenForm?: string }[]
   historical?: boolean
   meaning: string // German meaning
   category: ItemCategory
